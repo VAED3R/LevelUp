@@ -9,7 +9,7 @@
 
 /* Card styling */
 .card {
-  background: white;
+  background: #f0f4f8   ;
   padding: 3rem;
   border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
@@ -71,4 +71,16 @@
     font-size: 1rem;
     padding: 0.8rem 1.5rem;
   }
+}
+
+.buttons .link:nth-child(1) .button {
+  background-color: #4CAF50; /* Blue */
+}
+
+.buttons .link:nth-child(2) .button {
+  background-color: #2196F3; /* Red */
+}
+
+.buttons .link:nth-child(3) .button {
+  background-color: #FF9800; /* Yellow */
 }

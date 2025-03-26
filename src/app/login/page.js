@@ -89,9 +89,14 @@ export default function Login() {
             />
           </div>
 
-          <button type="submit" className={styles.submitButton}>
-            Login
-          </button>
+          <button
+          type="submit"
+          className={`${styles.submitButton} ${role === "student" ? styles.student : ""} 
+                      ${role === "teacher" ? styles.teacher : ""} 
+                      ${role === "parent" ? styles.parent : ""}`}
+        >
+          Login
+        </button>
 
           {error && <p className={styles.error}>{error}</p>}
         </form>

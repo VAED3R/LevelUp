@@ -60,7 +60,7 @@
   
   /* Scoped submit button */
   .submitButton {
-    background: #4a90e2;
+    background: none;
     color: #fff;
     padding: 0.8rem;
     border: none;
@@ -70,8 +70,20 @@
     transition: 0.3s;
   }
   
+  .student {
+    background-color: #4CAF50; /* Green */
+  }
+  
+  .teacher {
+    background-color: #2196F3; /* Blue */
+  }
+  
+  .parent {
+    background-color: #FF9800; /* Orange */
+  }
+  
   .submitButton:hover {
-    background: #357abd;
+    opacity: 0.9; /* Slight opacity on hover */
     transform: scale(1.025);
   }
   
