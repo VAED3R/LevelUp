@@ -72,6 +72,7 @@
   
   .submitButton:hover {
     background: #357abd;
+    transform: scale(1.025);
   }
   
   /* Scoped error message */

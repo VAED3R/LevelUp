@@ -44,7 +44,7 @@ export default function Login() {
           console.log(`${role} login successful`);
           
           // Redirect based on the role
-          router.push(`/${role}-home`);
+          router.push(`/${role}Dashboard`);
         } else {
           console.error("Unauthorized role");
           setError(`You are not authorized to log in as ${role}.`);

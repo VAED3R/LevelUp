@@ -1,5 +1,5 @@
 "use client";
-import styles from "./styles.module.css";
+import styles from "./page.module.css";
 import Link from "next/link";
 
 export default function Authorisation() {
