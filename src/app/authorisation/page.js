@@ -4,8 +4,8 @@ export default function authorisation() {
     return (
         <div className={styles.container}>
             <Link href="/studauth"><div className={styles.button}>Student</div></Link>
-            <a><div className={styles.button}>Parent</div></a>
-            <a><div className={styles.button}>Teacher</div></a>
+            <Link href="/teachauth"><div className={styles.button}>Teacher</div></Link>
+            <Link href="/parentauth"><div className={styles.button}>Parent</div></Link>
         </div>
     );
   }

@@ -1,14 +1,16 @@
+import styles from "./page.module.css"
 export default function teachauth() {
   return (
-    <div>
+    <div className={styles.container}>
+      <div className={styles.boundary}>
       <h1>Teacher Login</h1>
-    <label for="email">Email:</label>
+      <br />
+    <div className={styles.email}><label for="email">Email:</label>
     <input type="email" id="email" name="email" required />
-    <br />
     <label for="password">Password:</label>
     <input type="password" id="password" name="password" required />
-    <br />
-    <input type="submit" value="Submit" />
+    <input type="submit" value="Submit" /></div>
+    </div>
     </div>
   );
 }
