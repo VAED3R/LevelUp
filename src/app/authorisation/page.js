@@ -1,19 +1,11 @@
-<<<<<<< HEAD
-import styles from "./styles.css"
-
+import styles from "./styles.module.css"
+import Link from "next/link";
 export default function authorisation() {
     return (
-        <div>
-            <div className="button">Student</div>
-            <div className="button">Teacher</div>
-            <div className="button">Parent</div>
+        <div className={styles.container}>
+            <Link href="/studauth"><div className={styles.button}>Student</div></Link>
+            <a><div className={styles.button}>Parent</div></a>
+            <a><div className={styles.button}>Teacher</div></a>
         </div>
-=======
-export default function authorisation() {
-    return (
-      <div>
-        <h1>This is autherisation</h1>
-      </div>
->>>>>>> bd0fd6a9bff48dc7268b0f239859141e7c17e525
     );
   }
