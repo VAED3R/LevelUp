@@ -1,6 +1,9 @@
 "use client";
 import styles from "./page.module.css";
 import Link from "next/link";
+import { Cabin_Sketch } from "next/font/google";
+
+const cabinSketch = Cabin_Sketch({ weight: "400", subsets: ["latin"] });
 
 export default function Authorisation() {
   return (
