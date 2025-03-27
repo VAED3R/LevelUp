@@ -6,6 +6,9 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import styles from "./page.module.css";
+import { Cabin_Sketch } from "next/font/google";
+
+const cabinSketch = Cabin_Sketch({ weight: "400", subsets: ["latin"] });
 
 export default function Login() {
   const [email, setEmail] = useState("");
