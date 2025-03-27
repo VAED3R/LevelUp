@@ -54,13 +54,7 @@ export default function Materials() {
                 <p><strong>Class:</strong> {file.className}</p>
                 <p>{file.description}</p>
                 <a href={file.url} target="_blank" rel="noopener noreferrer">View File</a>
-                <a 
-                href={`/api/download/${file.id}`}  // ✅ Use the proxy route
-                download={file.title || "file"}  
-                className={styles.downloadButton}
-                >
-                Download File
-                </a>
+                <a>Summary</a>
 
                 <p className={styles.uploadDate}>
                   Uploaded: {new Date(file.uploadedAt).toLocaleString()}
