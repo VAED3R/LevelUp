@@ -56,11 +56,7 @@ export default function AddNotes() {
       // Check if metadata exists before accessing it
       const context = data.context || {};
 
-      setSuccess(`File uploaded successfully: ${data.url}
-        Title: ${context.title || "N/A"}
-        Subject: ${context.subject || "N/A"}
-        Description: ${context.description || "N/A"}
-        Class: ${context.class || "N/A"}`);
+      setSuccess(`File uploaded successfully`);
 
       // Reset form
       setFile(null);

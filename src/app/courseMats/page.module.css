@@ -1,0 +1,79 @@
+/* Container Styling */
+.classContainer {
+    min-height: 100vh;
+    background: #f3f4f6;
+    color: #1f2937;
+    padding: 40px 20px;
+}
+  
+.content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+  
+.title {
+    text-align: center;
+    font-size: 2.8rem;
+    margin-bottom: 40px;
+    color: #374151;
+    font-weight: bold;
+}
+  
+/* Grid Layout */
+.cardGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+  
+/* Card Styling */
+.card {
+    background: linear-gradient(135deg, #4f46e5, #3b82f6);
+    color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    padding: 25px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+    text-align: center;
+}
+  
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+  
+.card h2 {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+}
+  
+/* Button Styling */
+.button {
+    background: #10b981;
+    color: #ffffff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s, transform 0.2s;
+    width: 100%;
+    max-width: 200px;
+}
+  
+.button:hover {
+    background: #059669;
+    transform: scale(1.05);
+}
+  
+/* Responsive Design */
+@media (max-width: 768px) {
+    .cardGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .button {
+        width: 100%;
+    }
+}

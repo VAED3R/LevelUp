@@ -48,8 +48,8 @@ export default function StudentDashboard() {
   if (error) return <p className={style.error}>{error}</p>;
 
   return (
+    <div>
     <div className={style.dashboard}>
-      <h1>Student Dashboard</h1>
       <Navbar />
       {userData && (
         <div className={style.card}>
@@ -59,6 +59,7 @@ export default function StudentDashboard() {
           <p><strong>Points:</strong> {userData.points}</p>
         </div>
       )}
+    </div>
     </div>
   );
 }
