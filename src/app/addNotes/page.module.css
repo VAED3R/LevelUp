@@ -1,0 +1,75 @@
+.addNotesRoot {
+    min-height: 100vh;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #f1f5f9;
+    color: #1e293b;
+    padding: 2rem;
+    height: 90vh;
+  }
+  
+  .content {
+    background: white;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+  }
+  
+  /* Use a local class for h1 */
+  .content h1 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .fileInput {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .uploadButton {
+    background-color: #38bdf8;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-size: 1rem;
+  }
+  
+  .uploadButton:hover {
+    background-color: #0284c7;
+  }
+  
+  .uploadButton:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .error {
+    color: #ef4444;
+    margin-top: 1rem;
+  }
+  
+  .success {
+    color: #22c55e;
+    margin-top: 1rem;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .content {
+      width: 90%;
+    }
+  }
+  

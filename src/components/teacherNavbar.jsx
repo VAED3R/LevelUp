@@ -17,7 +17,7 @@ export default function Navbar() {
           <Link href="/Attendance" className={styles.navLink}>Attendance</Link>
         </li>
         <li className={styles.navItem}>
-          <Link href="/addNotes" className={styles.navLink}>Notes</Link>
+          <Link href="/classC" className={styles.navLink}>Class Communities</Link>
         </li>
       </ul>
     </nav>

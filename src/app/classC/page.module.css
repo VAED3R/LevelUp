@@ -1,0 +1,125 @@
+.classContainer {
+    min-height: 100vh;
+    background: #f3f4f6;
+    color: #1f2937;
+    padding: 20px;
+  }
+  
+  .content {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .title {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+    color: #374151;
+  }
+  
+  .cardGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    position: relative; /* Ensure dropdowns are positioned relative to the grid */
+    overflow: visible;  /* Prevent clipping */
+    z-index: 1; 
+  }
+  
+  .card {
+    background: linear-gradient(135deg, #4f46e5, #3b82f6);
+    color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+    position: relative; /* Needed to position the dropdown correctly */
+    z-index: 1; /* Keep card below dropdown */
+    margin-top: 35px;
+  }
+  
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  .card h2 {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+  }
+  
+  .card p {
+    font-size: 1rem;
+    color: #e5e7eb;
+    margin-bottom: 15px;
+  }
+  
+  /* Dropdown Wrapper */
+  .dropdownWrapper {
+    position: relative;
+    display: inline-block;
+    z-index: 10; /* Ensure dropdown wrapper is above the card */
+  }
+  
+  /* Main Button */
+  .button {
+    background: #10b981;
+    color: #ffffff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .button:hover {
+    background: #059669;
+  }
+  
+  /* Dropdown menu */
+  .dropdown {
+    position: absolute;
+    top: 100%;   /* Display below the button */
+    left: 0;
+    background: #ffffff;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    min-width: 150px;
+    z-index: 20;  /* Ensure it overlaps above the cards */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s, transform 0.3s;
+    transform: translateY(10px); /* Slight animation effect */
+  }
+  
+  /* Show dropdown when button is hovered */
+  .dropdownWrapper:hover .dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0); /* Dropdown smoothly slides in */
+  }
+  
+  .dropdownItem {
+    background: #f3f4f6;
+    color: #333;
+    border: none;
+    padding: 10px 15px;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.3s;
+    z-index: 30;  /* Keep dropdown items on top */
+  }
+  
+  .dropdownItem:hover {
+    background: #e5e7eb;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .cardGrid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
