@@ -10,16 +10,17 @@
 
 /* Card Styling - Glassmorphism */
 .card {
-  background: rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(15px);
-  border-radius: 12px;
+  background: url('https://www.pexels.com/photo/black-wall-in-close-up-image-3826435/') no-repeat center center/cover;
+  backdrop-filter: blur(10px);
   padding: 3rem;
+  border-radius: 12px;
   text-align: center;
   max-width: 400px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   transition: 0.3s ease-in-out;
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
+
 
 .card:hover {
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
