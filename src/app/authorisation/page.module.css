@@ -6,6 +6,10 @@
   min-height: 100vh;
   background: linear-gradient(to right, #eef2f3, #d9e6f2);
   padding: 1rem;
+  background: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_pgoHuvuMGt_8ovZZra-dq4ZuQCHA3XsBRw&s');
+  background-size:cover;  /* Ensures the image covers the whole container */
+  background-position:center;  /* Centers the image */
+  background-repeat:no-repeat;  /* Prevents repetition */
 }
 
 /* Card Styling - Glassmorphism */
