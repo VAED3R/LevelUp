@@ -15,7 +15,7 @@
     "firebase": "^11.5.0",
     "framer-motion": "^12.6.2",
     "next": "^15.2.4",
-    "pdfjs-dist": "^3.11.174",
+    "pdfjs-dist": "^2.10.377",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
