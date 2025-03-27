@@ -8,7 +8,8 @@ export default function ClassC() {
     const classes = [
         { id: 1, name: "S6CO" },
         { id: 2, name: "S6CS" },
-        { id: 3, name: "S6CT" }
+        { id: 3, name: "S6CT" },
+        { id: 4, name: "S6CS2" }
     ];
 
     return (
