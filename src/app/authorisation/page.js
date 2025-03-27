@@ -16,7 +16,7 @@ export default function Authorisation() {
           </Link>
 
           <Link href="/login?role=teacher" className={styles.link}>
-            <div className={styles.button}>Teacher</div>
+            <div className={styles.button}>Faculty</div>
           </Link>
 
           <Link href="/login?role=parent" className={styles.link}>
