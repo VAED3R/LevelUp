@@ -5,7 +5,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import style from './page.module.css';
 
-import Navbar from "@/components/studentNavbar";
+import Navbar from "@/components/teacherNavbar";
 
 export default function StudentDashboard() {
   const [userData, setUserData] = useState(null);
@@ -49,7 +49,6 @@ export default function StudentDashboard() {
 
   return (
     <div className={style.dashboard}>
-      <h1>Student Dashboard</h1>
       <Navbar />
       {userData && (
         <div className={style.card}>

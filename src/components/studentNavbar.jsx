@@ -6,7 +6,7 @@ export default function Navbar() {
   return (
     <nav>
       <ul>
-        <li><Link href="/">App</Link></li>
+        <li><Link href="/studenDashboard">Dashboard</Link></li>
         <li><Link href="/studenDashboard">Dashboard</Link></li>
       </ul>
     </nav>

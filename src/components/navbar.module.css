@@ -1,0 +1,71 @@
+/* Navigation container */
+.nav {
+    background-color: #1e293b;         /* Dark slate background */
+    color: #f1f5f9;                     /* Light text color */
+    display: flex;                      /* Flexbox layout */
+    justify-content: space-between;     /* Space between logo and links */
+    align-items: center;                /* Vertical alignment */
+    padding: 1rem 2rem;                 /* Padding around nav */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); 
+    transition: background 0.3s;        /* Smooth transition */
+  }
+  
+  
+  /* Logo styling */
+  .logo {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #38bdf8;                    /* Light blue logo color */
+    cursor: pointer;
+    transition: color 0.3s;
+  }
+  
+  .logo:hover {
+    color: #60a5fa;                     /* Slightly brighter on hover */
+  }
+  
+  /* Navigation list */
+  .navList {
+    list-style: none;
+    display: flex;                      /* Horizontal layout */
+    gap: 20px;                          /* Space between items */
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Navigation items */
+  .navItem {
+    margin: 0;
+  }
+  
+  /* Navigation links */
+  .navLink {
+    text-decoration: none;
+    color: #f1f5f9;                     /* Light text color */
+    font-weight: 500;
+    font-size: 1.2rem;
+    transition: color 0.3s;
+  }
+  
+  .navLink:hover {
+    color: #38bdf8;                     /* Blue hover effect */
+    text-decoration: underline;
+  }
+  
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .nav {
+      flex-direction: column;           /* Stack vertically on smaller screens */
+      align-items: flex-start;
+    }
+  
+    .navList {
+      flex-direction: column;
+      gap: 10px;
+    }
+  
+    .navLink {
+      font-size: 1rem;
+    }
+  }
+  
