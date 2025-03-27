@@ -1,58 +1,55 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { getDocument } from "pdfjs-dist";
 import Navbar from "@/components/studentNavbar";
-import Loading from "@/components/loading";
-import styles from "./page.module.css";
 
 export default function Summary() {
-  const searchParams = useSearchParams();
-  const fileUrl = searchParams.get("fileUrl");
+  const [text, setText] = useState("Loading...");
 
-  const [summary, setSummary] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const extractTextFromPDF = async (url) => {
+    try {
+      // Fetch the PDF document
+      const loadingTask = getDocument(url);
+      const pdf = await loadingTask.promise;
 
-  useEffect(() => {
-    const fetchSummary = async () => {
-      try {
-        const response = await fetch("/api/summary", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fileUrl })
-        });
+      let fullText = "";
+      // Loop through all pages of the PDF
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
 
-        if (!response.ok) {
-          throw new Error("Failed to generate summary.");
-        }
-
-        const data = await response.json();
-        setSummary(data.summary);
-      } catch (error) {
-        console.error("Error fetching summary:", error);
-        setError("Failed to generate summary.");
-      } finally {
-        setLoading(false);
+        // Extract text from the content
+        const strings = content.items.map((item) => item.str).join(" ");
+        fullText += `${strings}\n\n`;
       }
-    };
 
-    if (fileUrl) {
-      fetchSummary();
+      // Set the extracted text to the state
+      setText(fullText || "No text extracted from the PDF.");
+    } catch (error) {
+      console.error("Error extracting PDF text:", error);
+      setText("Failed to load or extract text from the PDF.");
     }
-  }, [fileUrl]);
+  };
 
-  if (loading) return <Loading />;
-  if (error) return <div>{error}</div>;
+  // Extract the text when the component mounts
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const pdfUrl = urlParams.get("url");
+
+    if (pdfUrl) {
+      extractTextFromPDF(pdfUrl);
+    } else {
+      setText("No PDF URL provided.");
+    }
+  }, []);
 
   return (
-    <div>
+    <div className="p-6">
       <Navbar />
-      <div className={styles.container}>
-        <h1 className={styles.title}>File Summary</h1>
-        <div className={styles.summaryBox}>
-          <pre>{summary}</pre>
-        </div>
+      <h1 className="text-2xl font-bold mb-4">PDF Summary</h1>
+      <div className="bg-gray-100 p-4 rounded-md shadow-md">
+        <pre className="whitespace-pre-wrap">{text}</pre>
       </div>
     </div>
   );

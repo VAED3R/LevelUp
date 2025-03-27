@@ -20,11 +20,17 @@ export default function Navbar() {
     }
   };
 
+  // ✅ Check API Key directly
+  const checkApiKey = () => {
+    const apiKey = process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY;
+    alert(`API Key: ${apiKey ? apiKey : "Not loaded"}`);
+    console.log("API Key:", apiKey);
+  };
+
   return (
     <nav className={styles.nav}>
       <div className={styles.logo}>Student</div>
 
-      {/* Added wrapper for proper spacing */}
       <div className={styles.navContent}>
         <ul className={styles.navList}>
           <li className={styles.navItem}>
@@ -38,12 +44,19 @@ export default function Navbar() {
           </li>
         </ul>
 
-        {/* Logout button */}
-        {user && (
-          <button onClick={handleLogout} className={styles.logoutButton}>
-            Logout
+        <div className={styles.buttonContainer}>
+          {/* Button to check API key */}
+          <button onClick={checkApiKey} className={styles.apiKeyButton}>
+            Check API Key
           </button>
-        )}
+
+          {/* Logout button */}
+          {user && (
+            <button onClick={handleLogout} className={styles.logoutButton}>
+              Logout
+            </button>
+          )}
+        </div>
       </div>
     </nav>
   );

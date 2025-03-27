@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation"; 
+import { useSearchParams, useRouter } from "next/navigation"; 
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { app } from "@/lib/firebase";  // Your Firebase config
@@ -17,6 +17,7 @@ export default function Materials() {
 
   const searchParams = useSearchParams();
   const subject = searchParams.get("subject");
+  const router = useRouter();  // For navigation
 
   useEffect(() => {
     const fetchUserClass = async (userId) => {
@@ -79,6 +80,11 @@ export default function Materials() {
     }
   }, [subject, userClass]);
 
+  // 🛠️ Function to navigate to the summary page with the file URL as a query param
+  const handleSummary = (fileUrl) => {
+    router.push(`/summary?fileUrl=${encodeURIComponent(fileUrl)}`);
+  };
+
   if (loading) {
     return <Loading />;
   }
@@ -105,7 +111,13 @@ export default function Materials() {
                 <p><strong>Class:</strong> {file.className}</p>
                 <p>{file.description}</p>
                 <a href={file.url} target="_blank" rel="noopener noreferrer">View File</a>
-                <a style={{ marginLeft: "15px" }}>Summary</a>
+                {/* 🚀 Button to go to Summary page */}
+                <button 
+                  style={{ marginLeft: "15px", cursor: "pointer" }} 
+                  onClick={() => handleSummary(file.url)}
+                >
+                  Summary
+                </button>
                 <p className={styles.uploadDate}>
                   Uploaded: {new Date(file.uploadedAt).toLocaleString()}
                 </p>
