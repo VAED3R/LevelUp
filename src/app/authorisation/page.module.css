@@ -19,7 +19,6 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   transition: 0.3s ease-in-out;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #eef2f3;
 }
 
 
@@ -30,7 +29,7 @@
 /* Heading Styling */
 .heading {
   font-size: 2rem;
-  color: #333;
+  color: #ffffff;
   margin-bottom: 1.5rem;
 }
 
