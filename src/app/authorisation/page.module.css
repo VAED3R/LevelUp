@@ -1,86 +1,114 @@
-/* Container styling */
+/* Container Styling */
 .container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: #f5f5f5;
+  background: linear-gradient(to right, #eef2f3, #d9e6f2);
+  padding: 1rem;
 }
 
-/* Card styling */
+/* Card Styling - Glassmorphism */
 .card {
-  background: #f0f4f8   ;
-  padding: 3rem;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(15px);
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  padding: 3rem;
   text-align: center;
-  max-width: 500px;
-  /* width: 100%; */
-  transition: 0.3s;
+  max-width: 400px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  transition: 0.3s ease-in-out;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .card:hover {
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
 }
 
-/* Heading styles */
+/* Heading Styling */
 .heading {
   font-size: 2rem;
   color: #333;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
-/* Button container */
+/* Button Container */
 .buttons {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-/* Link wrapper */
+/* Link Styling */
 .link {
   text-decoration: none;
 }
 
-/* Button styling */
+/* Button Styling */
 .button {
-  background: #4a90e2;
-  color: white;
-  padding: 1rem 2rem;
-  border-radius: 8px;
+  width: 100%;
+  padding: 1rem;
   font-size: 1.2rem;
-  transition: 0.3s;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  font-weight: bold;
+  color: white;
+  border-radius: 8px;
   cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  text-transform: uppercase;
   text-align: center;
 }
 
+/* Button Hover Effect */
 .button:hover {
-  background: #357abd;
-  transform: translateY(-5px);
+  transform: scale(1.05);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
-/* Mobile responsiveness */
+/* Button Colors */
+.button:nth-child(1) {
+  background-color: #4CAF50; /* Green */
+}
+
+.button:nth-child(1):hover {
+  background-color: #388E3C;
+}
+
+.button:nth-child(2) {
+  background-color: #2196F3; /* Blue */
+}
+
+.button:nth-child(2):hover {
+  background-color: #1976D2;
+}
+
+.button:nth-child(3) {
+  background-color: #FF9800; /* Orange */
+}
+
+.button:nth-child(3):hover {
+  background-color: #F57C00;
+}
+
+/* Mobile Responsiveness */
 @media (max-width: 768px) {
   .card {
     padding: 2rem;
+    width: 90%;
   }
 
   .button {
     font-size: 1rem;
-    padding: 0.8rem 1.5rem;
+    padding: 0.8rem;
   }
 }
 
-.buttons .link:nth-child(1) .button {
-  background-color: #4CAF50; /* Blue */
-}
+@media (max-width: 480px) {
+  .card {
+    padding: 1.5rem;
+  }
 
-.buttons .link:nth-child(2) .button {
-  background-color: #2196F3; /* Red */
-}
-
-.buttons .link:nth-child(3) .button {
-  background-color: #FF9800; /* Yellow */
+  .button {
+    padding: 0.7rem;
+  }
 }
