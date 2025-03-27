@@ -39,7 +39,7 @@ export default function AddNotes() {
     formData.append("title", title);
     formData.append("subject", subject);
     formData.append("description", description);
-    formData.append("class", className);  // Include class name in the upload
+    formData.append("class", className);  // Add class name
 
     try {
       const response = await fetch("/api/upload", {
@@ -52,13 +52,24 @@ export default function AddNotes() {
       }
 
       const data = await response.json();
-      setSuccess(`File uploaded successfully: ${data.url}`);
+
+      // Check if metadata exists before accessing it
+      const context = data.context || {};
+
+      setSuccess(`File uploaded successfully: ${data.url}
+        Title: ${context.title || "N/A"}
+        Subject: ${context.subject || "N/A"}
+        Description: ${context.description || "N/A"}
+        Class: ${context.class || "N/A"}`);
 
       // Reset form
       setFile(null);
       setTitle("");
       setSubject("");
       setDescription("");
+
+      // Clear the file input field
+      document.getElementById("fileInput").value = "";
     } catch (error) {
       console.error("Upload failed:", error);
       setError("Upload failed. Please try again.");
@@ -66,6 +77,7 @@ export default function AddNotes() {
       setUploading(false);
     }
   };
+
 
   return (
     <div className={styles.addNotesRoot}>
@@ -97,9 +109,18 @@ export default function AddNotes() {
             className={styles.textArea}
           />
 
-          <input type="file" onChange={handleFileChange} className={styles.fileInput} />
+          <input
+            id="fileInput"
+            type="file"
+            onChange={handleFileChange}
+            className={styles.fileInput}
+          />
 
-          <button onClick={handleUpload} className={styles.uploadButton} disabled={uploading}>
+          <button
+            onClick={handleUpload}
+            className={styles.uploadButton}
+            disabled={uploading}
+          >
             {uploading ? "Uploading..." : "Upload"}
           </button>
 
