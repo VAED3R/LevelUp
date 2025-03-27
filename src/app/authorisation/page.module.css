@@ -7,19 +7,21 @@
   background: linear-gradient(to right, #eef2f3, #d9e6f2);
   padding: 1rem;
   background: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_pgoHuvuMGt_8ovZZra-dq4ZuQCHA3XsBRw&s');
-  background-size:cover;  /* Ensures the image covers the whole container */
-  background-position:center;  /* Centers the image */
-  background-repeat:no-repeat;  /* Prevents repetition */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-/* Card Styling - Glassmorphism */
+
 .card {
   background: url('https://images.pexels.com/photos/3826435/pexels-photo-3826435.jpeg?auto=compress&cs=tinysrgb&w=600') no-repeat center center/cover;
   backdrop-filter: blur(10px);
   padding: 3rem;
   border-radius: 12px;
   text-align: center;
-  max-width: 400px;
+  max-width: 25vw;
+  width: 100%;
+  height: 100%;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   transition: 0.3s ease-in-out;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -60,7 +62,7 @@
   color: white;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s ease-in-out;
+  transition: all 0.25s ease-in-out;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   text-transform: uppercase;
   text-align: center;
@@ -72,30 +74,31 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
-/* Button Colors */
-.button:nth-child(1) {
+/* Select the first, second, and third link's button */
+.link:nth-child(1) .button {
   background-color: #4CAF50; /* Green */
 }
 
-.button:nth-child(1):hover {
+.link:nth-child(1):hover .button {
   background-color: #388E3C;
 }
 
-.button:nth-child(2) {
+.link:nth-child(2) .button {
   background-color: #2196F3; /* Blue */
 }
 
-.button:nth-child(2):hover {
+.link:nth-child(2):hover .button {
   background-color: #1976D2;
 }
 
-.button:nth-child(3) {
+.link:nth-child(3) .button {
   background-color: #FF9800; /* Orange */
 }
 
-.button:nth-child(3):hover {
+.link:nth-child(3):hover .button {
   background-color: #F57C00;
 }
+
 
 /* Mobile Responsiveness */
 @media (max-width: 768px) {

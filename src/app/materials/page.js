@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Navbar from "@/components/studentNavbar";
-import styles from "./page.module.css";  // Import the CSS module
+import styles from "./page.module.css";
 
 export default function Materials() {
   const [files, setFiles] = useState([]);
@@ -54,8 +54,7 @@ export default function Materials() {
                 <p><strong>Class:</strong> {file.className}</p>
                 <p>{file.description}</p>
                 <a href={file.url} target="_blank" rel="noopener noreferrer">View File</a>
-                <a>Summary</a>
-
+                <a style={{ marginLeft: "15px" }}>Summary</a>
                 <p className={styles.uploadDate}>
                   Uploaded: {new Date(file.uploadedAt).toLocaleString()}
                 </p>

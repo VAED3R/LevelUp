@@ -1,11 +1,16 @@
 /* Container styles */
 .container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background: #f5f5f5;
-  }
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(to right, #eef2f3, #d9e6f2);
+  padding: 1rem;
+  background: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_pgoHuvuMGt_8ovZZra-dq4ZuQCHA3XsBRw&s');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
   
   /* Card styling */
   .card {
@@ -14,7 +19,8 @@
     padding: 3rem;
     border-radius: 12px;
     text-align: center;
-    max-width: 400px;
+    max-width: 25vw;
+    width: 100%;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     transition: 0.3s ease-in-out;
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -88,7 +94,7 @@
   
   .submitButton:hover {
     opacity: 0.9; /* Slight opacity on hover */
-    transform: scale(1.025);
+    transform: scale(1.05);
   }
   
   /* Scoped error message */

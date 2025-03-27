@@ -9,8 +9,8 @@
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); 
     transition: background 0.3s;        /* Smooth transition */
   }
-  
-  
+    
+
   /* Logo styling */
   .logo {
     font-size: 1.8rem;
@@ -41,7 +41,7 @@
   /* Navigation links */
   .navLink {
     text-decoration: none;
-    color: #f1f5f9;                     /* Light text color */
+    color: #f1f5f9;
     font-weight: 500;
     font-size: 1.2rem;
     transition: color 0.3s;
