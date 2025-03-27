@@ -1,14 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
+import { useAuth } from "@/context/AuthContext";
 import styles from "./page.module.css";
-import { Cabin_Sketch } from "next/font/google";
-
-const cabinSketch = Cabin_Sketch({ weight: "400", subsets: ["latin"] });
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -18,8 +16,8 @@ export default function Login() {
 
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { user, loading } = useAuth();
 
-  // Get the role from the query parameter on load
   useEffect(() => {
     const roleParam = searchParams.get("role");
     if (roleParam) {
@@ -27,26 +25,29 @@ export default function Login() {
     } else {
       router.push("/");
     }
-  }, [searchParams, router]);
+
+    // Redirect if already logged in
+    if (!loading && user) {
+      router.push(`/${user.role}Dashboard`);
+    }
+  }, [searchParams, router, user, loading]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
     try {
+      await setPersistence(auth, browserLocalPersistence);
+
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Fetch the user's role from Firestore
       const userDoc = await getDoc(doc(db, "users", user.uid));
 
       if (userDoc.exists()) {
         const userData = userDoc.data();
 
-        if (userData.role === role) {  
-          // Only allow login if the role matches the query parameter
+        if (userData.role === role) {
           console.log(`${role} login successful`);
-          
-          // Redirect based on the role
           router.push(`/${role}Dashboard`);
         } else {
           console.error("Unauthorized role");
@@ -56,7 +57,6 @@ export default function Login() {
         console.error("No user data found");
         setError("No user data found.");
       }
-
     } catch (error) {
       console.error("Error logging in:", error);
       setError("Invalid email or password. Please try again.");
@@ -93,13 +93,13 @@ export default function Login() {
           </div>
 
           <button
-          type="submit"
-          className={`${styles.submitButton} ${role === "student" ? styles.student : ""} 
+            type="submit"
+            className={`${styles.submitButton} ${role === "student" ? styles.student : ""} 
                       ${role === "teacher" ? styles.teacher : ""} 
                       ${role === "parent" ? styles.parent : ""}`}
-        >
-          Login
-        </button>
+          >
+            Login
+          </button>
 
           {error && <p className={styles.error}>{error}</p>}
         </form>

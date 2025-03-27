@@ -1,71 +1,105 @@
 /* Navigation container */
 .nav {
-    background-color: #1e293b;         /* Dark slate background */
-    color: #f1f5f9;                     /* Light text color */
-    display: flex;                      /* Flexbox layout */
-    justify-content: space-between;     /* Space between logo and links */
-    align-items: center;                /* Vertical alignment */
-    padding: 1rem 2rem;                 /* Padding around nav */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); 
-    transition: background 0.3s;        /* Smooth transition */
-  }
-    
+  background-color: #1e293b;         /* Dark slate background */
+  color: #f1f5f9;                     /* Light text color */
+  display: flex;                      /* Flexbox layout */
+  justify-content: space-between;     /* Space between logo and nav + logout button */
+  align-items: center;                /* Center vertically */
+  padding: 1rem 2rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: background 0.3s;
+}
 
-  /* Logo styling */
-  .logo {
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: #38bdf8;                    /* Light blue logo color */
-    cursor: pointer;
-    transition: color 0.3s;
+/* Flex container for links and logout button */
+.navContent {
+  display: flex;
+  align-items: center;
+  gap: 30px;                          /* Space between links and logout button */
+}
+
+/* Logo styling */
+.logo {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #38bdf8;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.logo:hover {
+  color: #60a5fa;
+}
+
+/* Navigation list */
+.navList {
+  list-style: none;
+  display: flex;                      /* Horizontal layout */
+  gap: 20px;                          /* Space between items */
+  margin: 0;
+  padding: 0;
+}
+
+/* Navigation items */
+.navItem {
+  margin: 0;
+}
+
+/* Navigation links */
+.navLink {
+  text-decoration: none;
+  color: #f1f5f9;
+  font-weight: 500;
+  font-size: 1.2rem;
+  transition: color 0.3s;
+}
+
+.navLink:hover {
+  color: #38bdf8;
+  text-decoration: underline;
+}
+
+/* Logout button styling */
+.logoutButton {
+  background: #ef4444;               /* Red background */
+  color: #fff;                        /* White text */
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.logoutButton:hover {
+  background: #dc2626;               /* Darker red on hover */
+  transform: scale(1.05);             /* Slight scale effect */
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .nav {
+    flex-direction: column;
+    align-items: flex-start;
   }
-  
-  .logo:hover {
-    color: #60a5fa;                     /* Slightly brighter on hover */
+
+  .navContent {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
   }
-  
-  /* Navigation list */
+
   .navList {
-    list-style: none;
-    display: flex;                      /* Horizontal layout */
-    gap: 20px;                          /* Space between items */
-    margin: 0;
-    padding: 0;
+    flex-direction: column;
+    gap: 10px;
   }
-  
-  /* Navigation items */
-  .navItem {
-    margin: 0;
+
+  .navLink, .logoutButton {
+    font-size: 1rem;
   }
-  
-  /* Navigation links */
-  .navLink {
-    text-decoration: none;
-    color: #f1f5f9;
-    font-weight: 500;
-    font-size: 1.2rem;
-    transition: color 0.3s;
+
+  .logoutButton {
+    width: 100%;
+    text-align: center;
   }
-  
-  .navLink:hover {
-    color: #38bdf8;                     /* Blue hover effect */
-    text-decoration: underline;
-  }
-  
-  /* Responsive design */
-  @media (max-width: 768px) {
-    .nav {
-      flex-direction: column;           /* Stack vertically on smaller screens */
-      align-items: flex-start;
-    }
-  
-    .navList {
-      flex-direction: column;
-      gap: 10px;
-    }
-  
-    .navLink {
-      font-size: 1rem;
-    }
-  }
-  
+}

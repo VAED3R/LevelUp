@@ -15,7 +15,7 @@ export default function Navbar() {
 
   return (
     <nav className={styles.nav}>
-      <div className={styles.logo}>Teacher</div>
+      <div className={styles.logo}>Parent</div>
 
       <div className={styles.navContent}>
         <ul className={styles.navList}>
@@ -23,10 +23,7 @@ export default function Navbar() {
             <Link href="/teacherDashboard" className={styles.navLink}>Dashboard</Link>
           </li>
           <li className={styles.navItem}>
-            <Link href="/Attendance" className={styles.navLink}>Attendance</Link>
-          </li>
-          <li className={styles.navItem}>
-            <Link href="/classC" className={styles.navLink}>Class Communities</Link>
+            <Link href="/Attendance" className={styles.navLink}>Summary</Link>
           </li>
         </ul>
         <button className={styles.logoutButton} onClick={handleLogout}>Logout</button>
