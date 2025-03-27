@@ -1,0 +1,58 @@
+/* Use local class names instead of global selectors */
+.container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .title {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .fileList {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  
+  .fileCard {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s;
+  }
+  
+  .fileCard:hover {
+    transform: translateY(-5px);
+  }
+  
+  .fileCard h2 {
+    margin: 0 0 10px;
+  }
+  
+  .fileCard p {
+    margin: 5px 0;
+  }
+  
+  .fileCard a {
+    display: inline-block;
+    margin-top: 10px;
+    color: #0070f3;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  
+  .fileCard a:hover {
+    text-decoration: underline;
+  }
+  
+  .uploadDate {
+    font-size: 0.9rem;
+    color: #555;
+    margin-top: 10px;
+  }
+  
+  

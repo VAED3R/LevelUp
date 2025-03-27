@@ -28,6 +28,7 @@ export async function POST(req) {
         {
           folder: "notes",
           resource_type: "auto",   // Ensure auto type detection
+          access_mode: "public",
           context: contextString,  // Add metadata
         },
         (error, result) => {
