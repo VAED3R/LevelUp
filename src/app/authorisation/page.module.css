@@ -10,7 +10,7 @@
 
 /* Card Styling - Glassmorphism */
 .card {
-  background: url('https://www.pexels.com/photo/black-wall-in-close-up-image-3826435/') no-repeat center center/cover;
+  background: url('https://images.pexels.com/photos/3826435/pexels-photo-3826435.jpeg?auto=compress&cs=tinysrgb&w=600') no-repeat center center/cover;
   backdrop-filter: blur(10px);
   padding: 3rem;
   border-radius: 12px;
@@ -19,6 +19,7 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   transition: 0.3s ease-in-out;
   border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #eef2f3;
 }
 
 
