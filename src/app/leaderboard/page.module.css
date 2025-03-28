@@ -1,0 +1,101 @@
+/* Main container */
+.container {
+    min-height: 100vh;
+    background: #f4f4f9;
+    font-family: Arial, sans-serif;
+    color: #333;
+  }
+  
+  /* Content wrapper */
+  .content {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+  
+  /* Title */
+  .title {
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #2c3e50;
+  }
+  
+  /* Loading text */
+  .loading {
+    font-size: 18px;
+    text-align: center;
+    color: #666;
+  }
+  
+  /* Table styling */
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .table th, .table td {
+    padding: 15px 20px;
+    text-align: left;
+  }
+  
+  .table thead {
+    background: #3498db;
+    color: white;
+  }
+  
+  .table tbody tr:nth-child(even) {
+    background: #f2f2f2;
+  }
+  
+  .table tbody tr:hover {
+    background: #e1f5fe;
+    transition: background 0.3s;
+  }
+  
+  .table th {
+    font-size: 16px;
+  }
+  
+  .table td {
+    font-size: 14px;
+  }
+  
+  /* Hover effect */
+  tr:hover {
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  /* Filter dropdown styles */
+  .filterContainer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 20px;
+  }
+  
+  .label {
+    margin-right: 10px;
+    font-size: 16px;
+    color: #333;
+  }
+  
+  .select {
+    padding: 10px 15px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+    transition: border 0.3s;
+  }
+  
+  .select:hover, .select:focus {
+    border: 1px solid #3498db;
+  }
+  

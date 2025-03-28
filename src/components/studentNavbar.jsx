@@ -40,16 +40,14 @@ export default function Navbar() {
             <Link href="/Attendance" className={styles.navLink}>Attendance</Link>
           </li>
           <li className={styles.navItem}>
+            <Link href="/leaderboard" className={styles.navLink}>Leaderboard</Link>
+          </li>
+          <li className={styles.navItem}>
             <Link href="/courseMats" className={styles.navLink}>Course Materials</Link>
           </li>
         </ul>
 
         <div className={styles.buttonContainer}>
-          {/* Button to check API key */}
-          <button onClick={checkApiKey} className={styles.apiKeyButton}>
-            Check API Key
-          </button>
-
           {/* Logout button */}
           {user && (
             <button onClick={handleLogout} className={styles.logoutButton}>
