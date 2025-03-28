@@ -55,8 +55,8 @@ export default function StudentDashboard() {
         <div className={style.card}>
           <p><strong>Email:</strong> {userData.email}</p>
           <p><strong>Role:</strong> {userData.role}</p>
-          <p><strong>Attendance:</strong> {userData.attendance}</p>
-          <p><strong>Points:</strong> {userData.points}</p>
+          {/* <p><strong>Attendance:</strong> {userData.attendance}</p>
+          <p><strong>Points:</strong> {userData.points}</p> */}
         </div>
       )}
     </div>

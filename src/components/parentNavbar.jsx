@@ -23,7 +23,7 @@ export default function Navbar() {
             <Link href="/teacherDashboard" className={styles.navLink}>Dashboard</Link>
           </li>
           <li className={styles.navItem}>
-            <Link href="/Attendance" className={styles.navLink}>Summary</Link>
+            <Link href="/Attendance" className={styles.navLink}>Student Performance</Link>
           </li>
         </ul>
         <button className={styles.logoutButton} onClick={handleLogout}>Logout</button>

@@ -115,6 +115,7 @@ export default function Materials() {
                 <button 
                   style={{ marginLeft: "15px", cursor: "pointer" }} 
                   onClick={() => handleSummary(file.url)}
+                  className={styles.summaryButton}
                 >
                   Summary
                 </button>
