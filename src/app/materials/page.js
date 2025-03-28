@@ -101,7 +101,7 @@ export default function Materials() {
           {subject ? `Materials for ${subject} - ${userClass}` : "Uploaded Materials"}
         </h1>
         {files.length === 0 ? (
-          <p>No files uploaded yet.</p>
+          <p className={styles.nofile}>No files uploaded yet.</p>
         ) : (
           <div className={styles.fileList}>
             {files.map((file) => (
