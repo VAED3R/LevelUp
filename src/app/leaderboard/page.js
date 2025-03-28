@@ -12,6 +12,8 @@ export default function Leaderboard() {
   const [classes, setClasses] = useState([]);
   const [selectedClass, setSelectedClass] = useState("All");
   const [loading, setLoading] = useState(true);
+  const [classToppers, setClassToppers] = useState({});
+  const [overallTopper, setOverallTopper] = useState(null);
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -25,7 +27,22 @@ export default function Leaderboard() {
             ...doc.data()
           }))
           .filter(user => user.role === "student")
-          .sort((a, b) => b.points - a.points);  // Descending order
+          .sort((a, b) => b.points - a.points);  // Sort by points (descending)
+
+        // Set the overall topper (first in the sorted list)
+        const topOverall = studentsList[0] || null;
+
+        // Identify top students by class
+        const classTopperMap = {};
+        studentsList.forEach((student) => {
+          const className = student.class || "Unknown";
+          if (
+            !classTopperMap[className] ||
+            student.points > classTopperMap[className].points
+          ) {
+            classTopperMap[className] = student;
+          }
+        });
 
         // Extract unique classes for the filter dropdown
         const uniqueClasses = Array.from(
@@ -35,6 +52,9 @@ export default function Leaderboard() {
         setStudents(studentsList);
         setFilteredStudents(studentsList);
         setClasses(["All", ...uniqueClasses]);
+        setClassToppers(classTopperMap);
+        setOverallTopper(topOverall);
+
       } catch (error) {
         console.error("Error fetching students:", error);
       } finally {
@@ -56,6 +76,18 @@ export default function Leaderboard() {
       const filtered = students.filter(student => student.class === selected);
       setFilteredStudents(filtered);
     }
+  };
+
+  // 🏅 Function to display badges with overall topper persistence
+  const getBadges = (student) => {
+    const isOverallTopper = overallTopper?.id === student.id;
+    const isClassTopper = classToppers[student.class]?.id === student.id;
+
+    let badges = "";
+    if (isOverallTopper) badges += "🏅";  // Overall topper
+    if (isClassTopper) badges += " 🎓";   // Class topper
+
+    return badges;
   };
 
   return (
@@ -97,7 +129,10 @@ export default function Leaderboard() {
               {filteredStudents.map((student, index) => (
                 <tr key={student.id}>
                   <td>{index + 1}</td>
-                  <td>{student.name || "Unknown"}</td>
+                  <td>
+                    {student.name || "Unknown"} 
+                    <span className={styles.badge}> {getBadges(student)}</span>
+                  </td>
                   <td>{student.class || "N/A"}</td>
                   <td>{student.points}</td>
                 </tr>
