@@ -4,13 +4,12 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(to right, #eef2f3, #d9e6f2);
   padding: 1rem;
-  background: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_pgoHuvuMGt_8ovZZra-dq4ZuQCHA3XsBRw&s');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  
+  background: linear-gradient(to right, #a1b2f9, #563675);
 }
+
+
   
   /* Card styling */
   .card {
