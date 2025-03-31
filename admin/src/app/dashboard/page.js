@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
 import { initializeApp } from 'firebase/app';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 import styles from './page.module.css'; // Import the updated CSS
 
 const firebaseConfig = {
@@ -61,8 +63,53 @@ export default function Dashboard() {
   };
 
   const handleAddUser = async () => {
-    // Handle user addition logic with Firebase auth and Firestore.
+    if (!email || !password || !name) {
+      setError('All fields are required');
+      return;
+    }
+  
+    try {
+      // Create user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userId = userCredential.user.uid;
+  
+      // Construct user data object
+      let userData = {
+        name,
+        email,
+        role,
+      };
+  
+      // Add classField only for students
+      if (role === 'student' && classField) {
+        userData.class = classField;
+      }
+  
+      // Add subject only for teachers
+      if (role === 'teacher' && subject) {
+        userData.subject = subject;
+      }
+  
+      // Store user data in Firestore
+      await setDoc(doc(db, 'users', userId), userData);
+  
+      // Reset fields
+      setName('');
+      setEmail('');
+      setPassword('');
+      setRole('teacher');
+      setClassField('');
+      setSubject('');
+      setChildEmail('');
+      setError('');
+      fetchUsers(); // Refresh users list
+  
+    } catch (error) {
+      setError(error.message);
+    }
   };
+  
+    
 
   return (
     <div className={styles.container}>
