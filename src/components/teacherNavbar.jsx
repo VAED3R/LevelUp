@@ -23,7 +23,7 @@ export default function Navbar() {
             <Link href="/teacherDashboard" className={styles.navLink}>Dashboard</Link>
           </li>
           <li className={styles.navItem}>
-            <Link href="/Attendance" className={styles.navLink}>Attendance</Link>
+            <Link href="/teacherAttendance" className={styles.navLink}>Attendance</Link>
           </li>
           <li className={styles.navItem}>
             <Link href="/classC" className={styles.navLink}>Class Communities</Link>

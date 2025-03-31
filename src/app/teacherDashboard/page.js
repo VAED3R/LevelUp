@@ -52,7 +52,7 @@ export default function StudentDashboard() {
       <Navbar />
       {userData && (
         <div className={style.card}>
-          <p><strong>Email:</strong> {userData.email}</p>
+          <p><strong>Name:</strong> {userData.name}</p>
           <p><strong>Role:</strong> {userData.role}</p>
         </div>
       )}
