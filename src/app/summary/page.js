@@ -8,9 +8,12 @@ import styles from "./page.module.css";
 export default function Summary() {
   const [pdfText, setPdfText] = useState("");
   const [summary, setSummary] = useState("");
+  const [customPrompt, setCustomPrompt] = useState(
+    "You are a helpful assistant that summarizes text content. Provide a concise summary of the following text in 3-5 bullet points."
+  );
   const [loading, setLoading] = useState({
     extraction: true,
-    summarization: false
+    summarization: false,
   });
   const [error, setError] = useState("");
   const searchParams = useSearchParams();
@@ -18,34 +21,34 @@ export default function Summary() {
 
   const summarizeText = async (text) => {
     try {
-      setLoading(prev => ({ ...prev, summarization: true }));
+      setLoading((prev) => ({ ...prev, summarization: true }));
       setError("");
-      
-      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+
+      const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.NEXT_PUBLIC_GROQ_API_KEY}`
+          "Authorization": `Bearer ${process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY}`,
         },
         body: JSON.stringify({
-          model: "llama-3.1-8b-instant",
+          model: "deepseek-chat",
           messages: [
             {
               role: "system",
-              content: "You are a helpful assistant that summarizes text content. Provide a concise summary of the following text in 3-5 bullet points."
+              content: customPrompt, // Use the custom prompt from the textbox
             },
             {
               role: "user",
-              content: text
-            }
+              content: text,
+            },
           ],
           temperature: 0.5,
-          max_tokens: 1024
-        })
+          max_tokens: 1024,
+        }),
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error?.message || "Failed to generate summary");
       }
@@ -55,7 +58,7 @@ export default function Summary() {
       setError(err.message);
       console.error("Summarization error:", err);
     } finally {
-      setLoading(prev => ({ ...prev, summarization: false }));
+      setLoading((prev) => ({ ...prev, summarization: false }));
     }
   };
 
@@ -70,7 +73,7 @@ export default function Summary() {
       try {
         setLoading({ extraction: true, summarization: false });
         setError("");
-        
+
         const response = await fetch("http://localhost:8000/extract-text", {
           method: "POST",
           headers: {
@@ -80,51 +83,77 @@ export default function Summary() {
         });
 
         const data = await response.json();
-        
+
         if (!response.ok) {
           throw new Error(data.detail || "Failed to extract text");
         }
 
         setPdfText(data.text);
-        // Automatically summarize after extraction
+
+        // Automatically summarize after extraction using default prompt
         await summarizeText(data.text);
       } catch (err) {
         setError(err.message);
         console.error("Extraction error:", err);
       } finally {
-        setLoading(prev => ({ ...prev, extraction: false }));
+        setLoading((prev) => ({ ...prev, extraction: false }));
       }
     };
 
     extractText();
   }, [fileUrl]);
 
-  if (loading.extraction) return (
-    <div className={styles.loading}>
-      <div className={styles.spinner}></div>
-      <p>Extracting text from PDF...</p>
-    </div>
-  );
+  const handlePromptChange = (e) => {
+    setCustomPrompt(e.target.value);
+  };
 
-  if (error) return (
-    <div className={styles.errorContainer}>
-      <h2>Error Processing PDF</h2>
-      <p>{error}</p>
-      <button 
-        className={styles.retryButton}
-        onClick={() => window.location.reload()}
-      >
-        Try Again
-      </button>
-    </div>
-  );
+  const handleSummarizeClick = () => {
+    summarizeText(pdfText);
+  };
+
+  if (loading.extraction)
+    return (
+      <div className={styles.loading}>
+        <div className={styles.spinner}></div>
+        <p>Extracting text from PDF...</p>
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className={styles.errorContainer}>
+        <h2>Error Processing PDF</h2>
+        <p>{error}</p>
+        <button
+          className={styles.retryButton}
+          onClick={() => window.location.reload()}
+        >
+          Try Again
+        </button>
+      </div>
+    );
 
   return (
     <div>
       <Navbar />
       <div className={styles.container}>
         <h1>PDF Summary</h1>
-        
+
+        {/* Textbox for Custom Prompt */}
+        <div className={styles.promptContainer}>
+          <label htmlFor="prompt">Custom Summary Prompt:</label>
+          <textarea
+            id="prompt"
+            value={customPrompt}
+            onChange={handlePromptChange}
+            className={styles.promptInput}
+            placeholder="Enter your custom prompt..."
+          />
+          <button onClick={handleSummarizeClick} className={styles.summarizeButton}>
+            Summarize Again
+          </button>
+        </div>
+
         {loading.summarization ? (
           <div className={styles.loading}>
             <div className={styles.spinner}></div>
@@ -135,7 +164,7 @@ export default function Summary() {
             <h2>AI Summary</h2>
             {summary ? (
               <div className={styles.summaryContent}>
-                {summary.split('\n').map((line, i) => (
+                {summary.split("\n").map((line, i) => (
                   <p key={i}>{line}</p>
                 ))}
               </div>
@@ -148,11 +177,7 @@ export default function Summary() {
         <div className={styles.pdfSection}>
           <h2>Original Text</h2>
           <div className={styles.pdfContent}>
-            {pdfText ? (
-              <pre>{pdfText}</pre>
-            ) : (
-              <p>No text could be extracted from this PDF</p>
-            )}
+            {pdfText ? <pre>{pdfText}</pre> : <p>No text could be extracted from this PDF</p>}
           </div>
         </div>
       </div>

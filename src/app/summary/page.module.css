@@ -1,16 +1,30 @@
-.container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
-  line-height: 1.6;
+.promptContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
-/* h1 {
-  font-size: 2rem;
-  margin-bottom: 1rem;
+.promptInput {
+  width: 100%;
+  min-height: 100px;
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  resize: none;
 }
 
-p {
-  font-size: 1.2rem;
-  color: #333;
-} */
+.summarizeButton {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.summarizeButton:hover {
+  background-color: #45a049;
+}
