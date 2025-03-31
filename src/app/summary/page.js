@@ -4,6 +4,10 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/studentNavbar";
 import styles from "./page.module.css";
+import ReactMarkdown from "react-markdown";
+import rehypeKatex from "rehype-katex";
+import remarkMath from "remark-math";
+import "katex/dist/katex.min.css";
 
 export default function Summary() {
   const [pdfText, setPdfText] = useState("");
@@ -35,7 +39,7 @@ export default function Summary() {
           messages: [
             {
               role: "system",
-              content: customPrompt, // Use the custom prompt from the textbox
+              content: customPrompt, 
             },
             {
               role: "user",
@@ -90,7 +94,6 @@ export default function Summary() {
 
         setPdfText(data.text);
 
-        // Automatically summarize after extraction using default prompt
         await summarizeText(data.text);
       } catch (err) {
         setError(err.message);
@@ -139,7 +142,6 @@ export default function Summary() {
       <div className={styles.container}>
         <h1>PDF Summary</h1>
 
-        {/* Textbox for Custom Prompt */}
         <div className={styles.promptContainer}>
           <label htmlFor="prompt">Custom Summary Prompt:</label>
           <textarea
@@ -161,12 +163,14 @@ export default function Summary() {
           </div>
         ) : (
           <div className={styles.summarySection}>
-            <h2>AI Summary</h2>
             {summary ? (
               <div className={styles.summaryContent}>
-                {summary.split("\n").map((line, i) => (
-                  <p key={i}>{line}</p>
-                ))}
+                <h2>AI Summary</h2>
+                <ReactMarkdown
+                  children={summary}
+                  remarkPlugins={[remarkMath]}
+                  rehypePlugins={[rehypeKatex]}
+                />
               </div>
             ) : (
               <p>No summary could be generated</p>

@@ -1,30 +1,148 @@
+/* Container styling */
 .promptContainer {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 30px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
+  color : black;
 }
 
+.promptContainer:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+/* Prompt input field */
 .promptInput {
   width: 100%;
-  min-height: 100px;
-  padding: 10px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+  min-height: 120px;
+  padding: 15px;
+  font-size: 15px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  outline: none;
+  transition: box-shadow 0.2s, border 0.2s;
+  background: #ffffff;
+  color: #333;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   resize: none;
 }
 
+.promptInput:focus {
+  border-color: #4CAF50;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+}
+
+/* Summarize button with gradient */
 .summarizeButton {
-  background-color: #4CAF50;
+  background: linear-gradient(135deg, #4CAF50, #388E3C);
   color: white;
-  padding: 10px 15px;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 500;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .summarizeButton:hover {
-  background-color: #45a049;
+  background: linear-gradient(135deg, #45a049, #2e7d32);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Markdown content styling */
+.summaryContent {
+  line-height: 1.8;
+  font-size: 17px;
+  color: #444;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
+}
+
+.summaryContent:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+.summaryContent p {
+  margin-bottom: 15px;
+}
+
+.summaryContent strong {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.summaryContent em {
+  color: #555;
+  font-style: italic;
+}
+
+.summaryContent ul, .summaryContent ol {
+  margin: 20px 0;
+  padding-left: 25px;
+}
+
+.summaryContent li {
+  margin-bottom: 8px;
+}
+
+/* Styling for Katex math equations */
+.katex {
+  font-size: 1.2rem;
+  color: #2e7d32;
+  background: #f1f1f1;
+  padding: 5px 10px;
+  border-radius: 6px;
+  display: inline-block;
+  transition: all 0.3s ease-in-out;
+}
+
+.katex:hover {
+  background: #e0e0e0;
+}
+
+/* PDF section */
+.pdfSection {
+  margin-top: 40px;
+  background: #f5f5f5;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
+}
+
+.pdfSection:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+.pdfSection h2 {
+  font-size: 22px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.pdfContent {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  font-size: 15px;
+  color: #555;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+}
+
+.pdfContent:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
