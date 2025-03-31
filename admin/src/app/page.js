@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { initializeApp } from 'firebase/app';
+import styles from './admin.module.css'; // Import the CSS module
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -48,30 +49,30 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
-      <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-4">Firebase Admin Login</h1>
+    <div className={styles.container}>
+      <div className={styles.loginBox}>
+        <h1>Firebase Admin Login</h1>
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-2 border rounded mb-2"
+          className={styles.inputField}
         />
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-2 border rounded mb-4"
+          className={styles.inputField}
         />
         <button
           onClick={handleLogin}
-          className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition"
+          className={styles.loginBtn}
         >
           Login
         </button>
-        {error && <p className="text-red-500 mt-4">{error}</p>}
+        {error && <p className={styles.errorMessage}>{error}</p>}
       </div>
     </div>
   );
