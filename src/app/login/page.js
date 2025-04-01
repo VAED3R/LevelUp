@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
 import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
@@ -13,12 +14,15 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [role, setRole] = useState("");
+  const [isClient, setIsClient] = useState(false);
 
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user, loading } = useAuth();
 
   useEffect(() => {
+    setIsClient(true); // Ensure animations only run on the client
+
     const roleParam = searchParams.get("role");
     if (roleParam) {
       setRole(roleParam);
@@ -26,7 +30,6 @@ export default function Login() {
       router.push("/");
     }
 
-    // Redirect if already logged in
     if (!loading && user) {
       router.push(`/${user.role}Dashboard`);
     }
@@ -37,7 +40,6 @@ export default function Login() {
 
     try {
       await setPersistence(auth, browserLocalPersistence);
-
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
@@ -50,60 +52,113 @@ export default function Login() {
           console.log(`${role} login successful`);
           router.push(`/${role}Dashboard`);
         } else {
-          console.error("Unauthorized role");
           setError(`You are not authorized to log in as ${role}.`);
         }
       } else {
-        console.error("No user data found");
         setError("No user data found.");
       }
     } catch (error) {
-      console.error("Error logging in:", error);
       setError("Invalid email or password. Please try again.");
     }
   };
 
+  if (!isClient) return null;
+
   return (
-    <div className={styles.container}>
+    <motion.div
+      className={styles.container}
+      initial={{ backgroundPosition: "50% 50%" }}
+      animate={{ backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"] }}
+      transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+    >
       <div className={styles.card}>
-        <h1 className={styles.heading}>
+        <motion.h1
+          className={styles.heading}
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.6, ease: "easeOut" }}
+        >
           {role ? `${role.charAt(0).toUpperCase() + role.slice(1)} Login` : "Login"}
-        </h1>
-        <form onSubmit={handleLogin} className={styles.form}>
-          <div className={styles.field}>
+        </motion.h1>
+
+        <motion.form
+          onSubmit={handleLogin}
+          className={styles.form}
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { staggerChildren: 0.2 } },
+          }}
+        >
+          <motion.div
+            className={styles.field}
+            variants={{
+              hidden: { y: 20, opacity: 0 },
+              visible: { y: 0, opacity: 1, transition: { duration: 0.4 } },
+            }}
+          >
             <label htmlFor="email">Email</label>
-            <input
+            <motion.input
               type="email"
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              whileFocus={{ scale: 1.05 }} // Increases the size of the input field on focus
+              transition={{ duration: 0.3 }} // Smooth transition duration
             />
-          </div>
+          </motion.div>
 
-          <div className={styles.field}>
+          <motion.div
+            className={styles.field}
+            variants={{
+              hidden: { y: 20, opacity: 0 },
+              visible: { y: 0, opacity: 1, transition: { duration: 0.4 } },
+            }}
+          >
             <label htmlFor="password">Password</label>
-            <input
+            <motion.input
               type="password"
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              whileFocus={{ scale: 1.05 }} // Increases the size of the input field on focus
+              transition={{ duration: 0.3 }} // Smooth transition duration
             />
-          </div>
+          </motion.div>
 
-          <button
+          {/* Animated Login Button with fade-in and smooth expansion */}
+          <motion.button
             type="submit"
             className={`${styles.submitButton} ${role === "student" ? styles.student : ""} 
                       ${role === "teacher" ? styles.teacher : ""} 
                       ${role === "parent" ? styles.parent : ""}`}
+            initial={{ scale: 0.8, opacity: 0 }} // Start small and invisible
+            animate={{ scale: 1, opacity: 1 }}  // Final state (normal size and fully visible)
+            transition={{
+              type: "spring",
+              stiffness: 200,
+              damping: 25,
+              delay: 0.8, // Delay to create the smooth entrance
+            }}
           >
             Login
-          </button>
+          </motion.button>
 
-          {error && <p className={styles.error}>{error}</p>}
-        </form>
+          {error && (
+            <motion.p
+              className={styles.error}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              {error}
+            </motion.p>
+          )}
+        </motion.form>
       </div>
-    </div>
+    </motion.div>
   );
 }

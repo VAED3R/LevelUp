@@ -24,7 +24,6 @@
 }
 
 .card:hover {
-  transform: translateY(-10px); /* Floating effect on hover */
   box-shadow: 0 25px 55px rgba(0, 0, 0, 0.25); /* Enhanced shadow */
 }
 
