@@ -1,40 +1,60 @@
 /* Navigation container */
 .nav {
-  background-color: #1e293b;         /* Dark slate background */
-  color: #f1f5f9;                     /* Light text color */
-  display: flex;                      /* Flexbox layout */
-  justify-content: space-between;     /* Space between logo and nav + logout button */
-  align-items: center;                /* Center vertically */
-  padding: 1rem 2rem;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  transition: background 0.3s;
+  background: rgba(30, 41, 59, 0.85); /* Semi-transparent dark background */
+  color: #f1f5f9;
+  display: flex;
+  justify-content: center; /* Center the content horizontally */
+  align-items: center;
+  padding: 0.5rem 1.5rem;
+  border-radius: 40px; /* Rounded navbar */
+  backdrop-filter: blur(12px); /* Glass effect */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  width: 80%;
+  max-width: 1200px; /* Optional: set a max width */
+  height: 60px;
+  padding-left: 120px; /* Add space between the logo and buttons */
+  padding-right: 40px; /* Add some space on the right side */
+  display: flex;
+  justify-content: space-around; /* Align logo to the left, and navContent to the center */
+  align-items: center;
 }
 
-/* Flex container for links and logout button */
-.navContent {
-  display: flex;
-  align-items: center;
-  gap: 30px;                          /* Space between links and logout button */
+/* Logo container */
+.logoContainer {
+  position: absolute;
+  left: 50px; /* Position the logo at the leftmost side */
+  top: 50%;
+  transform: translateY(-50%); /* Vertically center the logo */
 }
 
 /* Logo styling */
 .logo {
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: #38bdf8;
-  cursor: pointer;
-  transition: color 0.3s;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: 'Arial', sans-serif;
 }
 
-.logo:hover {
-  color: #60a5fa;
+/* Container for nav items and button */
+.navContent {
+  display: flex;
+  justify-content: center; /* Center the nav items */
+  align-items: center;
+  width: 100%;
 }
 
 /* Navigation list */
 .navList {
   list-style: none;
-  display: flex;                      /* Horizontal layout */
-  gap: 20px;                          /* Space between items */
+  display: flex;
+  gap: 15px; /* Space between items */
   margin: 0;
   padding: 0;
 }
@@ -49,57 +69,83 @@
   text-decoration: none;
   color: #f1f5f9;
   font-weight: 500;
-  font-size: 1.2rem;
-  transition: color 0.3s;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Space between icon and text */
+  padding: 10px 18px;
+  border-radius: 20px;
+  transition: background 0.3s, color 0.3s, transform 0.2s;
 }
 
+/* Hover effect */
 .navLink:hover {
-  color: #38bdf8;
-  text-decoration: underline;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  transform: scale(1.05);
+}
+
+/* Active state (selected tab) */
+.navLink.active {
+  background: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  font-weight: bold;
+}
+
+/* Icons inside nav links */
+.navIcon {
+  width: 20px;
+  height: 20px;
+  color: #f1f5f9;
+}
+
+/* Button container (Logout button) */
+.buttonContainer {
+  margin-left: auto;
+  margin-right: 0;
 }
 
 /* Logout button styling */
 .logoutButton {
-  background: #ef4444;               /* Red background */
-  color: #fff;                        /* White text */
+  background: #ef4444;
+  color: #fff;
   border: none;
-  padding: 0.5rem 1rem;
-  font-size: 1.1rem;
+  padding: 8px 14px;
+  font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
-  border-radius: 5px;
+  border-radius: 20px;
   transition: background 0.3s, transform 0.2s;
 }
 
 .logoutButton:hover {
-  background: #dc2626;               /* Darker red on hover */
-  transform: scale(1.05);             /* Slight scale effect */
+  background: #dc2626;
+  transform: scale(1.05);
 }
 
-/* Responsive design */
+/* Responsive Design */
 @media (max-width: 768px) {
   .nav {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .navContent {
-    flex-direction: column;
-    gap: 10px;
-    width: 100%;
+    width: 90%;
+    padding: 0.5rem;
   }
 
   .navList {
-    flex-direction: column;
     gap: 10px;
   }
 
-  .navLink, .logoutButton {
-    font-size: 1rem;
+  .navLink {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+  }
+
+  .navIcon {
+    width: 18px;
+    height: 18px;
   }
 
   .logoutButton {
-    width: 100%;
-    text-align: center;
+    padding: 6px 12px;
+    font-size: 0.9rem;
   }
 }

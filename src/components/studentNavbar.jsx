@@ -29,8 +29,12 @@ export default function Navbar() {
 
   return (
     <nav className={styles.nav}>
-      <div className={styles.logo}>Student</div>
+      {/* Logo placed on the leftmost side */}
+      <div className={styles.logoContainer}>
+        <div className={styles.logo}>Student</div>
+      </div>
 
+      {/* Navigation and Logout button centered */}
       <div className={styles.navContent}>
         <ul className={styles.navList}>
           <li className={styles.navItem}>
@@ -46,8 +50,8 @@ export default function Navbar() {
             <Link href="/courseMats" className={styles.navLink}>Course Materials</Link>
           </li>
         </ul>
-
-        <div className={styles.buttonContainer}>
+      </div>
+      <div className={styles.buttonContainer}>
           {/* Logout button */}
           {user && (
             <button onClick={handleLogout} className={styles.logoutButton}>
@@ -55,7 +59,6 @@ export default function Navbar() {
             </button>
           )}
         </div>
-      </div>
     </nav>
   );
 }
