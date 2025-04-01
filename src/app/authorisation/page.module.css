@@ -1,37 +1,45 @@
+/* Animated Background */
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 /* Container Styling */
 .container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(to right, #b5f0ff, #4a7398);
+  background: linear-gradient(45deg, #0f2027, #203a43, #2c5364);
+  background-size: 300% 300%;
+  animation: gradientBG 8s ease infinite;
   padding: 1rem;
 }
 
-
+/* Glassmorphic Card */
 .card {
-  background: url('https://images.pexels.com/photos/3826435/pexels-photo-3826435.jpeg?auto=compress&cs=tinysrgb&w=600') no-repeat center center/cover;
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   padding: 3rem;
-  border-radius: 12px;
+  border-radius: 16px;
   text-align: center;
   max-width: 25vw;
   width: 100%;
-  height: 100%;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  transition: 0.3s ease-in-out;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  height: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
-
 
 .card:hover {
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
 }
-
 
 /* Heading Styling */
 .heading {
-  font-size: 2rem;
+  font-size: 2.5rem;
   color: #ffffff;
   margin-bottom: 1.5rem;
   font-family: "Cabin Sketch", cursive;
@@ -56,51 +64,61 @@
   font-size: 1.2rem;
   font-weight: bold;
   color: white;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.25s ease-in-out;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
   text-transform: uppercase;
   text-align: center;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
+  border: none;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 /* Button Hover Effect */
 .button:hover {
   transform: scale(1.05);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
-/* Select the first, second, and third link's button */
+/* New Button Colors - Different Shades of Purple */
 .link:nth-child(1) .button {
-  background-color: #4CAF50; /* Green */
+  background: linear-gradient(45deg, #7a4e9f, hwb(283 11% 44%)); /* Medium Purple to Rich Violet */
 }
 
 .link:nth-child(1):hover .button {
-  background-color: #388E3C;
+  background: linear-gradient(45deg, #9b59b6, #7a4e9f);
 }
 
 .link:nth-child(2) .button {
-  background-color: #2196F3; /* Blue */
+  background: linear-gradient(45deg, rgb(173, 2, 253), #715c8b); /* Lush Purple to Soft Violet */
 }
 
 .link:nth-child(2):hover .button {
-  background-color: #1976D2;
+  background: linear-gradient(45deg, #9b6fd4, #8e44ad);
 }
 
 .link:nth-child(3) .button {
-  background-color: #FF9800; /* Orange */
+  background: linear-gradient(45deg, #6b208f, #847686); /* Darker Purple to Medium Violet */
 }
 
 .link:nth-child(3):hover .button {
-  background-color: #F57C00;
+  background: linear-gradient(45deg, #9b4da2, #7a3c96);
 }
 
-
 /* Mobile Responsiveness */
+@media (max-width: 1024px) {
+  .card {
+    max-width: 50vw;
+    padding: 2rem;
+  }
+}
+
 @media (max-width: 768px) {
   .card {
+    max-width: 70vw;
     padding: 2rem;
-    width: 90%;
   }
 
   .button {
@@ -111,10 +129,12 @@
 
 @media (max-width: 480px) {
   .card {
+    max-width: 90vw;
     padding: 1.5rem;
   }
 
   .button {
     padding: 0.7rem;
+    font-size: 0.9rem;
   }
 }
