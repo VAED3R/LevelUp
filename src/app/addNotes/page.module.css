@@ -1,5 +1,7 @@
 .addNotesRoot {
     min-height: 100vh;
+    background: radial-gradient(circle at bottom, #5a35ab, #181e39, #0a0a1a);
+    font-family: 'Poppins', sans-serif;
 }
 
 .container {
@@ -7,110 +9,158 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: #f1f5f9;
-    color: #1e293b;
-    padding: 2rem;
+    color: #ffffff;
+    padding: 2.5rem;
     height: 90vh;
-  }
+    margin-top: 80px;
+}
   
-  .content {
-    background: white;
-    padding: 2rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    max-width: 600px;
+.content {
+    background: #f0f4f8;
+    padding: 2.5rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    max-width: 650px;
     width: 100%;
     text-align: center;
-  }
+    border-left: 4px solid #5a35ab;
+}
   
-  /* Use a local class for h1 */
-  .content h1 {
-    font-size: 2rem;
-    margin-bottom: 1.5rem;
-  }
+/* Use a local class for h1 */
+.content h1 {
+    font-size: 2.2rem;
+    margin-bottom: 2rem;
+    color: #1f2937;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+}
   
-  .fileInput {
+.fileInput {
     width: 100%;
-    padding: 10px;
-    margin-bottom: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-  }
+    padding: 10px 15px;
+    margin-bottom: 1.2rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background-color: #ffffff;
+    font-size: 0.95rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    color: #000000;
+}
+
+.fileInput:focus {
+    outline: none;
+    border-color: #5a35ab;
+    box-shadow: 0 0 0 3px rgba(90, 53, 171, 0.1);
+}
   
-  .uploadButton {
-    background-color: #38bdf8;
+.uploadButton {
+    background-color: #5a35ab;
     color: white;
     border: none;
-    padding: 10px 20px;
+    padding: 12px 24px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: background 0.2s, transform 0.2s;
     font-size: 1rem;
-  }
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(90, 53, 171, 0.3);
+}
   
-  .uploadButton:hover {
-    background-color: #0284c7;
-  }
+.uploadButton:hover {
+    background-color: #4a2a8f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(90, 53, 171, 0.4);
+}
   
-  .uploadButton:disabled {
-    background-color: #ccc;
+.uploadButton:disabled {
+    background-color: #9ca3af;
     cursor: not-allowed;
-  }
+    box-shadow: none;
+    transform: none;
+}
   
-  .error {
+.error {
     color: #ef4444;
-    margin-top: 1rem;
-  }
-  
-  .success {
-    color: #22c55e;
-    margin-top: 1rem;
-  }
-  
-  /* Responsive Design */
-  @media (max-width: 768px) {
-    .content {
-      width: 90%;
-    }
-  }
-  
-  .textBox, .textArea {
-    width: 100%;
+    margin-top: 1.2rem;
+    font-weight: 500;
+    background-color: rgba(239, 68, 68, 0.1);
     padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px;
+    border-radius: 6px;
+}
+  
+.success {
+    color: #10b981;
+    margin-top: 1.2rem;
+    font-weight: 500;
+    background-color: rgba(16, 185, 129, 0.1);
+    padding: 10px;
+    border-radius: 6px;
+}
+  
+/* Responsive Design */
+@media (max-width: 768px) {
+    .content {
+        width: 90%;
+        padding: 2rem;
+    }
+    
+    .content h1 {
+        font-size: 1.8rem;
+    }
+}
+  
+.textBox, .textArea {
+    width: 100%;
+    padding: 10px 15px;
+    margin-bottom: 1.2rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.95rem;
     box-sizing: border-box;
-  }
+    background-color: #ffffff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    color: #000000;
+}
+
+.textBox:focus, .textArea:focus {
+    outline: none;
+    border-color: #5a35ab;
+    box-shadow: 0 0 0 3px rgba(90, 53, 171, 0.1);
+}
   
-  .textArea {
-    height: 100px;
+.textArea {
+    height: 120px;
     resize: none;
-  }
+    line-height: 1.5;
+}
   
-  .fileInput {
-    margin: 10px 0;
-  }
+.fileInput {
+    margin: 15px 0;
+}
   
-  .uploadButton {
-    padding: 10px 20px;
-    background-color: #4caf50;
+.uploadButton {
+    padding: 12px 24px;
+    background-color: #5a35ab;
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
-  }
+    font-weight: 500;
+    transition: all 0.2s;
+}
   
-  .uploadButton:disabled {
-    background-color: #ccc;
+.uploadButton:disabled {
+    background-color: #9ca3af;
     cursor: not-allowed;
-  }
+}
   
-  .error {
-    color: red;
-  }
+.error {
+    color: #ef4444;
+    font-weight: 500;
+}
   
-  .success {
-    color: green;
-  }
+.success {
+    color: #10b981;
+    font-weight: 500;
+}
   
