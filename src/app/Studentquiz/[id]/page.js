@@ -279,7 +279,7 @@ export default function StudentQuiz() {
               <p className={styles.scoreText}>Your Score:</p>
               <p className={styles.score}>{score}</p>
               <p className={styles.totalPoints}>
-                out of {quiz.questions.length} points
+                out of {quiz.questions.length} questions
               </p>
             </div>
             <button

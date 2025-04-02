@@ -24,10 +24,11 @@ export default function Leaderboard() {
         const studentsList = querySnapshot.docs
           .map(doc => ({
             id: doc.id,
-            ...doc.data()
+            ...doc.data(),
+            totalPoints: doc.data().points?.reduce((sum, point) => sum + (point.points || 0), 0) || 0
           }))
           .filter(user => user.role === "student")
-          .sort((a, b) => b.points - a.points);  // Sort by points (descending)
+          .sort((a, b) => b.totalPoints - a.totalPoints);  // Sort by total points (descending)
 
         // Set the overall topper (first in the sorted list)
         const topOverall = studentsList[0] || null;
@@ -38,7 +39,7 @@ export default function Leaderboard() {
           const className = student.class || "Unknown";
           if (
             !classTopperMap[className] ||
-            student.points > classTopperMap[className].points
+            student.totalPoints > classTopperMap[className].totalPoints
           ) {
             classTopperMap[className] = student;
           }
@@ -134,7 +135,7 @@ export default function Leaderboard() {
                     <span className={styles.badge}> {getBadges(student)}</span>
                   </td>
                   <td>{student.class || "N/A"}</td>
-                  <td>{student.points}</td>
+                  <td>{student.totalPoints}</td>
                 </tr>
               ))}
             </tbody>
