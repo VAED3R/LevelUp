@@ -1,21 +1,30 @@
 "use client";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import styles from './navbar.module.css';
+import styles from "./navbar.module.css";
 
 export default function Navbar() {
   const router = useRouter();
+  const { user } = useAuth();
 
   const handleLogout = async () => {
-    await signOut(auth);
-    router.push("/login");
+    try {
+      await signOut(auth);
+      router.push("/");  // Redirect to login after logout
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   return (
     <nav className={styles.nav}>
-      <div className={styles.logo}>Teacher</div>
+      <div className={styles.logoContainer}>
+        <div className={styles.logo}>Teacher</div>
+      </div>
 
       <div className={styles.navContent}>
         <ul className={styles.navList}>
@@ -29,7 +38,14 @@ export default function Navbar() {
             <Link href="/classC" className={styles.navLink}>Class Communities</Link>
           </li>
         </ul>
-        <button className={styles.logoutButton} onClick={handleLogout}>Logout</button>
+      </div>
+      <div className={styles.buttonContainer}>
+        {/* Logout button */}
+        {user && (
+          <button onClick={handleLogout} className={styles.logoutButton}>
+            Logout
+          </button>
+        )}
       </div>
     </nav>
   );
