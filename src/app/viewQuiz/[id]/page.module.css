@@ -1,0 +1,165 @@
+.container {
+    min-height: 100vh;
+    background-color: #f0f2f5;
+    padding: 2rem;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.title {
+    color: #1e293b;
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    color: #64748b;
+    font-size: 1.1rem;
+}
+
+.quizInfo {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.quizInfo p {
+    color: #64748b;
+    font-size: 1rem;
+    margin: 0;
+}
+
+.questionsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.questionCard {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.questionHeader {
+    margin-bottom: 1rem;
+}
+
+.questionHeader h3 {
+    color: #1e293b;
+    font-size: 1.25rem;
+    margin: 0;
+}
+
+.questionText {
+    color: #1e293b;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.option {
+    padding: 0.75rem 1rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    color: #64748b;
+    font-size: 1rem;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.correctOption {
+    background: #dcfce7;
+    border-color: #86efac;
+    color: #166534;
+}
+
+.correctLabel {
+    background: #166534;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.answerExplanation {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.correctAnswer {
+    color: #166534;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.explanation {
+    color: #64748b;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.loading {
+    text-align: center;
+    color: #64748b;
+    font-size: 1.1rem;
+    padding: 2rem;
+}
+
+.error {
+    text-align: center;
+    color: #ef4444;
+    font-size: 1.1rem;
+    padding: 2rem;
+    background: #fee2e2;
+    border-radius: 8px;
+    margin: 2rem auto;
+    max-width: 600px;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .quizInfo {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+    }
+
+    .questionCard {
+        padding: 1rem;
+    }
+
+    .option {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .correctLabel {
+        align-self: flex-start;
+    }
+} 

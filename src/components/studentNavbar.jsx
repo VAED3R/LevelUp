@@ -41,7 +41,7 @@ export default function Navbar() {
             <Link href="/studentDashboard" className={styles.navLink}>Dashboard</Link>
           </li>
           <li className={styles.navItem}>
-            <Link href="/Attendance" className={styles.navLink}>Attendance</Link>
+            <Link href="/studentAttendance" className={styles.navLink}>Attendance</Link>
           </li>
           <li className={styles.navItem}>
             <Link href="/leaderboard" className={styles.navLink}>Leaderboard</Link>

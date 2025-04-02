@@ -2,15 +2,17 @@
 
 import Navbar from "@/components/teacherNavbar";
 import { useState, useEffect } from "react";
-import { db, auth } from "@/lib/firebase"; // ✅ Import auth
+import { db, auth } from "@/lib/firebase";
 import {
     collection,
     doc,
     getDocs,
     setDoc,
-    getDoc
+    getDoc,
+    query,
+    where
 } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth"; // ✅ Import onAuthStateChanged
+import { onAuthStateChanged } from "firebase/auth";
 import styles from "./page.module.css";
 
 export default function TeacherAttendance() {
@@ -23,13 +25,12 @@ export default function TeacherAttendance() {
     const [loading, setLoading] = useState(false);
     const [subjects, setSubjects] = useState([]);
     const [selectedSubject, setSelectedSubject] = useState("");
-    const [teacherEmail, setTeacherEmail] = useState(""); // ✅ Store logged-in teacher's email
+    const [teacherEmail, setTeacherEmail] = useState("");
 
-    // ✅ Fetch the logged-in teacher's email
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
-                setTeacherEmail(user.email); // ✅ Set email from auth
+                setTeacherEmail(user.email);
             } else {
                 setTeacherEmail("");
             }
@@ -38,12 +39,11 @@ export default function TeacherAttendance() {
         return () => unsubscribe();
     }, []);
 
-    // ✅ Fetch students and teacher subjects dynamically
     useEffect(() => {
         if (!teacherEmail) return;
 
         const fetchData = async () => {
-            // ✅ Fetch teacher info
+            // Fetch teacher info
             const teacherQuery = await getDocs(collection(db, "users"));
             const teacher = teacherQuery.docs.find(
                 (doc) => doc.data().email === teacherEmail
@@ -56,19 +56,18 @@ export default function TeacherAttendance() {
                 setSubjects(teacherSubjects);
             }
 
-            // ✅ Fetch students and sort them alphabetically
+            // Fetch students
             const studentQuery = await getDocs(collection(db, "users"));
             const studentList = studentQuery.docs
                 .filter((doc) => doc.data().role === "student")
                 .map((doc) => ({
                     id: doc.id,
                     ...doc.data(),
-                }))
-                .sort((a, b) => a.name.localeCompare(b.name)); // ✅ Sort students alphabetically
+                }));
 
             setStudents(studentList);
 
-            // ✅ Extract unique classes and sort them
+            // Extract unique classes
             const uniqueClasses = [
                 ...new Set(studentList.map((student) => student.class)),
             ];
@@ -76,9 +75,8 @@ export default function TeacherAttendance() {
         };
 
         fetchData();
-    }, [teacherEmail]); // ✅ Fetch data only when email is available
+    }, [teacherEmail]);
 
-    // ✅ Filter students based on selected class
     useEffect(() => {
         if (selectedClass) {
             const filtered = students.filter(
@@ -86,7 +84,7 @@ export default function TeacherAttendance() {
             );
             setFilteredStudents(filtered);
 
-            // ✅ Initialize attendance state
+            // Initialize attendance state
             const initialAttendance = {};
             filtered.forEach((student) => {
                 initialAttendance[student.id] = false;
@@ -98,7 +96,6 @@ export default function TeacherAttendance() {
         }
     }, [selectedClass, students]);
 
-    // ✅ Toggle attendance state for a student
     const handleToggleAttendance = (studentId) => {
         setAttendance((prev) => ({
             ...prev,
@@ -106,7 +103,6 @@ export default function TeacherAttendance() {
         }));
     };
 
-    // ✅ Save attendance to Firestore
     const handleSaveAttendance = async () => {
         if (!selectedClass || !selectedDate || !selectedSubject) {
             alert("Please select a class, date, and subject.");
@@ -115,33 +111,48 @@ export default function TeacherAttendance() {
 
         setLoading(true);
 
-        const collectionName = `attendance_${selectedSubject}`;
+        try {
+            // Create a batch of promises for each student
+            const promises = filteredStudents.map(async (student) => {
+                // Create a reference to the student's attendance document
+                const attendanceRef = doc(db, "attendance", `${selectedSubject}_${student.id}`);
+                const attendanceDoc = await getDoc(attendanceRef);
 
-        const promises = filteredStudents.map(async (student) => {
-            const studentRef = doc(db, collectionName, student.id);
-            const docSnap = await getDoc(studentRef);
+                // Get existing attendance data or initialize empty object
+                const existingData = attendanceDoc.exists() ? attendanceDoc.data() : {};
 
-            const attendanceData = docSnap.exists() ? docSnap.data() : {};
+                // Update the attendance data
+                const updatedData = {
+                    ...existingData,
+                    [selectedDate]: {
+                        present: attendance[student.id],
+                        class: selectedClass,
+                        subject: selectedSubject,
+                        teacher: teacherEmail
+                    }
+                };
 
-            await setDoc(studentRef, {
-                ...attendanceData,
-                [selectedDate]: attendance[student.id],
+                // Save the updated attendance data
+                await setDoc(attendanceRef, updatedData);
             });
-        });
 
-        await Promise.all(promises);
-        setLoading(false);
-        alert("Attendance saved successfully!");
+            // Wait for all promises to complete
+            await Promise.all(promises);
+            setLoading(false);
+            alert("Attendance saved successfully!");
+        } catch (error) {
+            console.error("Error saving attendance:", error);
+            setLoading(false);
+            alert("Error saving attendance. Please try again.");
+        }
     };
 
     return (
         <div>
             <Navbar />
-            <div classNmae={styles.background}>
             <div className={styles.container}>
                 <h1>Teacher Attendance</h1>
 
-                {/* ✅ Date, Class, and Subject Selection */}
                 <div className={styles.filters}>
                     <div className={styles.formGroup}>
                         <label>Date:</label>
@@ -149,7 +160,6 @@ export default function TeacherAttendance() {
                             type="date"
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
-                            className={styles.datePicker} // ✅ Styled date picker
                         />
                     </div>
                     <div className={styles.formGroup}>
@@ -183,7 +193,6 @@ export default function TeacherAttendance() {
                     </div>
                 </div>
 
-                {/* ✅ Student Cards */}
                 <div className={styles.cardContainer}>
                     {filteredStudents.map((student) => (
                         <div
@@ -200,7 +209,6 @@ export default function TeacherAttendance() {
                     ))}
                 </div>
 
-                {/* ✅ Save Attendance Button */}
                 <button
                     onClick={handleSaveAttendance}
                     className={styles.saveButton}
@@ -208,7 +216,6 @@ export default function TeacherAttendance() {
                 >
                     {loading ? "Saving..." : "Save Attendance"}
                 </button>
-            </div>
             </div>
         </div>
     );

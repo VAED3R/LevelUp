@@ -1,61 +1,118 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { auth, db } from "@/lib/firebase";  // Ensure you import your Firebase config
-import { doc, getDoc } from "firebase/firestore";
-import { useRouter } from "next/navigation";
+import {
+    collection,
+    getDocs,
+    query,
+    where
+} from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 import style from './page.module.css';
+import Link from "next/link";
 
 import Navbar from "@/components/teacherNavbar";
 
-export default function StudentDashboard() {
-  const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const router = useRouter();
+export default function TeacherDashboard() {
+    const [teacherEmail, setTeacherEmail] = useState("");
+    const [teacherName, setTeacherName] = useState("");
+    const [quizzes, setQuizzes] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const user = auth.currentUser;
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                setTeacherEmail(user.email);
+            }
+        });
+        return () => unsubscribe();
+    }, []);
 
-        if (!user) {
-          console.log("No user is signed in.");
-          router.push("/login");  // Redirect if no user is logged in
-          return;
-        }
+    useEffect(() => {
+        const fetchTeacherData = async () => {
+            if (!teacherEmail) return;
 
-        const userRef = doc(db, "users", user.uid);  // Get the Firestore document by UID
-        const userDoc = await getDoc(userRef);
+            try {
+                // Fetch teacher info
+                const usersRef = collection(db, "users");
+                const querySnapshot = await getDocs(usersRef);
+                const teacher = querySnapshot.docs.find(
+                    (doc) => doc.data().email === teacherEmail
+                )?.data();
 
-        if (userDoc.exists()) {
-          setUserData(userDoc.data());
-        } else {
-          console.error("No user data found in Firestore.");
-          setError("No data found.");
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        setError("Failed to load data.");
-      } finally {
-        setLoading(false);
-      }
-    };
+                if (teacher) {
+                    setTeacherName(teacher.name);
+                }
 
-    fetchUserData();
-  }, [router]);
+                // Fetch quizzes
+                const quizzesRef = collection(db, "quizzes");
+                const quizzesQuery = query(quizzesRef, where("teacherEmail", "==", teacherEmail));
+                const quizzesSnapshot = await getDocs(quizzesQuery);
+                
+                const quizzesList = quizzesSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    questions: doc.data().questions || [] // Ensure questions is always an array
+                }));
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p className={style.error}>{error}</p>;
+                // Sort quizzes by creation date (newest first)
+                quizzesList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                setQuizzes(quizzesList);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-  return (
-    <div className={style.dashboard}>
-      <Navbar />
-      {userData && (
-        <div className={style.card}>
-          <p><strong>Name:</strong> {userData.name}</p>
-          <p><strong>Role:</strong> {userData.role}</p>
+        fetchTeacherData();
+    }, [teacherEmail]);
+
+    return (
+        <div className={style.container}>
+            <Navbar />
+            <div className={style.content}>
+                <div className={style.header}>
+                    <h1 className={style.title}>Welcome, {teacherName}</h1>
+                    <p className={style.subtitle}>Teacher Dashboard</p>
+                </div>
+
+                <div className={style.cardContainer}>
+                    <Link href="/Teacherquiz" className={style.card}>
+                        <h2>Create Quiz</h2>
+                        <p>Generate or create new quizzes for your students</p>
+                    </Link>
+                </div>
+
+                {loading ? (
+                    <div className={style.loading}>Loading...</div>
+                ) : (
+                    <div className={style.quizzesSection}>
+                        <h2 className={style.sectionTitle}>Your Quizzes</h2>
+                        {quizzes.length === 0 ? (
+                            <p className={style.noQuizzes}>No quizzes created yet.</p>
+                        ) : (
+                            <div className={style.quizzesGrid}>
+                                {quizzes.map((quiz) => (
+                                    <div key={quiz.id} className={style.quizCard}>
+                                        <h3 className={style.quizTitle}>{quiz.topic || 'Untitled Quiz'}</h3>
+                                        <p className={style.quizSubject}>{quiz.subject ? quiz.subject.replace(/_/g, " ") : 'No Subject'}</p>
+                                        <div className={style.quizDetails}>
+                                            <p>Questions: {quiz.questions ? quiz.questions.length : 0}</p>
+                                            <p>Created: {quiz.createdAt ? new Date(quiz.createdAt).toLocaleDateString() : 'No date'}</p>
+                                        </div>
+                                        <div className={style.quizActions}>
+                                            <Link href={`/viewQuiz/${quiz.id}`} className={style.viewButton}>
+                                                View Quiz
+                                            </Link>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
-      )}
-    </div>
-  );
+    );
 }
