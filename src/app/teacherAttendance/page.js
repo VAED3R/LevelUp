@@ -150,6 +150,7 @@ export default function TeacherAttendance() {
     return (
         <div>
             <Navbar />
+            <div className={styles.background}>
             <div className={styles.container}>
                 <h1>Teacher Attendance</h1>
 

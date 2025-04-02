@@ -1,9 +1,23 @@
 /* Professional Faculty Styling */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
+/* Global styles to ensure white background */
+:global(body) {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(circle at bottom, #5a35ab, #181e39, #0a0a1a);
+    min-height: 100vh;
+    overflow-y: auto;
+}
+
 .background{
-    background-color: rgb(250, 6, 6);
+    background: radial-gradient(circle at bottom, #5a35ab, #181e39, #0a0a1a);
     width: 100%;
+    min-height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
 }
 /* General Container Styling */
 .container {
@@ -11,8 +25,8 @@
     margin: 0 auto;
     padding: 30px;
     font-family: 'Poppins', sans-serif;
-    color: #2c3e50;
-    background: #ffffff;
+    color: rgb(7, 7, 7);
+    background: #aca4a4;
     border-radius: 12px;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease-in-out;
@@ -22,7 +36,7 @@
 /* Heading Styling */
 .heading {
     text-align: center;
-    color: #2c3e50;
+    color: white;
     font-size: 2.2rem;
     font-weight: 600;
     margin-bottom: 25px;
