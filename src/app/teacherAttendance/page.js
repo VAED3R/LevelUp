@@ -152,7 +152,7 @@ export default function TeacherAttendance() {
             <Navbar />
             <div className={styles.background}>
                 <div className={styles.container}>
-                    <h1>Teacher Attendance</h1>
+                    <h1 className={styles.heading}>Teacher Attendance</h1>
 
                     <div className={styles.filters}>
                         <div className={styles.formGroup}>

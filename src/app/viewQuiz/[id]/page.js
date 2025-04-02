@@ -83,10 +83,10 @@ export default function ViewQuiz() {
                                 {question.options.map((option, optionIndex) => (
                                     <div 
                                         key={optionIndex} 
-                                        className={`${styles.option} ${option === question.correctAnswer ? styles.correctOption : ''}`}
+                                        className={`${styles.option} ${optionIndex === question.correctAnswer ? styles.correctOption : ''}`}
                                     >
-                                        {option}
-                                        {option === question.correctAnswer && (
+                                        <span className={styles.optionText}>{option}</span>
+                                        {optionIndex === question.correctAnswer && (
                                             <span className={styles.correctLabel}>Correct Answer</span>
                                         )}
                                     </div>
@@ -94,7 +94,7 @@ export default function ViewQuiz() {
                             </div>
                             <div className={styles.answerExplanation}>
                                 <p className={styles.correctAnswer}>
-                                    <strong>Correct Answer:</strong> {question.correctAnswer + 1}
+                                    <strong>Correct Answer:</strong> {question.options[question.correctAnswer]}
                                 </p>
                                 {question.explanation && (
                                     <p className={styles.explanation}>
