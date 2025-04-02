@@ -27,19 +27,19 @@ export default function TeacherAttendance() {
     const [selectedSubject, setSelectedSubject] = useState("");
     const [teacherEmail, setTeacherEmail] = useState("");
 
-    useEffect(() => {
+  useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (user) {
+      if (user) {
                 setTeacherEmail(user.email);
             } else {
                 setTeacherEmail("");
             }
         });
 
-        return () => unsubscribe();
-    }, []);
+    return () => unsubscribe();
+  }, []);
 
-    useEffect(() => {
+  useEffect(() => {
         if (!teacherEmail) return;
 
         const fetchData = async () => {
@@ -140,18 +140,18 @@ export default function TeacherAttendance() {
             await Promise.all(promises);
             setLoading(false);
             alert("Attendance saved successfully!");
-        } catch (error) {
+      } catch (error) {
             console.error("Error saving attendance:", error);
-            setLoading(false);
+        setLoading(false);
             alert("Error saving attendance. Please try again.");
         }
     };
 
-    return (
-        <div>
-            <Navbar />
+  return (
+    <div>
+      <Navbar />
             <div className={styles.background}>
-                <div className={styles.container}>
+      <div className={styles.container}>
                     <h1 className={styles.heading}>Teacher Attendance</h1>
 
                     <div className={styles.filters}>
@@ -162,7 +162,7 @@ export default function TeacherAttendance() {
                                 value={selectedDate}
                                 onChange={(e) => setSelectedDate(e.target.value)}
                             />
-                        </div>
+                  </div>
                         <div className={styles.formGroup}>
                             <label>Class:</label>
                             <select
@@ -176,7 +176,7 @@ export default function TeacherAttendance() {
                                     </option>
                                 ))}
                             </select>
-                        </div>
+                </div>
 
                         <div className={styles.formGroup}>
                             <label>Subject:</label>
@@ -191,7 +191,7 @@ export default function TeacherAttendance() {
                                     </option>
                                 ))}
                             </select>
-                        </div>
+                </div>
                     </div>
 
                     <div className={styles.cardContainer}>
@@ -206,9 +206,9 @@ export default function TeacherAttendance() {
                                 <h3>{student.name}</h3>
                                 <p>Class: {student.class}</p>
                                 <p>{attendance[student.id] ? "Present" : "Absent"}</p>
-                            </div>
-                        ))}
-                    </div>
+              </div>
+            ))}
+          </div>
 
                     <button
                         onClick={handleSaveAttendance}
@@ -217,8 +217,9 @@ export default function TeacherAttendance() {
                     >
                         {loading ? "Saving..." : "Save Attendance"}
                     </button>
-                </div>
-            </div>
-        </div>
-    );
+          </div>
+      </div>
+    </div>
+  );
 }
+    

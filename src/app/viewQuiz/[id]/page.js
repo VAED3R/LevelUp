@@ -1,110 +1,247 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
-import { useParams } from "next/navigation";
-import Navbar from "@/components/teacherNavbar";
+import { auth, db } from "@/lib/firebase";
+import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { useRouter, useParams } from "next/navigation";
+import Navbar from "@/components/studentNavbar";
 import styles from "./page.module.css";
 
 export default function ViewQuiz() {
     const [quiz, setQuiz] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [currentQuestion, setCurrentQuestion] = useState(0);
+    const [answers, setAnswers] = useState({});
+    const [showResults, setShowResults] = useState(false);
+    const [score, setScore] = useState(0);
+    const [timeLeft, setTimeLeft] = useState(null);
+    const router = useRouter();
     const params = useParams();
 
     useEffect(() => {
         const fetchQuiz = async () => {
             try {
-                const quizDoc = await getDoc(doc(db, "quizzes", params.id));
+                const user = auth.currentUser;
+                if (!user) {
+                    router.push("/login");
+                    return;
+                }
+
+                const quizId = params.id;
+                
+                if (!quizId) {
+                    setError("No quiz ID provided");
+                    setLoading(false);
+                    return;
+                }
+
+                console.log("Fetching quiz with ID:", quizId); // Debug log
+
+                const quizRef = doc(db, "quizzes", quizId);
+                const quizDoc = await getDoc(quizRef);
+
                 if (quizDoc.exists()) {
-                    setQuiz({
+                    const quizData = quizDoc.data();
+                    console.log("Quiz data:", quizData); // Debug log
+                    
+                    // Remove correct answers before showing to student
+                    const sanitizedQuiz = {
+                        ...quizData,
                         id: quizDoc.id,
-                        ...quizDoc.data()
-                    });
+                        questions: quizData.questions.map(q => ({
+                            ...q,
+                            correctAnswer: undefined // Hide correct answers
+                        }))
+                    };
+                    setQuiz(sanitizedQuiz);
+                    
+                    // Initialize time if there's a time limit
+                    if (quizData.timeLimit) {
+                        setTimeLeft(quizData.timeLimit * 60); // Convert minutes to seconds
+                    }
                 } else {
                     setError("Quiz not found");
                 }
             } catch (error) {
                 console.error("Error fetching quiz:", error);
-                setError("Error loading quiz");
+                setError("Failed to load quiz: " + error.message);
             } finally {
                 setLoading(false);
             }
         };
 
         fetchQuiz();
-    }, [params.id]);
+    }, [router, params.id]);
 
-    if (loading) {
-        return (
-            <div>
-                <Navbar />
-                <div className={styles.container}>
-                    <div className={styles.loading}>Loading...</div>
-                </div>
-            </div>
-        );
-    }
+    // Timer effect
+    useEffect(() => {
+        if (timeLeft === null) return;
 
-    if (error) {
-        return (
-            <div>
-                <Navbar />
-                <div className={styles.container}>
-                    <div className={styles.error}>{error}</div>
-                </div>
-            </div>
-        );
-    }
+        const timer = setInterval(() => {
+            setTimeLeft(prev => {
+                if (prev <= 1) {
+                    clearInterval(timer);
+                    handleSubmit();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [timeLeft]);
+
+    const handleAnswerSelect = (questionId, answer) => {
+        setAnswers(prev => ({
+            ...prev,
+            [questionId]: answer
+        }));
+    };
+
+    const calculateScore = () => {
+        if (!quiz || !quiz.questions) return 0;
+        
+        let totalScore = 0;
+        quiz.questions.forEach((question, index) => {
+            if (answers[index] === question.correctAnswer) {
+                totalScore += question.points || 1; // Use question points or default to 1
+            }
+        });
+        return totalScore;
+    };
+
+    const handleSubmit = async () => {
+        const finalScore = calculateScore();
+        setScore(finalScore);
+        setShowResults(true);
+
+        // Update student's points in Firestore
+        try {
+            const user = auth.currentUser;
+            const userRef = doc(db, "users", user.uid);
+            await updateDoc(userRef, {
+                points: arrayUnion({
+                    quizId: quiz.id,
+                    score: finalScore,
+                    totalPoints: quiz.questions.reduce((sum, q) => sum + (q.points || 1), 0),
+                    date: new Date().toISOString()
+                })
+            });
+        } catch (error) {
+            console.error("Error updating points:", error);
+        }
+    };
+
+    if (loading) return (
+        <div className={styles.container}>
+            <Navbar />
+            <div className={styles.loading}>Loading quiz...</div>
+        </div>
+    );
+
+    if (error) return (
+        <div className={styles.container}>
+            <Navbar />
+            <div className={styles.error}>{error}</div>
+        </div>
+    );
+
+    if (!quiz) return (
+        <div className={styles.container}>
+            <Navbar />
+            <div className={styles.error}>Quiz not found</div>
+        </div>
+    );
+
+    const formatTime = (seconds) => {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    };
 
     return (
-        <div>
+        <div className={styles.container}>
             <Navbar />
-            <div className={styles.container}>
+            <div className={styles.content}>
                 <div className={styles.header}>
-                    <h1 className={styles.title}>{quiz.topic || 'Untitled Quiz'}</h1>
-                    <p className={styles.subtitle}>{quiz.subject ? quiz.subject.replace(/_/g, " ") : 'No Subject'}</p>
+                    <h1 className={styles.title}>{quiz.topic || "Untitled Quiz"}</h1>
+                    <p className={styles.subtitle}>{quiz.subject ? quiz.subject.replace(/_/g, " ") : "No Subject"}</p>
                 </div>
 
-                <div className={styles.quizInfo}>
-                    <p>Total Questions: {quiz.questions?.length || 0}</p>
-                    <p>Created: {quiz.createdAt ? new Date(quiz.createdAt).toLocaleDateString() : 'No date'}</p>
-                </div>
-
-                <div className={styles.questionsContainer}>
-                    {quiz.questions?.map((question, index) => (
-                        <div key={index} className={styles.questionCard}>
-                            <div className={styles.questionHeader}>
-                                <h3>Question {index + 1}</h3>
+                {!showResults ? (
+                    <div className={styles.quizCard}>
+                        {timeLeft !== null && (
+                            <div className={styles.timer}>
+                                Time Remaining: {formatTime(timeLeft)}
                             </div>
-                            <p className={styles.questionText}>{question.question}</p>
+                        )}
+                        
+                        <div className={styles.questionContainer}>
+                            <h2 className={styles.questionTitle}>
+                                Question {currentQuestion + 1} of {quiz.questions.length}
+                            </h2>
+                            <p className={styles.questionText}>
+                                {quiz.questions[currentQuestion].question}
+                            </p>
                             <div className={styles.options}>
-                                {question.options.map((option, optionIndex) => (
-                                    <div 
-                                        key={optionIndex} 
-                                        className={`${styles.option} ${optionIndex === question.correctAnswer ? styles.correctOption : ''}`}
+                                {quiz.questions[currentQuestion].options.map((option, index) => (
+                                    <button
+                                        key={index}
+                                        className={`${styles.option} ${
+                                            answers[currentQuestion] === index ? styles.selected : ""
+                                        }`}
+                                        onClick={() => handleAnswerSelect(currentQuestion, index)}
                                     >
-                                        <span className={styles.optionText}>{option}</span>
-                                        {optionIndex === question.correctAnswer && (
-                                            <span className={styles.correctLabel}>Correct Answer</span>
-                                        )}
-                                    </div>
+                                        {option}
+                                    </button>
                                 ))}
                             </div>
-                            <div className={styles.answerExplanation}>
-                                <p className={styles.correctAnswer}>
-                                    <strong>Correct Answer:</strong> {question.options[question.correctAnswer]}
-                                </p>
-                                {question.explanation && (
-                                    <p className={styles.explanation}>
-                                        <strong>Explanation:</strong> {question.explanation}
-                                    </p>
-                                )}
-                            </div>
                         </div>
-                    ))}
-                </div>
+
+                        <div className={styles.navigation}>
+                            <button
+                                className={styles.navButton}
+                                onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
+                                disabled={currentQuestion === 0}
+                            >
+                                Previous
+                            </button>
+                            <button
+                                className={styles.navButton}
+                                onClick={() => setCurrentQuestion(prev => Math.min(quiz.questions.length - 1, prev + 1))}
+                                disabled={currentQuestion === quiz.questions.length - 1}
+                            >
+                                Next
+                            </button>
+                            {currentQuestion === quiz.questions.length - 1 && (
+                                <button
+                                    className={styles.submitButton}
+                                    onClick={handleSubmit}
+                                >
+                                    Submit Quiz
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    <div className={styles.resultsCard}>
+                        <h2 className={styles.resultsTitle}>Quiz Results</h2>
+                        <div className={styles.scoreContainer}>
+                            <p className={styles.scoreText}>Your Score:</p>
+                            <p className={styles.score}>{score}</p>
+                            <p className={styles.totalPoints}>
+                                out of {quiz.questions.reduce((sum, q) => sum + (q.points || 1), 0)} points
+                            </p>
+                        </div>
+                        <button
+                            className={styles.backButton}
+                            onClick={() => router.push("/studentDashboard")}
+                        >
+                            Back to Dashboard
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

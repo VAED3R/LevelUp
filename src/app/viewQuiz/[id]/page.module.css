@@ -1,6 +1,13 @@
 .container {
     min-height: 100vh;
-    background-color: #f0f2f5;
+    background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
+    color: #ffffff;
+    padding: 2rem;
+}
+
+.content {
+    max-width: 800px;
+    margin: 0 auto;
     padding: 2rem;
 }
 
@@ -10,132 +17,186 @@
 }
 
 .title {
-    color: #1e293b;
-    font-size: 2rem;
-    font-weight: bold;
+    font-size: 2.5rem;
     margin-bottom: 0.5rem;
+    color: #ffffff;
 }
 
 .subtitle {
-    color: #64748b;
-    font-size: 1.1rem;
-}
-
-.quizInfo {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-size: 1.2rem;
+    color: #cccccc;
     margin-bottom: 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
 }
 
-.quizInfo p {
-    color: #64748b;
-    font-size: 1rem;
-    margin: 0;
+.quizCard {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    padding: 2rem;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.questionsContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+.timer {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    text-align: center;
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    color: #ffffff;
 }
 
-.questionCard {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.questionContainer {
+    margin-bottom: 2rem;
 }
 
-.questionHeader {
+.questionTitle {
+    font-size: 1.5rem;
     margin-bottom: 1rem;
-}
-
-.questionHeader h3 {
-    color: #1e293b;
-    font-size: 1.25rem;
-    margin: 0;
+    color: #ffffff;
 }
 
 .questionText {
-    color: #1e293b;
-    font-size: 1.1rem;
-    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+    color: #ffffff;
+    line-height: 1.6;
 }
 
 .options {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
+    gap: 1rem;
 }
 
 .option {
-    padding: 0.75rem 1rem;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    color: #64748b;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid transparent;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    color: #ffffff;
     font-size: 1rem;
-    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+}
+
+.option:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.option.selected {
+    background: rgba(76, 175, 80, 0.2);
+    border-color: #4CAF50;
+}
+
+.navigation {
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    gap: 1rem;
+    margin-top: 2rem;
 }
 
-.correctOption {
-    background: #dcfce7;
-    border-color: #86efac;
-    color: #166534;
-}
-
-.correctLabel {
-    background: #166534;
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    font-weight: 500;
-}
-
-.answerExplanation {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid #e2e8f0;
-}
-
-.correctAnswer {
-    color: #166534;
+.navButton {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 0.5rem;
+    color: #ffffff;
     font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.navButton:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.navButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.submitButton {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 0.5rem;
+    color: #ffffff;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.submitButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.resultsCard {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    padding: 2rem;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.resultsTitle {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    color: #ffffff;
+}
+
+.scoreContainer {
+    margin-bottom: 2rem;
+}
+
+.scoreText {
+    font-size: 1.2rem;
+    color: #cccccc;
     margin-bottom: 0.5rem;
 }
 
-.explanation {
-    color: #64748b;
-    font-size: 0.95rem;
-    line-height: 1.5;
+.score {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #4CAF50;
+    margin-bottom: 0.5rem;
 }
 
-.loading {
+.totalPoints {
+    font-size: 1.2rem;
+    color: #cccccc;
+}
+
+.backButton {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 0.5rem;
+    color: #ffffff;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.backButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.loading, .error {
     text-align: center;
-    color: #64748b;
-    font-size: 1.1rem;
     padding: 2rem;
+    font-size: 1.2rem;
+    color: #ffffff;
 }
 
 .error {
-    text-align: center;
-    color: #ef4444;
-    font-size: 1.1rem;
-    padding: 2rem;
-    background: #fee2e2;
-    border-radius: 8px;
-    margin: 2rem auto;
-    max-width: 600px;
+    color: #ff6b6b;
 }
 
 @media (max-width: 768px) {
@@ -143,23 +204,35 @@
         padding: 1rem;
     }
 
-    .quizInfo {
-        flex-direction: column;
-        gap: 0.5rem;
-        text-align: center;
-    }
-
-    .questionCard {
+    .content {
         padding: 1rem;
     }
 
-    .option {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
+    .title {
+        font-size: 2rem;
     }
 
-    .correctLabel {
-        align-self: flex-start;
+    .subtitle {
+        font-size: 1rem;
+    }
+
+    .quizCard, .resultsCard {
+        padding: 1.5rem;
+    }
+
+    .questionTitle {
+        font-size: 1.2rem;
+    }
+
+    .questionText {
+        font-size: 1rem;
+    }
+
+    .navigation {
+        flex-direction: column;
+    }
+
+    .navButton, .submitButton, .backButton {
+        width: 100%;
     }
 } 
