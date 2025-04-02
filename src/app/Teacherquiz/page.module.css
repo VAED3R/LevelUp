@@ -1,0 +1,108 @@
+/* Container Styling */
+.container {
+  min-height: 100vh;
+  background: #eef2ff;
+  color: #1f2937;
+  padding: 50px 20px;
+  padding-top: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* Center content vertically */
+}
+
+.content {
+  max-width: 800px; /* Reduce width for better centering */
+  width: 100%;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.title {
+  text-align: center;
+  font-size: 3rem;
+  margin-bottom: 40px;
+  color: #1e40af;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Question Card Styling */
+.questionCard {
+  margin: 20px 0;
+  padding: 20px;
+  background: #f9fafb;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: left;
+}
+
+/* Grid Layout */
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+}
+
+/* Card Styling */
+.card {
+  background: linear-gradient(135deg, #6366f1, #2563eb);
+  color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  text-align: center;
+}
+
+.card:hover {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.2);
+}
+
+.card h2 {
+  font-size: 2rem;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+/* Button Styling */
+.button {
+  background: #0ea5e9;
+  color: #ffffff;
+  border: none;
+  padding: 14px 22px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: bold;
+  transition: background 0.3s ease, transform 0.2s ease;
+  width: 100%;
+  max-width: 220px;
+  text-align: center;
+}
+
+.button:hover {
+  background: #0284c7;
+  transform: scale(1.07);
+}
+
+.button:active {
+  transform: scale(0.98);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .cardGrid {
+      grid-template-columns: 1fr;
+  }
+
+  .button {
+      width: 100%;
+  }
+}
