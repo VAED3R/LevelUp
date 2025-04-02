@@ -56,18 +56,19 @@ export default function TeacherAttendance() {
                 setSubjects(teacherSubjects);
             }
 
-            // ✅ Fetch students
+            // ✅ Fetch students and sort them alphabetically
             const studentQuery = await getDocs(collection(db, "users"));
             const studentList = studentQuery.docs
                 .filter((doc) => doc.data().role === "student")
                 .map((doc) => ({
                     id: doc.id,
                     ...doc.data(),
-                }));
+                }))
+                .sort((a, b) => a.name.localeCompare(b.name)); // ✅ Sort students alphabetically
 
             setStudents(studentList);
 
-            // ✅ Extract unique classes
+            // ✅ Extract unique classes and sort them
             const uniqueClasses = [
                 ...new Set(studentList.map((student) => student.class)),
             ];
@@ -136,6 +137,7 @@ export default function TeacherAttendance() {
     return (
         <div>
             <Navbar />
+            <div classNmae={styles.background}>
             <div className={styles.container}>
                 <h1>Teacher Attendance</h1>
 
@@ -147,6 +149,7 @@ export default function TeacherAttendance() {
                             type="date"
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
+                            className={styles.datePicker} // ✅ Styled date picker
                         />
                     </div>
                     <div className={styles.formGroup}>
@@ -205,6 +208,7 @@ export default function TeacherAttendance() {
                 >
                     {loading ? "Saving..." : "Save Attendance"}
                 </button>
+            </div>
             </div>
         </div>
     );
