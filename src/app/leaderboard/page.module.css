@@ -1,106 +1,153 @@
-/* Main container */
+/* Import Arcade Font */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* Main container - Classic Arcade Style */
 .container {
-    min-height: 100vh;
-    background: #f4f4f9;
-    font-family: Arial, sans-serif;
-    color: #333;
-  }
-  
-  /* Content wrapper */
-  .content {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 40px 20px;
-  }
-  
-  /* Title */
-  .title {
-    font-size: 36px;
-    font-weight: bold;
-    margin-bottom: 20px;
-    text-align: center;
-    color: #2c3e50;
-  }
-  
-  /* Loading text */
-  .loading {
-    font-size: 18px;
-    text-align: center;
-    color: #666;
-  }
-  
-  /* Table styling */
-  .table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  
-  .table th, .table td {
-    padding: 15px 20px;
-    text-align: left;
-  }
-  
-  .table thead {
-    background: #3498db;
-    color: white;
-  }
-  
-  .table tbody tr:nth-child(even) {
-    background: #f2f2f2;
-  }
-  
-  .table tbody tr:hover {
-    background: #e1f5fe;
-    transition: background 0.3s;
-  }
-  
-  .table th {
-    font-size: 16px;
-  }
-  
-  .table td {
-    font-size: 14px;
-  }
-  
-  /* Hover effect */
-  tr:hover {
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  
-  /* Filter dropdown styles */
-  .filterContainer {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    margin-bottom: 20px;
-  }
-  
-  .label {
-    margin-right: 10px;
-    font-size: 16px;
-    color: #333;
-  }
-  
-  .select {
-    padding: 10px 15px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    outline: none;
-    transition: border 0.3s;
-  }
-  
-  .badge {
-    margin-left: 10px;
-    font-size: 1.2rem;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a0033, #7f37c6, #632298);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  padding-top: 100px;
 }
 
-  .select:hover, .select:focus {
-    border: 1px solid #3498db;
-  }
-  
+/* Content wrapper */
+.content {
+  max-width: 1200px;
+  width: 100%;
+  text-align: center;
+}
+
+/* Title - Classic Arcade Font */
+.title {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 32px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  color: #fff;
+  padding: 10px 20px;
+  display: inline-block;
+  border-radius: 8px;
+  text-shadow: 4px 4px 0px #000;
+}
+
+/* Loading text */
+.loading {
+  font-size: 16px;
+  text-align: center;
+  color: #aaa;
+}
+
+/* Table styling */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #000;
+  border: 4px solid #7f37c6; /* Pixelated Border */
+  border-radius: 8px;
+  box-shadow: 5px 5px 0px #452d57;
+}
+
+.table th, .table td {
+  padding: 15px;
+  text-align: left;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+/* Table Header - Retro Arcade Glow */
+.table thead {
+  background: linear-gradient(45deg, #9c34d0, #4b217b, #452d57);
+  color: #fff;
+  text-shadow: 2px 2px 0px #000;
+}
+
+.table tbody tr {
+  background: #111;
+  color: #fff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.table tbody tr:nth-child(even) {
+  background: #222;
+}
+
+.table tbody tr:hover {
+  background: #632298;
+  transition: background 0.3s;
+  text-shadow: 2px 2px 0px #000;
+}
+
+/* Rank column */
+.rank {
+  font-weight: bold;
+  color: #f1f1f1;
+  font-size: 14px;
+}
+
+/* Points column */
+.points {
+  font-weight: bold;
+  color: #e0e0e0;
+  font-size: 14px;
+}
+
+/* Highlight top 3 players */
+.table tbody tr:nth-child(1) .rank {
+  color: gold;
+}
+
+.table tbody tr:nth-child(2) .rank {
+  color: silver;
+}
+
+.table tbody tr:nth-child(3) .rank {
+  color: #cd7f32; /* Bronze */
+}
+
+/* Hover effect */
+tr:hover {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* Filter dropdown styles */
+.filterContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+
+.label {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 14px;
+  color: #fff;
+}
+
+.select {
+  padding: 10px;
+  font-size: 12px;
+  font-family: 'Press Start 2P', cursive;
+  border: 2px solid #fff;
+  background: #000;
+  color: #fff;
+  border-radius: 5px;
+  outline: none;
+  transition: border 0.3s;
+}
+
+.select:hover, .select:focus {
+  border: 2px solid #ccc;
+}
+
+.badge {
+  margin-left: 8px;
+  font-size: 1.2rem;
+  color: #fff;
+}

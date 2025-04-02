@@ -40,3 +40,10 @@ a {
     color-scheme: dark;
   }
 }
+
+@font-face {
+  font-family: 'Grind';
+  src: url('/fonts/Grind.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
