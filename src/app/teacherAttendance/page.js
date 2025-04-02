@@ -2,7 +2,7 @@
 
 import Navbar from "@/components/teacherNavbar";
 import { useState, useEffect } from "react";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase"; // ✅ Import auth
 import {
     collection,
     doc,
@@ -10,6 +10,7 @@ import {
     setDoc,
     getDoc
 } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth"; // ✅ Import onAuthStateChanged
 import styles from "./page.module.css";
 
 export default function TeacherAttendance() {
@@ -22,17 +23,30 @@ export default function TeacherAttendance() {
     const [loading, setLoading] = useState(false);
     const [subjects, setSubjects] = useState([]);
     const [selectedSubject, setSelectedSubject] = useState("");
+    const [teacherEmail, setTeacherEmail] = useState(""); // ✅ Store logged-in teacher's email
 
-    // Fetch students and teacher subjects
+    // ✅ Fetch the logged-in teacher's email
     useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                setTeacherEmail(user.email); // ✅ Set email from auth
+            } else {
+                setTeacherEmail("");
+            }
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    // ✅ Fetch students and teacher subjects dynamically
+    useEffect(() => {
+        if (!teacherEmail) return;
+
         const fetchData = async () => {
-            // Fetch teacher info
-            const teacherQuery = await getDocs(
-                collection(db, "users")
-            );
+            // ✅ Fetch teacher info
+            const teacherQuery = await getDocs(collection(db, "users"));
             const teacher = teacherQuery.docs.find(
-                (doc) =>
-                    doc.data().email === "sonalayyapan@gmail.com" // Replace with dynamic email
+                (doc) => doc.data().email === teacherEmail
             )?.data();
 
             if (teacher) {
@@ -42,7 +56,7 @@ export default function TeacherAttendance() {
                 setSubjects(teacherSubjects);
             }
 
-            // Fetch students
+            // ✅ Fetch students
             const studentQuery = await getDocs(collection(db, "users"));
             const studentList = studentQuery.docs
                 .filter((doc) => doc.data().role === "student")
@@ -53,7 +67,7 @@ export default function TeacherAttendance() {
 
             setStudents(studentList);
 
-            // Extract unique classes
+            // ✅ Extract unique classes
             const uniqueClasses = [
                 ...new Set(studentList.map((student) => student.class)),
             ];
@@ -61,9 +75,9 @@ export default function TeacherAttendance() {
         };
 
         fetchData();
-    }, []);
+    }, [teacherEmail]); // ✅ Fetch data only when email is available
 
-    // Filter students by class
+    // ✅ Filter students based on selected class
     useEffect(() => {
         if (selectedClass) {
             const filtered = students.filter(
@@ -71,7 +85,7 @@ export default function TeacherAttendance() {
             );
             setFilteredStudents(filtered);
 
-            // Initialize attendance state
+            // ✅ Initialize attendance state
             const initialAttendance = {};
             filtered.forEach((student) => {
                 initialAttendance[student.id] = false;
@@ -83,6 +97,7 @@ export default function TeacherAttendance() {
         }
     }, [selectedClass, students]);
 
+    // ✅ Toggle attendance state for a student
     const handleToggleAttendance = (studentId) => {
         setAttendance((prev) => ({
             ...prev,
@@ -90,6 +105,7 @@ export default function TeacherAttendance() {
         }));
     };
 
+    // ✅ Save attendance to Firestore
     const handleSaveAttendance = async () => {
         if (!selectedClass || !selectedDate || !selectedSubject) {
             alert("Please select a class, date, and subject.");
@@ -123,7 +139,7 @@ export default function TeacherAttendance() {
             <div className={styles.container}>
                 <h1>Teacher Attendance</h1>
 
-                {/* Date, Class, and Subject Selection */}
+                {/* ✅ Date, Class, and Subject Selection */}
                 <div className={styles.filters}>
                     <div className={styles.formGroup}>
                         <label>Date:</label>
@@ -141,7 +157,7 @@ export default function TeacherAttendance() {
                         >
                             <option value="">Select Class</option>
                             {classes.map((className, index) => (
-                                <option key={index} value={className}>   {/* ✅ Added key prop */}
+                                <option key={index} value={className}>
                                     {className}
                                 </option>
                             ))}
@@ -164,13 +180,14 @@ export default function TeacherAttendance() {
                     </div>
                 </div>
 
-                {/* Student Cards */}
+                {/* ✅ Student Cards */}
                 <div className={styles.cardContainer}>
                     {filteredStudents.map((student) => (
                         <div
                             key={student.id}
-                            className={`${styles.studentCard} ${attendance[student.id] ? styles.present : styles.absent
-                                }`}
+                            className={`${styles.studentCard} ${
+                                attendance[student.id] ? styles.present : styles.absent
+                            }`}
                             onClick={() => handleToggleAttendance(student.id)}
                         >
                             <h3>{student.name}</h3>
@@ -180,6 +197,7 @@ export default function TeacherAttendance() {
                     ))}
                 </div>
 
+                {/* ✅ Save Attendance Button */}
                 <button
                     onClick={handleSaveAttendance}
                     className={styles.saveButton}
