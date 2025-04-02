@@ -6,9 +6,9 @@ import Link from "next/link";
 
 export default function CourseMats() {
     const subjects = [
-        { id: 1, name: "Mathematics" },
-        { id: 2, name: "Physics" },
-        { id: 3, name: "Chemistry" }
+        { id: 1, name: "Compiler Design" },
+        { id: 2, name: "Machine Learning Concepts" },
+        { id: 3, name: "Algorithm Analysis and Design" }
     ];
 
     return (
