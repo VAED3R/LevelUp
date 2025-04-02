@@ -151,72 +151,73 @@ export default function TeacherAttendance() {
         <div>
             <Navbar />
             <div className={styles.background}>
-            <div className={styles.container}>
-                <h1>Teacher Attendance</h1>
+                <div className={styles.container}>
+                    <h1>Teacher Attendance</h1>
 
-                <div className={styles.filters}>
-                    <div className={styles.formGroup}>
-                        <label>Date:</label>
-                        <input
-                            type="date"
-                            value={selectedDate}
-                            onChange={(e) => setSelectedDate(e.target.value)}
-                        />
-                    </div>
-                    <div className={styles.formGroup}>
-                        <label>Class:</label>
-                        <select
-                            value={selectedClass}
-                            onChange={(e) => setSelectedClass(e.target.value)}
-                        >
-                            <option value="">Select Class</option>
-                            {classes.map((className, index) => (
-                                <option key={index} value={className}>
-                                    {className}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label>Subject:</label>
-                        <select
-                            value={selectedSubject}
-                            onChange={(e) => setSelectedSubject(e.target.value)}
-                        >
-                            <option value="">Select Subject</option>
-                            {subjects.map((subject) => (
-                                <option key={subject} value={subject}>
-                                    {subject.replace(/_/g, " ")}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-
-                <div className={styles.cardContainer}>
-                    {filteredStudents.map((student) => (
-                        <div
-                            key={student.id}
-                            className={`${styles.studentCard} ${
-                                attendance[student.id] ? styles.present : styles.absent
-                            }`}
-                            onClick={() => handleToggleAttendance(student.id)}
-                        >
-                            <h3>{student.name}</h3>
-                            <p>Class: {student.class}</p>
-                            <p>{attendance[student.id] ? "Present" : "Absent"}</p>
+                    <div className={styles.filters}>
+                        <div className={styles.formGroup}>
+                            <label>Date:</label>
+                            <input
+                                type="date"
+                                value={selectedDate}
+                                onChange={(e) => setSelectedDate(e.target.value)}
+                            />
                         </div>
-                    ))}
-                </div>
+                        <div className={styles.formGroup}>
+                            <label>Class:</label>
+                            <select
+                                value={selectedClass}
+                                onChange={(e) => setSelectedClass(e.target.value)}
+                            >
+                                <option value="">Select Class</option>
+                                {classes.map((className, index) => (
+                                    <option key={index} value={className}>
+                                        {className}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
 
-                <button
-                    onClick={handleSaveAttendance}
-                    className={styles.saveButton}
-                    disabled={loading}
-                >
-                    {loading ? "Saving..." : "Save Attendance"}
-                </button>
+                        <div className={styles.formGroup}>
+                            <label>Subject:</label>
+                            <select
+                                value={selectedSubject}
+                                onChange={(e) => setSelectedSubject(e.target.value)}
+                            >
+                                <option value="">Select Subject</option>
+                                {subjects.map((subject) => (
+                                    <option key={subject} value={subject}>
+                                        {subject.replace(/_/g, " ")}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className={styles.cardContainer}>
+                        {filteredStudents.map((student) => (
+                            <div
+                                key={student.id}
+                                className={`${styles.studentCard} ${
+                                    attendance[student.id] ? styles.present : styles.absent
+                                }`}
+                                onClick={() => handleToggleAttendance(student.id)}
+                            >
+                                <h3>{student.name}</h3>
+                                <p>Class: {student.class}</p>
+                                <p>{attendance[student.id] ? "Present" : "Absent"}</p>
+                            </div>
+                        ))}
+                    </div>
+
+                    <button
+                        onClick={handleSaveAttendance}
+                        className={styles.saveButton}
+                        disabled={loading}
+                    >
+                        {loading ? "Saving..." : "Save Attendance"}
+                    </button>
+                </div>
             </div>
         </div>
     );
