@@ -27,7 +27,7 @@ export default function ClassC() {
                                 <div className={styles.dropdownWrapper}>
                                     <button className={styles.button}>Action</button>
                                     <div className={styles.dropdown}>
-                                        <Link href="/assessment" className={styles.dropdownItem}>
+                                        <Link href="/Assessment" className={styles.dropdownItem}>
                                             Assessment
                                         </Link>
                                         <Link href={`/addNotes?class=${encodeURIComponent(cls.name)}`}>
