@@ -20,6 +20,25 @@ export default function StudentPerformance() {
   const [error, setError] = useState(null);
   const router = useRouter();
 
+  // Format date from ISO string to local date string
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    
+    try {
+      // Check if the date is in ISO format
+      if (dateString.includes('T')) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString();
+      } else {
+        // Handle other date formats if needed
+        return dateString;
+      }
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Invalid Date";
+    }
+  };
+
   // Fetch student data based on parent email
   useEffect(() => {
     const fetchStudentData = async (userEmail) => {
@@ -193,13 +212,13 @@ export default function StudentPerformance() {
       : 0;
 
     // Assignment performance
-    const assignmentScores = assignments.map(a => a.score || 0);
+    const assignmentScores = assignments.map(a => a.percentage || 0);
     const avgAssignmentScore = assignmentScores.length > 0
       ? (assignmentScores.reduce((a, b) => a + b, 0) / assignmentScores.length).toFixed(2)
       : 0;
 
     // Test performance
-    const testScores = tests.map(t => t.score || 0);
+    const testScores = tests.map(t => t.percentage || 0);
     const avgTestScore = testScores.length > 0
       ? (testScores.reduce((a, b) => a + b, 0) / testScores.length).toFixed(2)
       : 0;
@@ -299,7 +318,7 @@ export default function StudentPerformance() {
                   <tbody>
                     {performanceData.quizzes.map(quiz => (
                       <tr key={quiz.id}>
-                        <td>{new Date(quiz.date).toLocaleDateString()}</td>
+                        <td>{formatDate(quiz.date)}</td>
                         <td>{quiz.subject}</td>
                         <td>{quiz.score}%</td>
                         <td>{quiz.totalQuestions}</td>
@@ -317,6 +336,7 @@ export default function StudentPerformance() {
                     <tr>
                       <th>Date</th>
                       <th>Subject</th>
+                      <th>Title</th>
                       <th>Score</th>
                       <th>Total Marks</th>
                     </tr>
@@ -324,9 +344,10 @@ export default function StudentPerformance() {
                   <tbody>
                     {performanceData.assignments.map(assignment => (
                       <tr key={assignment.id}>
-                        <td>{new Date(assignment.date).toLocaleDateString()}</td>
+                        <td>{formatDate(assignment.addedAt)}</td>
                         <td>{assignment.subject}</td>
-                        <td>{assignment.score}</td>
+                        <td>{assignment.assignmentTitle}</td>
+                        <td>{assignment.obtainedMarks}</td>
                         <td>{assignment.totalMarks}</td>
                       </tr>
                     ))}
@@ -349,9 +370,9 @@ export default function StudentPerformance() {
                   <tbody>
                     {performanceData.tests.map(test => (
                       <tr key={test.id}>
-                        <td>{new Date(test.date).toLocaleDateString()}</td>
+                        <td>{formatDate(test.date)}</td>
                         <td>{test.subject}</td>
-                        <td>{test.score}</td>
+                        <td>{test.obtainedMarks}</td>
                         <td>{test.totalMarks}</td>
                       </tr>
                     ))}
@@ -373,7 +394,7 @@ export default function StudentPerformance() {
                   <tbody>
                     {performanceData.attendance.map(record => (
                       <tr key={record.id}>
-                        <td>{new Date(record.date).toLocaleDateString()}</td>
+                        <td>{formatDate(record.addedAt)}</td>
                         <td>{record.status}</td>
                         <td>{record.subject}</td>
                       </tr>
