@@ -81,6 +81,17 @@ export default function StudentDashboard() {
             <p><strong>Class:</strong> {userData?.class}</p>
             <p><strong>Attendance:</strong> {userData?.attendance}</p>
           </div>
+          
+          <div className={style.userCard}>
+            <h2>Your Results</h2>
+            <p>View your test results and performance across all subjects</p>
+            <button 
+              className={style.viewButton}
+              onClick={() => router.push('/viewresults')}
+            >
+              View Test Results
+            </button>
+          </div>
         </div>
 
         {loading ? (
