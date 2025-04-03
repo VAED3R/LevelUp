@@ -14,6 +14,7 @@ export default function StudentDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const router = useRouter();
+  const [pointsData, setPointsData] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -22,16 +23,36 @@ export default function StudentDashboard() {
 
         if (!user) {
           console.log("No user is signed in.");
-          router.push("/login");  // Redirect if no user is logged in
+          router.push("/login");
           return;
         }
 
-        const userRef = doc(db, "users", user.uid);  // Get the Firestore document by UID
+        // First get user data from users collection
+        const userRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userRef);
 
         if (userDoc.exists()) {
           setUserData(userDoc.data());
           
+          // Then get points data from students collection
+          const studentRef = doc(db, "students", user.uid);
+          const studentDoc = await getDoc(studentRef);
+          
+          if (studentDoc.exists()) {
+            const studentData = studentDoc.data();
+            setPointsData({
+              totalPoints: studentData.totalPoints || 0,
+              recentPoints: studentData.points || []
+            });
+            console.log("Fetched student points:", studentData); // Debug log
+          } else {
+            console.log("No student document found for points"); // Debug log
+            setPointsData({
+              totalPoints: 0,
+              recentPoints: []
+            });
+          }
+
           // Fetch available quizzes for the student's class
           const quizzesRef = collection(db, "quizzes");
           const quizzesQuery = query(quizzesRef, where("class", "==", userDoc.data().class));
@@ -43,7 +64,6 @@ export default function StudentDashboard() {
             questions: doc.data().questions || []
           }));
 
-          // Sort quizzes by creation date (newest first)
           quizzesList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
           setQuizzes(quizzesList);
         } else {
@@ -80,6 +100,18 @@ export default function StudentDashboard() {
             <p><strong>Email:</strong> {userData?.email}</p>
             <p><strong>Class:</strong> {userData?.class}</p>
             <p><strong>Attendance:</strong> {userData?.attendance}</p>
+            <div className={style.pointsInfo}>
+              <p><strong>Total Points:</strong> {pointsData?.totalPoints || 0}</p>
+              {pointsData?.recentPoints?.length > 0 && (
+                <div className={style.lastPoints}>
+                  <p><strong>Last Earned:</strong> +{pointsData.recentPoints[0].points} points 
+                    <span className={style.pointSource}>
+                      ({pointsData.recentPoints[0].type || pointsData.recentPoints[0].subject})
+                    </span>
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
           
           <div className={style.userCard}>

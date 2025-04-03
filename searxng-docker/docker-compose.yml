@@ -1,0 +1,22 @@
+services:
+  searxng:
+    container_name: searxng
+    image: searxng/searxng
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./searxng:/etc/searxng
+    environment:
+      - INSTANCE_NAME=levelup-search
+      - BASE_URL=http://localhost:8080/
+      - ULTRASECRET_KEY=best-secret-key-ever
+      - SEARXNG_CORS_ENABLED=true
+      - SEARXNG_CORS_ORIGINS=http://localhost:3000
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+      - DAC_OVERRIDE
+    restart: unless-stopped
