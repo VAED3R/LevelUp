@@ -7,6 +7,30 @@ import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import Navbar from "@/components/parentNavbar";
 import styles from "./page.module.css";
+import { Line, Pie } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+} from 'chart.js';
+
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+);
 
 export default function StudentPerformance() {
   const [student, setStudent] = useState(null);
@@ -18,6 +42,8 @@ export default function StudentPerformance() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [performanceDescription, setPerformanceDescription] = useState("");
+  const [generatingDescription, setGeneratingDescription] = useState(false);
   const router = useRouter();
 
   // Format date from ISO string to local date string
@@ -242,7 +268,173 @@ export default function StudentPerformance() {
     };
   };
 
+  // Generate performance description using DeepSeek API
+  const generatePerformanceDescription = async () => {
+    if (!student || !metrics) return;
+    
+    setGeneratingDescription(true);
+    
+    try {
+      const prompt = `
+        Generate a supportive and encouraging performance analysis for a student with the following data:
+        
+        Student Name: ${student.name}
+        Class: ${student.class}
+        Total Points: ${student.totalPoints || 0}
+        
+        Performance Metrics:
+        - Quiz Performance: ${metrics.avgQuizScore}% (${metrics.totalQuizzes} quizzes)
+        - Assignment Performance: ${metrics.avgAssignmentScore}% (${metrics.totalAssignments} assignments)
+        - Test Performance: ${metrics.avgTestScore}% (${metrics.totalTests} tests)
+        - Attendance Rate: ${metrics.attendanceRate}% (${metrics.totalAttendance} days)
+        
+        Please provide a gentle and supportive analysis of the student's performance, highlighting strengths and areas for improvement.
+        Focus on positive aspects and frame suggestions for improvement in an encouraging way.
+        Avoid using harsh language, unnecessary symbols (like asterisks or hash symbols), or anything that might discourage the student.
+        Include specific, actionable recommendations for improvement based on the data.
+        The tone should be supportive and motivating, emphasizing that improvement is always possible.
+        
+        End the analysis with a warm, supportive statement that encourages the student to continue their efforts.
+        Do not include any signature or "Warm regards" at the end.
+      `;
+      
+      const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'deepseek-chat',
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 1000
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate performance description');
+      }
+      
+      const data = await response.json();
+      
+      // Clean up any remaining asterisks or hash symbols
+      let cleanedDescription = data.choices[0].message.content
+        .replace(/\*/g, '')
+        .replace(/#/g, '');
+      
+      setPerformanceDescription(cleanedDescription);
+    } catch (error) {
+      console.error('Error generating performance description:', error);
+      setPerformanceDescription('Failed to generate performance description. Please try again later.');
+    } finally {
+      setGeneratingDescription(false);
+    }
+  };
+
+  // Prepare chart data
+  const prepareChartData = () => {
+    if (!metrics) return null;
+    
+    // Performance comparison chart data
+    const performanceChartData = {
+      labels: ['Quizzes', 'Assignments', 'Tests', 'Attendance'],
+      datasets: [
+        {
+          label: 'Performance (%)',
+          data: [
+            parseFloat(metrics.avgQuizScore),
+            parseFloat(metrics.avgAssignmentScore),
+            parseFloat(metrics.avgTestScore),
+            parseFloat(metrics.attendanceRate)
+          ],
+          backgroundColor: [
+            'rgba(255, 99, 132, 0.5)',
+            'rgba(54, 162, 235, 0.5)',
+            'rgba(255, 206, 86, 0.5)',
+            'rgba(75, 192, 192, 0.5)'
+          ],
+          borderColor: [
+            'rgba(255, 99, 132, 1)',
+            'rgba(54, 162, 235, 1)',
+            'rgba(255, 206, 86, 1)',
+            'rgba(75, 192, 192, 1)'
+          ],
+          borderWidth: 1
+        }
+      ]
+    };
+    
+    // Activity distribution pie chart data
+    const activityData = {
+      labels: ['Quizzes', 'Assignments', 'Tests', 'Attendance'],
+      datasets: [
+        {
+          data: [
+            metrics.totalQuizzes,
+            metrics.totalAssignments,
+            metrics.totalTests,
+            metrics.totalAttendance
+          ],
+          backgroundColor: [
+            'rgba(255, 99, 132, 0.5)',
+            'rgba(54, 162, 235, 0.5)',
+            'rgba(255, 206, 86, 0.5)',
+            'rgba(75, 192, 192, 0.5)'
+          ],
+          borderColor: [
+            'rgba(255, 99, 132, 1)',
+            'rgba(54, 162, 235, 1)',
+            'rgba(255, 206, 86, 1)',
+            'rgba(75, 192, 192, 1)'
+          ],
+          borderWidth: 1
+        }
+      ]
+    };
+    
+    // Quiz performance over time
+    const quizPerformanceData = {
+      labels: [],
+      datasets: [
+        {
+          label: 'Quiz Score (%)',
+          data: [],
+          fill: false,
+          borderColor: 'rgba(255, 99, 132, 1)',
+          tension: 0.1
+        }
+      ]
+    };
+    
+    // Only add quiz data if we have quizzes
+    if (performanceData.quizzes && performanceData.quizzes.length > 0) {
+      // Sort quizzes by date
+      const sortedQuizzes = [...performanceData.quizzes].sort((a, b) => {
+        const dateA = a.date ? new Date(a.date) : new Date(0);
+        const dateB = b.date ? new Date(b.date) : new Date(0);
+        return dateA - dateB;
+      });
+      
+      // Set labels and data
+      quizPerformanceData.labels = sortedQuizzes.map(quiz => formatDate(quiz.date));
+      quizPerformanceData.datasets[0].data = sortedQuizzes.map(quiz => quiz.score || 0);
+    }
+    
+    return {
+      performanceData: performanceChartData,
+      activityData,
+      quizPerformanceData
+    };
+  };
+
   const metrics = calculateMetrics();
+  const chartData = prepareChartData();
 
   return (
     <div className={styles.container}>
@@ -297,6 +489,82 @@ export default function StudentPerformance() {
                   <p>Total Days: {metrics.totalAttendance}</p>
                 </div>
               </div>
+            </div>
+
+            {/* Visualizations */}
+            <div className={styles.visualizations}>
+              <h2>Performance Visualizations</h2>
+              
+              <div className={styles.chartContainer}>
+                <div className={styles.chart}>
+                  <h3>Performance Comparison</h3>
+                  {chartData && (
+                    <Line 
+                      data={chartData.performanceData} 
+                      options={{
+                        responsive: true,
+                        scales: {
+                          y: {
+                            beginAtZero: true,
+                            max: 100
+                          }
+                        }
+                      }}
+                    />
+                  )}
+                </div>
+                
+                <div className={styles.chart}>
+                  <h3>Activity Distribution</h3>
+                  {chartData && (
+                    <Pie 
+                      data={chartData.activityData} 
+                      options={{
+                        responsive: true
+                      }}
+                    />
+                  )}
+                </div>
+                
+                <div className={styles.chart}>
+                  <h3>Quiz Performance Over Time</h3>
+                  {chartData && performanceData.quizzes.length > 0 && (
+                    <Line 
+                      data={chartData.quizPerformanceData} 
+                      options={{
+                        responsive: true,
+                        scales: {
+                          y: {
+                            beginAtZero: true,
+                            max: 100
+                          }
+                        }
+                      }}
+                    />
+                  )}
+                  {performanceData.quizzes.length === 0 && (
+                    <p className={styles.noData}>No quiz data available</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Performance Description */}
+            <div className={styles.performanceDescription}>
+              <h2>Performance Analysis</h2>
+              <button 
+                className={styles.generateButton}
+                onClick={generatePerformanceDescription}
+                disabled={generatingDescription}
+              >
+                {generatingDescription ? 'Generating...' : 'Generate Performance Analysis'}
+              </button>
+              
+              {performanceDescription && (
+                <div className={styles.description}>
+                  <p>{performanceDescription}</p>
+                </div>
+              )}
             </div>
 
             {/* Detailed Performance Data */}
