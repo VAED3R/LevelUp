@@ -146,9 +146,7 @@ export default function StudentQuiz() {
         totalQuestions: quiz.questions.length,
         date: new Date().toISOString(),
         subject: quiz.subject,
-        topic: quiz.topic,
-        type: "quiz", // Add type field to identify as quiz points
-        userId: user.uid
+        topic: quiz.topic
       };
 
       // Create a batch for atomic operations
@@ -184,9 +182,9 @@ export default function StudentQuiz() {
           id: user.uid,
           name: userData.name,
           email: user.email,
+          name: userData.name,
           class: userData.class,
           points: [pointsData],
-          totalPoints: finalScore,
           createdAt: new Date().toISOString()
         });
         

@@ -46,6 +46,7 @@
 
 .formGroup {
   margin-right: 1rem;
+  margin-bottom: 1rem;
 }
 
 .label {
@@ -53,6 +54,39 @@
   margin-bottom: 0.5rem;
   font-weight: 600;
   color: #333;
+}
+
+.input {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  min-width: 200px;
+  background-color: white;
+  transition: border-color 0.3s;
+}
+
+.input:focus {
+  border-color: #3498db;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* Additional styles for date inputs */
+.dateInput {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  min-width: 200px;
+  background-color: white;
+  transition: border-color 0.3s;
+}
+
+.dateInput:focus {
+  border-color: #3498db;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
 }
 
 .select {

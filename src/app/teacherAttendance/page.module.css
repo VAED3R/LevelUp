@@ -159,44 +159,6 @@
     cursor: not-allowed;
 }
 
-/* Bulk Actions */
-.bulkActions {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 25px;
-    position: relative;
-    z-index: 2;
-}
-
-.bulkButton {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background-color: #f0f4f8;
-    color: #1f2937;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.bulkButton:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-.bulkButton:first-child {
-    background-color: #2ecc71;
-    color: white;
-}
-
-.bulkButton:last-child {
-    background-color: #e74c3c;
-    color: white;
-}
-
 /* Responsive Design */
 @media (max-width: 768px) {
     .filters {
@@ -206,15 +168,5 @@
 
     .formGroup {
         max-width: 100%;
-    }
-
-    .bulkActions {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .bulkButton {
-        width: 100%;
-        max-width: 300px;
     }
 }
