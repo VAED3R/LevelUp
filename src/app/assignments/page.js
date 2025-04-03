@@ -232,12 +232,34 @@ export default function Assignments() {
             // Add points to the points collection
             await addDoc(collection(db, "points"), pointsData);
             
-            console.log(`Successfully updated points for ${student.name}:`, {
-              pointsAdded: pointsToAdd,
-              percentage: percentage,
-              totalPoints: totalPoints,
-              assignment: assignmentTitle
-            });
+            // If marks are above 5, add 10 additional points
+            if (obtainedMarks > 5) {
+              const additionalPointsEntry = {
+                points: 10,
+                date: new Date().toISOString(),
+                subject: selectedSubject,
+                score: percentage,
+                totalQuestions: totalMarks,
+                quizId: "assignment_bonus",
+                topic: assignmentTitle + " (Bonus)",
+                userId: student.id,
+                type: "assignment"
+              };
+              
+              // Add the additional points entry
+              const pointsWithBonus = [...updatedPoints, additionalPointsEntry];
+              
+              // Calculate new total points including bonus
+              const totalPointsWithBonus = totalPoints + 10;
+              
+              // Update points in users collection with bonus
+              await updateDoc(studentRef, {
+                points: pointsWithBonus,
+                totalPoints: totalPointsWithBonus
+              });
+              
+              console.log(`Added 10 bonus points for ${student.name} for marks above 5 in ${selectedSubject}`);
+            }
           }
         }
       });
