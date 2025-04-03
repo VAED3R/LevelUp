@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import styles from './ParentChatbot.module.css';
-import { FaRobot, FaTimes, FaGraduationCap, FaHandHoldingHeart } from 'react-icons/fa';
+import { FaRobot, FaTimes, FaGraduationCap, FaHandHoldingHeart, FaQuestion } from 'react-icons/fa';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 
 const ParentChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -8,6 +10,7 @@ const ParentChatbot = () => {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [studentPerformance, setStudentPerformance] = useState(null);
 
   const formatMessage = (text) => {
     // Remove markdown symbols and format the text
@@ -23,6 +26,56 @@ const ParentChatbot = () => {
       .replace(/\`/g, ''); // Remove backticks
   };
 
+  const fetchStudentPerformance = async () => {
+    try {
+      // Get parent's email from localStorage or auth context
+      const parentEmail = localStorage.getItem('userEmail');
+      if (!parentEmail) return;
+
+      // Find parent document
+      const parentQuery = query(
+        collection(db, "users"),
+        where("email", "==", parentEmail),
+        where("role", "==", "parent")
+      );
+      const parentSnapshot = await getDocs(parentQuery);
+      
+      if (parentSnapshot.empty) return;
+      const parentData = parentSnapshot.docs[0].data();
+      const childEmail = parentData.child;
+
+      if (!childEmail) return;
+
+      // Find student document
+      const studentQuery = query(
+        collection(db, "users"),
+        where("email", "==", childEmail),
+        where("role", "==", "student")
+      );
+      const studentSnapshot = await getDocs(studentQuery);
+      
+      if (studentSnapshot.empty) return;
+      const studentId = studentSnapshot.docs[0].id;
+
+      // Fetch performance data
+      const [quizzesSnapshot, assignmentsSnapshot, testsSnapshot] = await Promise.all([
+        getDocs(query(collection(db, "quizzes"), where("studentId", "==", studentId))),
+        getDocs(query(collection(db, "assignments"), where("studentId", "==", studentId))),
+        getDocs(query(collection(db, "testResults"), where("studentId", "==", studentId)))
+      ]);
+
+      const performance = {
+        quizzes: quizzesSnapshot.docs.map(doc => doc.data()),
+        assignments: assignmentsSnapshot.docs.map(doc => doc.data()),
+        tests: testsSnapshot.docs.map(doc => doc.data())
+      };
+
+      setStudentPerformance(performance);
+    } catch (error) {
+      console.error('Error fetching student performance:', error);
+    }
+  };
+
   const handleChatbotClick = () => {
     setIsOpen(!isOpen);
     if (!isOpen) {
@@ -31,11 +84,18 @@ const ParentChatbot = () => {
     }
   };
 
-  const handleOptionClick = (option) => {
+  const handleOptionClick = async (option) => {
     setActiveChat(option);
+    
+    if (option === 'career') {
+      await fetchStudentPerformance();
+    }
+
     const initialMessage = option === 'counseling' 
       ? "Hello! I'm here to help with counseling. Could you please tell me what specific concerns you have about your child?"
-      : "Hello! I'm here to help with career guidance. Could you tell me what grade your child is in and what subjects they enjoy?";
+      : option === 'career'
+      ? "Hello! I'm here to help with career guidance. I'll analyze your child's performance to suggest suitable career paths. What specific career-related questions do you have?"
+      : "Hello! I'm here to help. What would you like to know?";
     
     setMessages([{
       type: 'bot',
@@ -57,10 +117,26 @@ const ParentChatbot = () => {
     setIsLoading(true);
 
     try {
-      // Prepare the context based on the active chat type
-      const context = activeChat === 'counseling'
-        ? "You are a counseling assistant helping parents with their children's issues. Be empathetic and provide practical advice. Focus on understanding the parent's concerns and offering supportive guidance. Keep responses concise and avoid using markdown formatting."
-        : "You are a career guidance assistant helping parents understand career options for their children. Provide relevant information about educational paths and career opportunities based on the child's interests and abilities. Keep responses concise and avoid using markdown formatting.";
+      let context = "";
+      if (activeChat === 'counseling') {
+        context = "You are a counseling assistant helping parents with their children's issues. Be empathetic and provide practical advice. Focus on understanding the parent's concerns and offering supportive guidance. Keep responses concise and avoid using markdown formatting.";
+      } else if (activeChat === 'career') {
+        // Create a performance summary for career guidance
+        const performanceSummary = studentPerformance ? `
+          Student Performance Summary:
+          - Quizzes: ${studentPerformance.quizzes.length} completed
+          - Assignments: ${studentPerformance.assignments.length} completed
+          - Tests: ${studentPerformance.tests.length} completed
+          Average scores and subject strengths will be analyzed for career recommendations.
+        ` : "No performance data available yet.";
+        
+        context = `You are a career guidance assistant helping parents understand career options for their children. 
+        Based on the student's performance data: ${performanceSummary}
+        Provide relevant information about educational paths and career opportunities based on the child's academic strengths and interests.
+        Keep responses concise and avoid using markdown formatting.`;
+      } else {
+        context = "You are a helpful assistant. Provide clear, concise answers to the user's questions. Avoid using markdown formatting.";
+      }
 
       const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
@@ -144,6 +220,13 @@ const ParentChatbot = () => {
               >
                 <FaGraduationCap className={styles.optionIcon} />
                 Career Guidance
+              </button>
+              <button 
+                className={styles.optionButton}
+                onClick={() => handleOptionClick('other')}
+              >
+                <FaQuestion className={styles.optionIcon} />
+                Other
               </button>
             </div>
           ) : (
