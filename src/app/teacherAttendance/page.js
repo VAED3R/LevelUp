@@ -12,7 +12,8 @@ import {
     query,
     where,
     addDoc,
-    updateDoc
+    updateDoc,
+    writeBatch
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import styles from "./page.module.css";
@@ -31,19 +32,19 @@ export default function TeacherAttendance() {
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
+    useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
+            if (user) {
                 setTeacherEmail(user.email);
             } else {
                 setTeacherEmail("");
             }
         });
 
-    return () => unsubscribe();
-  }, []);
+        return () => unsubscribe();
+    }, []);
 
-  useEffect(() => {
+    useEffect(() => {
         if (!teacherEmail) return;
 
         const fetchData = async () => {
@@ -60,14 +61,12 @@ export default function TeacherAttendance() {
                 setSubjects(teacherSubjects);
             }
 
-            // Fetch students
-            const studentQuery = await getDocs(collection(db, "users"));
-            const studentList = studentQuery.docs
-                .filter((doc) => doc.data().role === "student")
-                .map((doc) => ({
+            // Fetch students from the students collection
+            const studentQuery = await getDocs(collection(db, "students"));
+            const studentList = studentQuery.docs.map((doc) => ({
                     id: doc.id,
                     ...doc.data(),
-                }));
+            }));
 
             setStudents(studentList);
 
@@ -111,6 +110,22 @@ export default function TeacherAttendance() {
         }));
     };
 
+    const markAllPresent = () => {
+        const newAttendance = {};
+        filteredStudents.forEach((student) => {
+            newAttendance[student.id] = true;
+        });
+        setAttendance(newAttendance);
+    };
+
+    const markAllAbsent = () => {
+        const newAttendance = {};
+        filteredStudents.forEach((student) => {
+            newAttendance[student.id] = false;
+        });
+        setAttendance(newAttendance);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!selectedClass || !selectedSubject) {
@@ -118,8 +133,14 @@ export default function TeacherAttendance() {
             return;
         }
 
+        setLoading(true);
         try {
-            const promises = filteredStudents.map(async (student) => {
+            // First, create a batch to handle all operations
+            const batch = writeBatch(db);
+            
+            // Process each student
+            for (const student of filteredStudents) {
+                // Create attendance record
                 const attendanceData = {
                     studentId: student.id,
                     studentName: student.name,
@@ -131,130 +152,192 @@ export default function TeacherAttendance() {
                 };
 
                 // Add attendance to the attendance collection
-                await addDoc(collection(db, "attendance"), attendanceData);
+                const attendanceRef = doc(collection(db, "attendance"));
+                batch.set(attendanceRef, attendanceData);
 
                 // If student is present, award 10 points
                 if (attendance[student.id] === true) {
-                    // Get current student document
-                    const studentRef = doc(db, "users", student.id);
-                    const studentDoc = await getDoc(studentRef);
-                    
-                    if (studentDoc.exists()) {
-                        const studentData = studentDoc.data();
-                        // Ensure currentPointsArray is always an array
-                        const currentPointsArray = Array.isArray(studentData.points) ? studentData.points : [];
-                        
-                        const newPointsEntry = {
-                            points: 10,
+                    try {
+                        // Create a new attendance points entry
+                        const newAttendanceEntry = {
                             date: new Date().toISOString(),
+                            points: 10,
+                            quizId: "attendance_" + new Date().getTime(), // Unique ID for attendance
+                            score: 10, // Points awarded for attendance
                             subject: selectedSubject,
-                            score: 100, // Full score for attendance
-                            totalQuestions: 1,
-                            quizId: "attendance",
                             topic: "attendance",
-                            userId: student.id
+                            totalQuestions: 1,
+                            userId: student.id,
+                            type: "attendance" // Mark this as attendance points
                         };
 
-                        const updatedPointsArray = [...currentPointsArray, newPointsEntry];
-                        console.log(`Updating points for ${student.name}: Adding 10 points for attendance in ${selectedSubject}`);
+                        // Check if student document exists in students collection
+                        const studentRef = doc(db, "students", student.id);
+                        const studentDoc = await getDoc(studentRef);
                         
-                        await updateDoc(studentRef, {
-                            points: updatedPointsArray
-                        });
+                        if (studentDoc.exists()) {
+                            // Student exists, update points array
+                            const studentData = studentDoc.data();
+                            
+                            // Get the current points array or initialize an empty array
+                            let currentPointsArray = [];
+                            if (studentData.points && Array.isArray(studentData.points)) {
+                                currentPointsArray = [...studentData.points];
+                            }
+                            
+                            // Add the new attendance points entry to the array
+                            currentPointsArray.push(newAttendanceEntry);
+                            
+                            // Calculate total points
+                            const totalPoints = calculateTotalPoints(currentPointsArray);
+                            
+                            // Update the student document with the new points array and total points
+                            batch.update(studentRef, {
+                                points: currentPointsArray,
+                                totalPoints: totalPoints
+                            });
+                            
+                            console.log(`Updating points for ${student.name}: Adding 10 attendance points in ${selectedSubject}. Total points: ${totalPoints}`);
+                        } else {
+                            // Student doesn't exist, create new document
+                            const newStudentData = {
+                                id: student.id,
+                                name: student.name,
+                                email: student.email || "",
+                                class: student.class,
+                                createdAt: new Date().toISOString(),
+                                points: [newAttendanceEntry],
+                                totalPoints: 10 // Initial total points
+                            };
+                            
+                            batch.set(studentRef, newStudentData);
+                            console.log(`Creating new student document for ${student.name} with 10 attendance points. Total points: 10`);
+                        }
+                    } catch (error) {
+                        console.error(`Error processing student ${student.name}:`, error);
                     }
                 }
-            });
+            }
 
-            await Promise.all(promises);
+            // Commit the batch
+            await batch.commit();
+            
             setSuccess(true);
             setError(null);
             
             // Reset attendance
             const resetAttendance = {};
             filteredStudents.forEach(student => {
-                resetAttendance[student.id] = "absent";
+                resetAttendance[student.id] = false;
             });
             setAttendance(resetAttendance);
-      } catch (error) {
+        } catch (error) {
             console.error("Error adding attendance:", error);
             setError("Failed to add attendance");
             setSuccess(false);
+        } finally {
+            setLoading(false);
         }
     };
 
-  return (
+    // Helper function to calculate total points
+    const calculateTotalPoints = (pointsArray) => {
+        if (!pointsArray || !Array.isArray(pointsArray)) return 0;
+        
+        return pointsArray.reduce((total, entry) => {
+            return total + (entry.points || 0);
+        }, 0);
+    };
+
+    return (
     <div style={{ height: '100vh', overflow: 'auto' }}>
-      <Navbar />
+            <Navbar />
             <div className={styles.background}>
-      <div className={styles.container}>
+            <div className={styles.container}>
                     <h1 className={styles.heading}>Teacher Attendance</h1>
 
-                    <div className={styles.filters}>
-                        <div className={styles.formGroup}>
-                            <label>Date:</label>
-                            <input
-                                type="date"
-                                value={selectedDate}
-                                onChange={(e) => setSelectedDate(e.target.value)}
-                            />
-                  </div>
-                        <div className={styles.formGroup}>
-                            <label>Class:</label>
-                            <select
-                                value={selectedClass}
-                                onChange={(e) => setSelectedClass(e.target.value)}
-                            >
-                                <option value="">Select Class</option>
-                                {classes.map((className, index) => (
-                                    <option key={index} value={className}>
-                                        {className}
-                                    </option>
-                                ))}
-                            </select>
+                <div className={styles.filters}>
+                    <div className={styles.formGroup}>
+                        <label>Date:</label>
+                        <input
+                            type="date"
+                            value={selectedDate}
+                            onChange={(e) => setSelectedDate(e.target.value)}
+                        />
+                    </div>
+                    <div className={styles.formGroup}>
+                        <label>Class:</label>
+                        <select
+                            value={selectedClass}
+                            onChange={(e) => setSelectedClass(e.target.value)}
+                        >
+                            <option value="">Select Class</option>
+                            {classes.map((className, index) => (
+                                <option key={index} value={className}>
+                                    {className}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label>Subject:</label>
+                        <select
+                            value={selectedSubject}
+                            onChange={(e) => setSelectedSubject(e.target.value)}
+                        >
+                            <option value="">Select Subject</option>
+                            {subjects.map((subject) => (
+                                <option key={subject} value={subject}>
+                                    {subject.replace(/_/g, " ")}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
 
-                        <div className={styles.formGroup}>
-                            <label>Subject:</label>
-                            <select
-                                value={selectedSubject}
-                                onChange={(e) => setSelectedSubject(e.target.value)}
+                    {filteredStudents.length > 0 && (
+                        <div className={styles.bulkActions}>
+                            <button 
+                                className={styles.bulkButton} 
+                                onClick={markAllPresent}
                             >
-                                <option value="">Select Subject</option>
-                                {subjects.map((subject) => (
-                                    <option key={subject} value={subject}>
-                                        {subject.replace(/_/g, " ")}
-                                    </option>
-                                ))}
-                            </select>
-                </div>
+                                Mark All Present
+                            </button>
+                            <button 
+                                className={styles.bulkButton} 
+                                onClick={markAllAbsent}
+                            >
+                                Mark All Absent
+                            </button>
+                        </div>
+                    )}
+
+                <div className={styles.cardContainer}>
+                    {filteredStudents.map((student) => (
+                        <div
+                            key={student.id}
+                            className={`${styles.studentCard} ${
+                                attendance[student.id] ? styles.present : styles.absent
+                            }`}
+                            onClick={() => handleToggleAttendance(student.id)}
+                        >
+                            <h3>{student.name}</h3>
+                            <p>Class: {student.class}</p>
+                            <p>{attendance[student.id] ? "Present" : "Absent"}</p>
+                        </div>
+                    ))}
                 </div>
 
-                    <div className={styles.cardContainer}>
-                        {filteredStudents.map((student) => (
-                            <div
-                                key={student.id}
-                                className={`${styles.studentCard} ${
-                                    attendance[student.id] ? styles.present : styles.absent
-                                }`}
-                                onClick={() => handleToggleAttendance(student.id)}
-                            >
-                                <h3>{student.name}</h3>
-                                <p>Class: {student.class}</p>
-                                <p>{attendance[student.id] ? "Present" : "Absent"}</p>
-              </div>
-            ))}
-          </div>
-
-                    <button
+                <button
                         onClick={handleSubmit}
-                        className={styles.saveButton}
-                        disabled={loading}
-                    >
-                        {loading ? "Saving..." : "Save Attendance"}
-                    </button>
-          </div>
-      </div>
-    </div>
-  );
+                    className={styles.saveButton}
+                    disabled={loading}
+                >
+                    {loading ? "Saving..." : "Save Attendance"}
+                </button>
+            </div>
+            </div>
+        </div>
+    );
 }
-    

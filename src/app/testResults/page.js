@@ -237,15 +237,38 @@ export default function TestResults() {
               totalQuestions: totalMarks,
               quizId: "test_result",
               topic: "test_result",
-              userId: student.id
+              userId: student.id,
+              type: "assessment"
             };
 
             const updatedPointsArray = [...currentPointsArray, newPointsEntry];
             console.log(`Updating points for ${student.name}: Adding ${pointsToAdd} points for ${percentage}% in ${selectedSubject}`);
             
+            // Calculate total points
+            const totalPoints = updatedPointsArray.reduce((sum, entry) => sum + entry.points, 0);
+            
             await updateDoc(studentRef, {
-              points: updatedPointsArray
+              points: updatedPointsArray,
+              totalPoints: totalPoints
             });
+            
+            // Create points entry in the points collection
+            const pointsData = {
+              studentId: student.id,
+              studentName: student.name,
+              class: selectedClass,
+              subject: selectedSubject,
+              points: pointsToAdd,
+              date: new Date().toISOString(),
+              score: percentage,
+              totalMarks: totalMarks,
+              addedBy: auth.currentUser.uid,
+              type: "assessment",
+              totalPoints: totalPoints
+            };
+            
+            // Add points to the points collection
+            await addDoc(collection(db, "points"), pointsData);
           }
         }
       });

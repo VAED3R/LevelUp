@@ -193,7 +193,8 @@ export default function Assignments() {
               totalQuestions: totalMarks,
               quizId: "assignment",
               topic: assignmentTitle,
-              userId: student.id
+              userId: student.id,
+              type: "assignment"
             };
 
             // Get current points array or initialize empty array
@@ -208,7 +209,7 @@ export default function Assignments() {
             // Update points in users collection
             await updateDoc(studentRef, {
               points: updatedPoints,
-              totalPoints: totalPoints // Add totalPoints field
+              totalPoints: totalPoints
             });
 
             // Create points entry in the new points collection
@@ -228,7 +229,7 @@ export default function Assignments() {
               totalPoints: totalPoints
             };
 
-            // Add to points collection
+            // Add points to the points collection
             await addDoc(collection(db, "points"), pointsData);
             
             console.log(`Successfully updated points for ${student.name}:`, {
