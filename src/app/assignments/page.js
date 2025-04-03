@@ -7,7 +7,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import Navbar from "@/components/teacherNavbar";
 import styles from "./page.module.css";
 
-export default function TestResults() {
+export default function Assignments() {
   const [students, setStudents] = useState([]);
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [classes, setClasses] = useState([]);
@@ -19,7 +19,8 @@ export default function TestResults() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [teacherEmail, setTeacherEmail] = useState("");
-  const [percentages, setPercentages] = useState({});
+  const [assignmentTitle, setAssignmentTitle] = useState("");
+  const [assignmentDescription, setAssignmentDescription] = useState("");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -106,48 +107,26 @@ export default function TestResults() {
     }
   }, [selectedClass, students, subjects]);
 
-  const calculatePercentage = (obtained, total) => {
-    if (!obtained || !total || total === 0) return 0;
-    return ((obtained / total) * 100).toFixed(2);
-  };
-
   const handleMarksChange = (studentId, subject, field) => (e) => {
     const value = e.target.value;
     if (value === "" || (value >= 0 && value <= 100)) {
-      setMarks(prev => {
-        const newMarks = {
-          ...prev,
-          [studentId]: {
-            ...prev[studentId],
-            [subject]: {
-              ...prev[studentId]?.[subject],
-              [field]: value
-            }
+      setMarks(prev => ({
+        ...prev,
+        [studentId]: {
+          ...prev[studentId],
+          [subject]: {
+            ...prev[studentId]?.[subject],
+            [field]: value
           }
-        };
-
-        // Calculate percentage when either obtained or total marks change
-        const studentMarks = newMarks[studentId]?.[subject];
-        if (studentMarks) {
-          const percentage = calculatePercentage(
-            Number(studentMarks.obtained),
-            Number(studentMarks.total)
-          );
-          setPercentages(prev => ({
-            ...prev,
-            [`${studentId}-${subject}`]: percentage
-          }));
         }
-
-        return newMarks;
-      });
+      }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedClass || !selectedSubject) {
-      setError("Please select a class and subject");
+    if (!selectedClass || !selectedSubject || !assignmentTitle) {
+      setError("Please select a class, subject and enter assignment title");
       return;
     }
 
@@ -156,22 +135,22 @@ export default function TestResults() {
         const studentMarks = marks[student.id][selectedSubject];
         const obtainedMarks = Number(studentMarks.obtained) || 0;
         const totalMarks = Number(studentMarks.total) || 0;
-        const percentage = Number(calculatePercentage(obtainedMarks, totalMarks));
 
-        const marksData = {
+        const assignmentData = {
           studentId: student.id,
           studentName: student.name,
           class: selectedClass,
           subject: selectedSubject,
+          assignmentTitle: assignmentTitle,
+          assignmentDescription: assignmentDescription,
           obtainedMarks: obtainedMarks,
           totalMarks: totalMarks,
-          percentage: percentage,
           addedBy: auth.currentUser.uid,
           addedAt: new Date().toISOString(),
         };
 
-        // Add marks to the marks collection
-        await addDoc(collection(db, "marks"), marksData);
+        // Add assignment to the assignments collection
+        await addDoc(collection(db, "assignments"), assignmentData);
 
         // Get current student document
         const studentRef = doc(db, "users", student.id);
@@ -182,19 +161,9 @@ export default function TestResults() {
           const currentPointsArray = studentData.points || [];
           let pointsToAdd = 0;
 
-          // Determine points to add based on percentage ranges
-          if (percentage >= 90 && percentage <= 100) {
-            pointsToAdd = 50;
-          } else if (percentage >= 80 && percentage < 90) {
-            pointsToAdd = 25;
-          } else if (percentage >= 70 && percentage < 80) {
-            pointsToAdd = 15;
-          } else if (percentage >= 60 && percentage < 70) {
+          // Add 10 points if score is more than 5
+          if (obtainedMarks > 5) {
             pointsToAdd = 10;
-          } else if (percentage >= 50 && percentage < 60) {
-            pointsToAdd = 5;
-          } else if (percentage >= 40 && percentage < 50) {
-            pointsToAdd = 2;
           }
 
           // Update points if any points were earned
@@ -203,15 +172,15 @@ export default function TestResults() {
               points: pointsToAdd,
               date: new Date().toISOString(),
               subject: selectedSubject,
-              score: percentage,
+              score: obtainedMarks,
               totalQuestions: totalMarks,
-              quizId: "test_result", // Using a special ID for test results
-              topic: "test_result",
+              quizId: "assignment",
+              topic: assignmentTitle,
               userId: student.id
             };
 
             const updatedPointsArray = [...currentPointsArray, newPointsEntry];
-            console.log(`Updating points for ${student.name}: Adding ${pointsToAdd} points for ${percentage}% in ${selectedSubject}`);
+            console.log(`Updating points for ${student.name}: Adding ${pointsToAdd} points for score ${obtainedMarks} in ${selectedSubject}`);
             
             await updateDoc(studentRef, {
               points: updatedPointsArray
@@ -224,7 +193,9 @@ export default function TestResults() {
       setSuccess(true);
       setError(null);
       
-      // Reset marks and percentages for all students
+      // Reset form
+      setAssignmentTitle("");
+      setAssignmentDescription("");
       const resetMarks = {};
       filteredStudents.forEach(student => {
         const studentMarks = {};
@@ -237,10 +208,9 @@ export default function TestResults() {
         resetMarks[student.id] = studentMarks;
       });
       setMarks(resetMarks);
-      setPercentages({});
     } catch (error) {
-      console.error("Error adding marks:", error);
-      setError("Failed to add marks");
+      console.error("Error adding assignment marks:", error);
+      setError("Failed to add assignment marks");
       setSuccess(false);
     }
   };
@@ -249,7 +219,7 @@ export default function TestResults() {
     <div className={styles.container}>
       <Navbar />
       <div className={styles.content}>
-        <h1 className={styles.title}>Add Test Results</h1>
+        <h1 className={styles.title}>Add Assignment Marks</h1>
         
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.filters}>
@@ -290,6 +260,30 @@ export default function TestResults() {
             </div>
           </div>
 
+          <div className={styles.assignmentDetails}>
+            <div className={styles.formGroup}>
+              <label htmlFor="assignmentTitle" className={styles.label}>Assignment Title:</label>
+              <input
+                type="text"
+                id="assignmentTitle"
+                value={assignmentTitle}
+                onChange={(e) => setAssignmentTitle(e.target.value)}
+                className={styles.input}
+                required
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label htmlFor="assignmentDescription" className={styles.label}>Assignment Description:</label>
+              <textarea
+                id="assignmentDescription"
+                value={assignmentDescription}
+                onChange={(e) => setAssignmentDescription(e.target.value)}
+                className={styles.textarea}
+                rows="4"
+              />
+            </div>
+          </div>
+
           {filteredStudents.length > 0 && (
             <div className={styles.marksContainer}>
               <h2 className={styles.subtitle}>Enter Marks</h2>
@@ -327,12 +321,6 @@ export default function TestResults() {
                         required
                       />
                     </div>
-                    <div className={styles.percentageDisplay}>
-                      <span className={styles.percentageLabel}>Percentage:</span>
-                      <span className={styles.percentageValue}>
-                        {percentages[`${student.id}-${selectedSubject}`] || "0"}%
-                      </span>
-                    </div>
                   </div>
                 </div>
               ))}
@@ -340,11 +328,11 @@ export default function TestResults() {
           )}
 
           {error && <p className={styles.error}>{error}</p>}
-          {success && <p className={styles.success}>Marks added successfully!</p>}
+          {success && <p className={styles.success}>Assignment marks added successfully!</p>}
 
           {filteredStudents.length > 0 && (
             <button type="submit" className={styles.submitButton}>
-              Add Marks
+              Add Assignment Marks
             </button>
           )}
         </form>
