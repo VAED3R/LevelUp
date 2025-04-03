@@ -86,11 +86,15 @@ export default function TeacherAttendance() {
             const filtered = students.filter(
                 (student) => student.class === selectedClass
             );
-            setFilteredStudents(filtered);
+            // Sort students alphabetically by name
+            const sortedStudents = filtered.sort((a, b) => 
+                a.name.localeCompare(b.name)
+            );
+            setFilteredStudents(sortedStudents);
 
             // Initialize attendance state
             const initialAttendance = {};
-            filtered.forEach((student) => {
+            sortedStudents.forEach((student) => {
                 initialAttendance[student.id] = false;
             });
             setAttendance(initialAttendance);
@@ -121,7 +125,7 @@ export default function TeacherAttendance() {
                     studentName: student.name,
                     class: selectedClass,
                     subject: selectedSubject,
-                    status: attendance[student.id] || "absent",
+                    status: attendance[student.id] ? "present" : "absent",
                     addedBy: auth.currentUser.uid,
                     addedAt: new Date().toISOString(),
                 };
@@ -130,7 +134,7 @@ export default function TeacherAttendance() {
                 await addDoc(collection(db, "attendance"), attendanceData);
 
                 // If student is present, award 10 points
-                if (attendance[student.id] === "present") {
+                if (attendance[student.id] === true) {
                     // Get current student document
                     const studentRef = doc(db, "users", student.id);
                     const studentDoc = await getDoc(studentRef);
@@ -179,7 +183,7 @@ export default function TeacherAttendance() {
     };
 
   return (
-    <div>
+    <div style={{ height: '100vh', overflow: 'auto' }}>
       <Navbar />
             <div className={styles.background}>
       <div className={styles.container}>

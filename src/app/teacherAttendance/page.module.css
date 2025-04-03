@@ -1,7 +1,6 @@
-/* Professional Faculty Styling */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
-/* Global styles to ensure white background */
+/* Global styles to ensure proper scrolling */
 :global(body) {
     margin: 0;
     padding: 0;
@@ -10,14 +9,15 @@
     overflow-y: auto;
 }
 
+/* Background fix */
 .background {
-    background: radial-gradient(circle at bottom, #5a35ab, #181e39, #0a0a1a);
-    width: 100%;
-    min-height: 100vh;
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
+    width: 100%;
+    min-height: 100%;
     z-index: 0;
+    background: radial-gradient(circle at bottom, #5a35ab, #181e39, #0a0a1a);
 }
 
 /* General Container Styling */
@@ -32,6 +32,7 @@
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease-in-out;
     margin-top: 100px;
+    margin-bottom: 30px;
     position: relative;
     z-index: 1;
 }
