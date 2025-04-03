@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { auth, db } from "@/lib/firebase";
-import { collection, getDocs, addDoc, doc, getDoc, updateDoc } from "firebase/firestore";
+import { collection, getDocs, addDoc, doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import Navbar from "@/components/teacherNavbar";
 import styles from "./page.module.css";
@@ -212,26 +212,6 @@ export default function Assignments() {
               totalPoints: totalPoints
             });
 
-            // Create points entry in the new points collection
-            const pointsData = {
-              studentId: student.id,
-              studentName: student.name,
-              class: selectedClass,
-              subject: selectedSubject,
-              points: pointsToAdd,
-              date: new Date().toISOString(),
-              score: percentage,
-              totalMarks: totalMarks,
-              assignmentTitle: assignmentTitle,
-              assignmentDescription: assignmentDescription,
-              addedBy: auth.currentUser.uid,
-              type: "assignment", // Ensure type is set as assignment
-              totalPoints: totalPoints
-            };
-
-            // Add points to the points collection
-            await addDoc(collection(db, "points"), pointsData);
-            
             // If marks are above 5, add 10 additional points
             if (obtainedMarks > 5) {
               const additionalPointsEntry = {
@@ -260,6 +240,59 @@ export default function Assignments() {
               
               console.log(`Added 10 bonus points for ${student.name} for marks above 5 in ${selectedSubject}`);
             }
+            
+            // Also update the students collection
+            const studentsRef = doc(db, "students", student.id);
+            const studentsDoc = await getDoc(studentsRef);
+            
+            if (studentsDoc.exists()) {
+              // If student exists in students collection, update points
+              const studentsData = studentsDoc.data();
+              const studentsCurrentPoints = studentsData.points || [];
+              
+              // Add new points entry to students collection
+              const updatedStudentsPoints = [...studentsCurrentPoints, newPointsEntry];
+              
+              // Calculate total points for students collection
+              const studentsTotalPoints = updatedStudentsPoints.reduce((sum, entry) => sum + entry.points, 0);
+              
+              // Update points in students collection
+              await updateDoc(studentsRef, {
+                points: updatedStudentsPoints,
+                totalPoints: studentsTotalPoints
+              });
+              
+              // If marks are above 5, add bonus points to students collection too
+              if (obtainedMarks > 5) {
+                const studentsPointsWithBonus = [...updatedStudentsPoints, additionalPointsEntry];
+                const studentsTotalPointsWithBonus = studentsTotalPoints + 10;
+                
+                await updateDoc(studentsRef, {
+                  points: studentsPointsWithBonus,
+                  totalPoints: studentsTotalPointsWithBonus
+                });
+              }
+            } else {
+              // If student doesn't exist in students collection, create it
+              const newStudentData = {
+                id: student.id,
+                name: student.name,
+                email: student.email || "",
+                class: student.class,
+                createdAt: new Date().toISOString(),
+                points: obtainedMarks > 5 ? [newPointsEntry, additionalPointsEntry] : [newPointsEntry],
+                totalPoints: obtainedMarks > 5 ? pointsToAdd + 10 : pointsToAdd
+              };
+              
+              await setDoc(studentsRef, newStudentData);
+            }
+            
+            console.log(`Successfully updated points for ${student.name}:`, {
+              pointsAdded: pointsToAdd,
+              percentage: percentage,
+              totalPoints: obtainedMarks > 5 ? totalPointsWithBonus : totalPoints,
+              assignment: assignmentTitle
+            });
           }
         }
       });
