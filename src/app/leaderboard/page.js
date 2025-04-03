@@ -19,15 +19,16 @@ export default function Leaderboard() {
     const fetchStudents = async () => {
       setLoading(true);
       try {
-        const querySnapshot = await getDocs(collection(db, "users"));
+        // Fetch students from the students collection instead of users
+        const querySnapshot = await getDocs(collection(db, "students"));
 
         const studentsList = querySnapshot.docs
           .map(doc => ({
             id: doc.id,
             ...doc.data(),
-            totalPoints: doc.data().points?.reduce((sum, point) => sum + (point.points || 0), 0) || 0
+            // Use the totalPoints field directly from the student document
+            totalPoints: doc.data().totalPoints || 0
           }))
-          .filter(user => user.role === "student")
           .sort((a, b) => b.totalPoints - a.totalPoints);  // Sort by total points (descending)
 
         // Set the overall topper (first in the sorted list)
@@ -55,6 +56,8 @@ export default function Leaderboard() {
         setClasses(["All", ...uniqueClasses]);
         setClassToppers(classTopperMap);
         setOverallTopper(topOverall);
+
+        console.log("Fetched students with total points:", studentsList);
 
       } catch (error) {
         console.error("Error fetching students:", error);
