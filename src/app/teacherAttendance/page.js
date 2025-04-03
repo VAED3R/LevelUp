@@ -175,7 +175,7 @@ export default function TeacherAttendance() {
                 resetAttendance[student.id] = "absent";
             });
             setAttendance(resetAttendance);
-        } catch (error) {
+      } catch (error) {
             console.error("Error adding attendance:", error);
             setError("Failed to add attendance");
             setSuccess(false);
@@ -227,7 +227,7 @@ export default function TeacherAttendance() {
                                 ))}
                             </select>
                 </div>
-                    </div>
+                </div>
 
                     <div className={styles.cardContainer}>
                         {filteredStudents.map((student) => (
