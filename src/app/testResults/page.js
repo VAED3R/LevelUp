@@ -20,6 +20,7 @@ export default function TestResults() {
   const [success, setSuccess] = useState(false);
   const [teacherEmail, setTeacherEmail] = useState("");
   const [percentages, setPercentages] = useState({});
+  const [totalScore, setTotalScore] = useState("");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -93,8 +94,8 @@ export default function TestResults() {
         const studentMarks = {};
         subjects.forEach(subject => {
           studentMarks[subject] = {
-            obtained: "",
-            total: ""
+            obtained: "0",
+            total: "0"
           };
         });
         initialMarks[student.id] = studentMarks;
@@ -113,41 +114,69 @@ export default function TestResults() {
 
   const handleMarksChange = (studentId, subject, field) => (e) => {
     const value = e.target.value;
-    if (value === "" || (value >= 0 && value <= 100)) {
-      setMarks(prev => {
-        const newMarks = {
-          ...prev,
-          [studentId]: {
-            ...prev[studentId],
-            [subject]: {
-              ...prev[studentId]?.[subject],
-              [field]: value
-            }
+    if (value === "" || (value >= 0 && value <= Number(totalScore))) {
+      setMarks(prev => ({
+        ...prev,
+        [studentId]: {
+          ...prev[studentId],
+          [subject]: {
+            ...prev[studentId]?.[subject],
+            [field]: value
           }
-        };
-
-        // Calculate percentage when either obtained or total marks change
-        const studentMarks = newMarks[studentId]?.[subject];
-        if (studentMarks) {
-          const percentage = calculatePercentage(
-            Number(studentMarks.obtained),
-            Number(studentMarks.total)
-          );
-          setPercentages(prev => ({
-            ...prev,
-            [`${studentId}-${subject}`]: percentage
-          }));
         }
+      }));
 
-        return newMarks;
+      // Calculate percentage when obtained marks change
+      if (field === "obtained" && totalScore) {
+        const percentage = calculatePercentage(
+          Number(value),
+          Number(totalScore)
+        );
+        setPercentages(prev => ({
+          ...prev,
+          [`${studentId}-${subject}`]: percentage
+        }));
+      }
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      // Focus on the next input if available
+      const inputs = document.querySelectorAll('input[type="number"]');
+      const currentIndex = Array.from(inputs).indexOf(e.target);
+      if (currentIndex < inputs.length - 1) {
+        inputs[currentIndex + 1].focus();
+      }
+    }
+  };
+
+  const handleTotalScoreChange = (e) => {
+    const value = e.target.value;
+    if (value === "" || (value >= 0 && value <= 100)) {
+      setTotalScore(value);
+      // Reset all obtained marks when total score changes
+      const resetMarks = {};
+      filteredStudents.forEach(student => {
+        const studentMarks = {};
+        subjects.forEach(subject => {
+          studentMarks[subject] = {
+            obtained: "0",
+            total: value
+          };
+        });
+        resetMarks[student.id] = studentMarks;
       });
+      setMarks(resetMarks);
+      setPercentages({});
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedClass || !selectedSubject) {
-      setError("Please select a class and subject");
+    if (!selectedClass || !selectedSubject || !totalScore) {
+      setError("Please select a class, subject and enter total score");
       return;
     }
 
@@ -155,7 +184,7 @@ export default function TestResults() {
       const promises = filteredStudents.map(async (student) => {
         const studentMarks = marks[student.id][selectedSubject];
         const obtainedMarks = Number(studentMarks.obtained) || 0;
-        const totalMarks = Number(studentMarks.total) || 0;
+        const totalMarks = Number(totalScore);
         const percentage = Number(calculatePercentage(obtainedMarks, totalMarks));
 
         const marksData = {
@@ -179,7 +208,8 @@ export default function TestResults() {
         
         if (studentDoc.exists()) {
           const studentData = studentDoc.data();
-          const currentPointsArray = studentData.points || [];
+          // Ensure currentPointsArray is always an array
+          const currentPointsArray = Array.isArray(studentData.points) ? studentData.points : [];
           let pointsToAdd = 0;
 
           // Determine points to add based on percentage ranges
@@ -205,7 +235,7 @@ export default function TestResults() {
               subject: selectedSubject,
               score: percentage,
               totalQuestions: totalMarks,
-              quizId: "test_result", // Using a special ID for test results
+              quizId: "test_result",
               topic: "test_result",
               userId: student.id
             };
@@ -224,14 +254,15 @@ export default function TestResults() {
       setSuccess(true);
       setError(null);
       
-      // Reset marks and percentages for all students
+      // Reset form
+      setTotalScore("");
       const resetMarks = {};
       filteredStudents.forEach(student => {
         const studentMarks = {};
         subjects.forEach(subject => {
           studentMarks[subject] = {
-            obtained: "",
-            total: ""
+            obtained: "0",
+            total: "0"
           };
         });
         resetMarks[student.id] = studentMarks;
@@ -261,6 +292,7 @@ export default function TestResults() {
                 onChange={(e) => setSelectedClass(e.target.value)}
                 className={styles.select}
                 required
+                onKeyPress={handleKeyPress}
               >
                 <option value="">Select Class</option>
                 {classes.map((className, index) => (
@@ -279,6 +311,7 @@ export default function TestResults() {
                 onChange={(e) => setSelectedSubject(e.target.value)}
                 className={styles.select}
                 required
+                onKeyPress={handleKeyPress}
               >
                 <option value="">Select Subject</option>
                 {subjects.map((subject) => (
@@ -288,11 +321,28 @@ export default function TestResults() {
                 ))}
               </select>
             </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="totalScore" className={styles.label}>Total Score:</label>
+              <input
+                type="number"
+                id="totalScore"
+                value={totalScore}
+                onChange={handleTotalScoreChange}
+                onKeyPress={handleKeyPress}
+                min="0"
+                max="100"
+                className={styles.input}
+                required
+                placeholder="Enter total score"
+              />
+            </div>
           </div>
 
           {filteredStudents.length > 0 && (
             <div className={styles.marksContainer}>
               <h2 className={styles.subtitle}>Enter Marks</h2>
+              <p className={styles.instruction}>Note: Only fill in marks for students who have taken the test. Students who haven't taken the test will automatically get 0 marks.</p>
               {filteredStudents.map((student) => (
                 <div key={student.id} className={styles.studentMarks}>
                   <h3 className={styles.studentName}>{student.name}</h3>
@@ -304,27 +354,13 @@ export default function TestResults() {
                       <input
                         type="number"
                         id={`${student.id}-${selectedSubject}-obtained`}
-                        value={marks[student.id]?.[selectedSubject]?.obtained || ""}
+                        value={marks[student.id]?.[selectedSubject]?.obtained || "0"}
                         onChange={handleMarksChange(student.id, selectedSubject, "obtained")}
+                        onKeyPress={handleKeyPress}
                         min="0"
-                        max="100"
+                        max={totalScore}
                         className={styles.input}
-                        required
-                      />
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label htmlFor={`${student.id}-${selectedSubject}-total`} className={styles.label}>
-                        Total Marks:
-                      </label>
-                      <input
-                        type="number"
-                        id={`${student.id}-${selectedSubject}-total`}
-                        value={marks[student.id]?.[selectedSubject]?.total || ""}
-                        onChange={handleMarksChange(student.id, selectedSubject, "total")}
-                        min="0"
-                        max="100"
-                        className={styles.input}
-                        required
+                        placeholder="Enter marks if taken test"
                       />
                     </div>
                     <div className={styles.percentageDisplay}>

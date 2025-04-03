@@ -94,8 +94,8 @@ export default function Assignments() {
         const studentMarks = {};
         subjects.forEach(subject => {
           studentMarks[subject] = {
-            obtained: "",
-            total: ""
+            obtained: "0",
+            total: "0"
           };
         });
         initialMarks[student.id] = studentMarks;
@@ -123,6 +123,11 @@ export default function Assignments() {
     }
   };
 
+  const calculatePercentage = (obtained, total) => {
+    if (!obtained || !total || total === 0) return 0;
+    return ((obtained / total) * 100).toFixed(2);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedClass || !selectedSubject || !assignmentTitle) {
@@ -133,8 +138,10 @@ export default function Assignments() {
     try {
       const promises = filteredStudents.map(async (student) => {
         const studentMarks = marks[student.id][selectedSubject];
+        // If marks are empty or not filled, use 0 as default
         const obtainedMarks = Number(studentMarks.obtained) || 0;
         const totalMarks = Number(studentMarks.total) || 0;
+        const percentage = Number(calculatePercentage(obtainedMarks, totalMarks));
 
         const assignmentData = {
           studentId: student.id,
@@ -145,6 +152,7 @@ export default function Assignments() {
           assignmentDescription: assignmentDescription,
           obtainedMarks: obtainedMarks,
           totalMarks: totalMarks,
+          percentage: percentage,
           addedBy: auth.currentUser.uid,
           addedAt: new Date().toISOString(),
         };
@@ -158,12 +166,21 @@ export default function Assignments() {
         
         if (studentDoc.exists()) {
           const studentData = studentDoc.data();
-          const currentPointsArray = studentData.points || [];
           let pointsToAdd = 0;
 
-          // Add 10 points if score is more than 5
-          if (obtainedMarks > 5) {
+          // Determine points to add based on percentage ranges
+          if (percentage >= 90 && percentage <= 100) {
+            pointsToAdd = 50;
+          } else if (percentage >= 80 && percentage < 90) {
+            pointsToAdd = 25;
+          } else if (percentage >= 70 && percentage < 80) {
+            pointsToAdd = 15;
+          } else if (percentage >= 60 && percentage < 70) {
             pointsToAdd = 10;
+          } else if (percentage >= 50 && percentage < 60) {
+            pointsToAdd = 5;
+          } else if (percentage >= 40 && percentage < 50) {
+            pointsToAdd = 2;
           }
 
           // Update points if any points were earned
@@ -172,18 +189,53 @@ export default function Assignments() {
               points: pointsToAdd,
               date: new Date().toISOString(),
               subject: selectedSubject,
-              score: obtainedMarks,
+              score: percentage,
               totalQuestions: totalMarks,
               quizId: "assignment",
               topic: assignmentTitle,
               userId: student.id
             };
 
-            const updatedPointsArray = [...currentPointsArray, newPointsEntry];
-            console.log(`Updating points for ${student.name}: Adding ${pointsToAdd} points for score ${obtainedMarks} in ${selectedSubject}`);
+            // Get current points array or initialize empty array
+            const currentPoints = studentData.points || [];
             
+            // Add new points entry
+            const updatedPoints = [...currentPoints, newPointsEntry];
+            
+            // Calculate total points
+            const totalPoints = updatedPoints.reduce((sum, entry) => sum + entry.points, 0);
+            
+            // Update points in users collection
             await updateDoc(studentRef, {
-              points: updatedPointsArray
+              points: updatedPoints,
+              totalPoints: totalPoints // Add totalPoints field
+            });
+
+            // Create points entry in the new points collection
+            const pointsData = {
+              studentId: student.id,
+              studentName: student.name,
+              class: selectedClass,
+              subject: selectedSubject,
+              points: pointsToAdd,
+              date: new Date().toISOString(),
+              score: percentage,
+              totalMarks: totalMarks,
+              assignmentTitle: assignmentTitle,
+              assignmentDescription: assignmentDescription,
+              addedBy: auth.currentUser.uid,
+              type: "assignment",
+              totalPoints: totalPoints
+            };
+
+            // Add to points collection
+            await addDoc(collection(db, "points"), pointsData);
+            
+            console.log(`Successfully updated points for ${student.name}:`, {
+              pointsAdded: pointsToAdd,
+              percentage: percentage,
+              totalPoints: totalPoints,
+              assignment: assignmentTitle
             });
           }
         }
@@ -201,8 +253,8 @@ export default function Assignments() {
         const studentMarks = {};
         subjects.forEach(subject => {
           studentMarks[subject] = {
-            obtained: "",
-            total: ""
+            obtained: "0",
+            total: "0"
           };
         });
         resetMarks[student.id] = studentMarks;
@@ -287,6 +339,7 @@ export default function Assignments() {
           {filteredStudents.length > 0 && (
             <div className={styles.marksContainer}>
               <h2 className={styles.subtitle}>Enter Marks</h2>
+              <p className={styles.instruction}>Note: Only fill in marks for students who have submitted the assignment. Students who haven't submitted will automatically get 0 marks.</p>
               {filteredStudents.map((student) => (
                 <div key={student.id} className={styles.studentMarks}>
                   <h3 className={styles.studentName}>{student.name}</h3>
@@ -298,12 +351,12 @@ export default function Assignments() {
                       <input
                         type="number"
                         id={`${student.id}-${selectedSubject}-obtained`}
-                        value={marks[student.id]?.[selectedSubject]?.obtained || ""}
+                        value={marks[student.id]?.[selectedSubject]?.obtained || "0"}
                         onChange={handleMarksChange(student.id, selectedSubject, "obtained")}
                         min="0"
                         max="100"
                         className={styles.input}
-                        required
+                        placeholder="Enter marks if submitted"
                       />
                     </div>
                     <div className={styles.formGroup}>
@@ -313,12 +366,12 @@ export default function Assignments() {
                       <input
                         type="number"
                         id={`${student.id}-${selectedSubject}-total`}
-                        value={marks[student.id]?.[selectedSubject]?.total || ""}
+                        value={marks[student.id]?.[selectedSubject]?.total || "0"}
                         onChange={handleMarksChange(student.id, selectedSubject, "total")}
                         min="0"
                         max="100"
                         className={styles.input}
-                        required
+                        placeholder="Enter total marks if submitted"
                       />
                     </div>
                   </div>

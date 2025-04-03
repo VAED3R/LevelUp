@@ -10,7 +10,9 @@ import {
     setDoc,
     getDoc,
     query,
-    where
+    where,
+    addDoc,
+    updateDoc
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import styles from "./page.module.css";
@@ -26,6 +28,8 @@ export default function TeacherAttendance() {
     const [subjects, setSubjects] = useState([]);
     const [selectedSubject, setSelectedSubject] = useState("");
     const [teacherEmail, setTeacherEmail] = useState("");
+    const [error, setError] = useState(null);
+    const [success, setSuccess] = useState(false);
 
   useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -103,47 +107,74 @@ export default function TeacherAttendance() {
         }));
     };
 
-    const handleSaveAttendance = async () => {
-        if (!selectedClass || !selectedDate || !selectedSubject) {
-            alert("Please select a class, date, and subject.");
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!selectedClass || !selectedSubject) {
+            setError("Please select a class and subject");
             return;
         }
 
-        setLoading(true);
-
         try {
-            // Create a batch of promises for each student
             const promises = filteredStudents.map(async (student) => {
-                // Create a reference to the student's attendance document
-                const attendanceRef = doc(db, "attendance", `${selectedSubject}_${student.id}`);
-                const attendanceDoc = await getDoc(attendanceRef);
-
-                // Get existing attendance data or initialize empty object
-                const existingData = attendanceDoc.exists() ? attendanceDoc.data() : {};
-
-                // Update the attendance data
-                const updatedData = {
-                    ...existingData,
-                    [selectedDate]: {
-                        present: attendance[student.id],
-                        class: selectedClass,
-                        subject: selectedSubject,
-                        teacher: teacherEmail
-                    }
+                const attendanceData = {
+                    studentId: student.id,
+                    studentName: student.name,
+                    class: selectedClass,
+                    subject: selectedSubject,
+                    status: attendance[student.id] || "absent",
+                    addedBy: auth.currentUser.uid,
+                    addedAt: new Date().toISOString(),
                 };
 
-                // Save the updated attendance data
-                await setDoc(attendanceRef, updatedData);
+                // Add attendance to the attendance collection
+                await addDoc(collection(db, "attendance"), attendanceData);
+
+                // If student is present, award 10 points
+                if (attendance[student.id] === "present") {
+                    // Get current student document
+                    const studentRef = doc(db, "users", student.id);
+                    const studentDoc = await getDoc(studentRef);
+                    
+                    if (studentDoc.exists()) {
+                        const studentData = studentDoc.data();
+                        // Ensure currentPointsArray is always an array
+                        const currentPointsArray = Array.isArray(studentData.points) ? studentData.points : [];
+                        
+                        const newPointsEntry = {
+                            points: 10,
+                            date: new Date().toISOString(),
+                            subject: selectedSubject,
+                            score: 100, // Full score for attendance
+                            totalQuestions: 1,
+                            quizId: "attendance",
+                            topic: "attendance",
+                            userId: student.id
+                        };
+
+                        const updatedPointsArray = [...currentPointsArray, newPointsEntry];
+                        console.log(`Updating points for ${student.name}: Adding 10 points for attendance in ${selectedSubject}`);
+                        
+                        await updateDoc(studentRef, {
+                            points: updatedPointsArray
+                        });
+                    }
+                }
             });
 
-            // Wait for all promises to complete
             await Promise.all(promises);
-            setLoading(false);
-            alert("Attendance saved successfully!");
-      } catch (error) {
-            console.error("Error saving attendance:", error);
-        setLoading(false);
-            alert("Error saving attendance. Please try again.");
+            setSuccess(true);
+            setError(null);
+            
+            // Reset attendance
+            const resetAttendance = {};
+            filteredStudents.forEach(student => {
+                resetAttendance[student.id] = "absent";
+            });
+            setAttendance(resetAttendance);
+        } catch (error) {
+            console.error("Error adding attendance:", error);
+            setError("Failed to add attendance");
+            setSuccess(false);
         }
     };
 
@@ -211,7 +242,7 @@ export default function TeacherAttendance() {
           </div>
 
                     <button
-                        onClick={handleSaveAttendance}
+                        onClick={handleSubmit}
                         className={styles.saveButton}
                         disabled={loading}
                     >
