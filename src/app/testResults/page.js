@@ -235,10 +235,10 @@ export default function TestResults() {
               subject: selectedSubject,
               score: percentage,
               totalQuestions: totalMarks,
-              quizId: "test_result",
+              quizId: "test_result_" + new Date().getTime(), // Unique ID for test result
               topic: "test_result",
               userId: student.id,
-              type: "assessment"
+              type: "assessment" // Add type field to identify as assessment points
             };
 
             const updatedPointsArray = [...currentPointsArray, newPointsEntry];

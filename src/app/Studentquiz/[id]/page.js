@@ -147,7 +147,8 @@ export default function StudentQuiz() {
         date: new Date().toISOString(),
         subject: quiz.subject,
         topic: quiz.topic,
-        type: "quiz" // Add type field to identify as quiz points
+        type: "quiz", // Add type field to identify as quiz points
+        userId: user.uid
       };
 
       // Update points in users collection
