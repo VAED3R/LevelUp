@@ -4,7 +4,7 @@ import { auth, db } from "@/lib/firebase";  // Ensure you import your Firebase c
 import { doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import style from './page.module.css';
-
+import ParentChatbot from '@/components/ParentChatbot';
 import Navbar from "@/components/parentNavbar";
 
 export default function StudentDashboard() {
@@ -51,6 +51,7 @@ export default function StudentDashboard() {
     <div>
     <div className={style.dashboard}>
       <Navbar />
+      <ParentChatbot />
       {userData && (
         <div className={style.card}>
           <p><strong>Email:</strong> {userData.email}</p>

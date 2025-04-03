@@ -8,6 +8,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import Navbar from "@/components/parentNavbar";
 import styles from "./page.module.css";
 import { Line, Pie } from "react-chartjs-2";
+import ParentChatbot from '@/components/ParentChatbot';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -440,6 +441,7 @@ export default function StudentPerformance() {
   return (
     <div className={styles.container}>
       <Navbar />
+      <ParentChatbot />
       <div className={styles.content}>
         <h1 className={styles.title}>Student Performance</h1>
 
