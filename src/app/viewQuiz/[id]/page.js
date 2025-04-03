@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { auth, db } from "@/lib/firebase";
-import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayUnion, setDoc } from "firebase/firestore";
 import { useRouter, useParams } from "next/navigation";
 import Navbar from "@/components/studentNavbar";
 import styles from "./page.module.css";
@@ -120,14 +120,59 @@ export default function ViewQuiz() {
         try {
             const user = auth.currentUser;
             const userRef = doc(db, "users", user.uid);
+            
+            // Create points object with proper structure
+            const pointsData = {
+                quizId: quiz.id,
+                score: finalScore,
+                points: finalScore, // Set points equal to score
+                totalQuestions: quiz.questions.length,
+                date: new Date().toISOString(),
+                subject: quiz.subject || "quiz",
+                topic: quiz.topic || "quiz",
+                type: "quiz", // Add type field to identify as quiz points
+                userId: user.uid
+            };
+            
+            // Update points in users collection
             await updateDoc(userRef, {
-                points: arrayUnion({
-                    quizId: quiz.id,
-                    score: finalScore,
-                    totalPoints: quiz.questions.reduce((sum, q) => sum + (q.points || 1), 0),
-                    date: new Date().toISOString()
-                })
+                points: arrayUnion(pointsData)
             });
+            
+            // Also update points in students collection
+            const studentRef = doc(db, "students", user.uid);
+            const studentDoc = await getDoc(studentRef);
+            
+            if (studentDoc.exists()) {
+                // If student document exists, update points
+                const studentData = studentDoc.data();
+                const currentPoints = studentData.points || [];
+                const updatedPoints = [...currentPoints, pointsData];
+                
+                // Calculate total points
+                const totalPoints = updatedPoints.reduce((sum, entry) => sum + entry.points, 0);
+                
+                await updateDoc(studentRef, {
+                    points: updatedPoints,
+                    totalPoints: totalPoints
+                });
+            } else {
+                // If student document doesn't exist, create it with initial points
+                const userDoc = await getDoc(userRef);
+                const userData = userDoc.data();
+                
+                await setDoc(studentRef, {
+                    id: user.uid,
+                    name: userData.name || "Student",
+                    email: user.email,
+                    class: userData.class || "Unknown",
+                    points: [pointsData],
+                    totalPoints: finalScore,
+                    createdAt: new Date().toISOString()
+                });
+            }
+            
+            console.log("Points updated successfully");
         } catch (error) {
             console.error("Error updating points:", error);
         }

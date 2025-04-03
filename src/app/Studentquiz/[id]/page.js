@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { auth, db } from "@/lib/firebase";
-import { doc, getDoc, updateDoc, arrayUnion, setDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayUnion, setDoc, writeBatch } from "firebase/firestore";
 import { useRouter, useParams } from "next/navigation";
 import Navbar from "@/components/studentNavbar";
 import styles from "../page.module.css";
@@ -151,8 +151,11 @@ export default function StudentQuiz() {
         userId: user.uid
       };
 
+      // Create a batch for atomic operations
+      const batch = writeBatch(db);
+
       // Update points in users collection
-      await updateDoc(userRef, {
+      batch.update(userRef, {
         points: arrayUnion(pointsData)
       });
 
@@ -167,15 +170,17 @@ export default function StudentQuiz() {
         const updatedPoints = [...currentPoints, pointsData];
         
         // Calculate total points
-        const totalPoints = updatedPoints.reduce((sum, entry) => sum + entry.points, 0);
+        const totalPoints = calculateTotalPoints(updatedPoints);
         
-        await updateDoc(studentRef, {
+        batch.update(studentRef, {
           points: updatedPoints,
           totalPoints: totalPoints
         });
+        
+        console.log(`Added ${finalScore} points for quiz in ${quiz.subject}. Total points: ${totalPoints}`);
       } else {
         // If student document doesn't exist, create it with initial points
-        await setDoc(studentRef, {
+        batch.set(studentRef, {
           id: user.uid,
           name: userData.name,
           email: user.email,
@@ -184,12 +189,25 @@ export default function StudentQuiz() {
           totalPoints: finalScore,
           createdAt: new Date().toISOString()
         });
+        
+        console.log(`Creating new student document with ${finalScore} quiz points.`);
       }
 
+      // Commit the batch
+      await batch.commit();
       console.log("Points updated successfully");
     } catch (error) {
       console.error("Error updating points:", error);
     }
+  };
+
+  // Helper function to calculate total points
+  const calculateTotalPoints = (pointsArray) => {
+    if (!pointsArray || !Array.isArray(pointsArray)) return 0;
+    
+    return pointsArray.reduce((total, entry) => {
+      return total + (entry.points || 0);
+    }, 0);
   };
 
   if (loading) return (

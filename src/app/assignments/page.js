@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { auth, db } from "@/lib/firebase";
-import { collection, getDocs, addDoc, doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
+import { collection, getDocs, addDoc, doc, getDoc, updateDoc, setDoc, writeBatch } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import Navbar from "@/components/teacherNavbar";
 import styles from "./page.module.css";
@@ -136,6 +136,9 @@ export default function Assignments() {
     }
 
     try {
+      setLoading(true);
+      const batch = writeBatch(db);
+      
       const promises = filteredStudents.map(async (student) => {
         const studentMarks = marks[student.id][selectedSubject];
         // If marks are empty or not filled, use 0 as default
@@ -158,146 +161,127 @@ export default function Assignments() {
         };
 
         // Add assignment to the assignments collection
-        await addDoc(collection(db, "assignments"), assignmentData);
+        const assignmentRef = doc(collection(db, "assignments"));
+        batch.set(assignmentRef, assignmentData);
 
-        // Get current student document
-        const studentRef = doc(db, "users", student.id);
-        const studentDoc = await getDoc(studentRef);
-        
-        if (studentDoc.exists()) {
-          const studentData = studentDoc.data();
-          let pointsToAdd = 0;
+        // Calculate points based on percentage
+        let pointsToAdd = 0;
+        if (percentage >= 90 && percentage <= 100) {
+          pointsToAdd = 50;
+        } else if (percentage >= 80 && percentage < 90) {
+          pointsToAdd = 25;
+        } else if (percentage >= 70 && percentage < 80) {
+          pointsToAdd = 15;
+        } else if (percentage >= 60 && percentage < 70) {
+          pointsToAdd = 10;
+        } else if (percentage >= 50 && percentage < 60) {
+          pointsToAdd = 5;
+        } else if (percentage >= 40 && percentage < 50) {
+          pointsToAdd = 2;
+        }
 
-          // Determine points to add based on percentage ranges
-          if (percentage >= 90 && percentage <= 100) {
-            pointsToAdd = 50;
-          } else if (percentage >= 80 && percentage < 90) {
-            pointsToAdd = 25;
-          } else if (percentage >= 70 && percentage < 80) {
-            pointsToAdd = 15;
-          } else if (percentage >= 60 && percentage < 70) {
-            pointsToAdd = 10;
-          } else if (percentage >= 50 && percentage < 60) {
-            pointsToAdd = 5;
-          } else if (percentage >= 40 && percentage < 50) {
-            pointsToAdd = 2;
-          }
+        // Only proceed if points are earned
+        if (pointsToAdd > 0) {
+          // Create a new assignment points entry
+          const newPointsEntry = {
+            points: pointsToAdd,
+            date: new Date().toISOString(),
+            subject: selectedSubject,
+            score: percentage,
+            totalQuestions: totalMarks,
+            quizId: "assignment_" + new Date().getTime(), // Unique ID for assignment
+            topic: assignmentTitle,
+            userId: student.id,
+            type: "assignment" // Ensure type is set as assignment
+          };
 
-          // Update points if any points were earned
-          if (pointsToAdd > 0) {
-            const newPointsEntry = {
-              points: pointsToAdd,
-              date: new Date().toISOString(),
-              subject: selectedSubject,
-              score: percentage,
-              totalQuestions: totalMarks,
-              quizId: "assignment_" + new Date().getTime(), // Unique ID for assignment
-              topic: assignmentTitle,
-              userId: student.id,
-              type: "assignment" // Ensure type is set as assignment
-            };
+          // Create bonus points entry if needed (will be used later if marks > 5)
+          const additionalPointsEntry = {
+            points: 10,
+            date: new Date().toISOString(),
+            subject: selectedSubject,
+            score: percentage,
+            totalQuestions: totalMarks,
+            quizId: "assignment_bonus_" + new Date().getTime(), // Unique ID for bonus
+            topic: assignmentTitle + " (Bonus)",
+            userId: student.id,
+            type: "assignment" // Ensure type is set as assignment
+          };
 
-            // Get current points array or initialize empty array
-            const currentPoints = studentData.points || [];
+          // Check if student document exists in students collection
+          const studentRef = doc(db, "students", student.id);
+          const studentDoc = await getDoc(studentRef);
+          
+          if (studentDoc.exists()) {
+            // Student exists, update points array
+            const studentData = studentDoc.data();
             
-            // Add new points entry
-            const updatedPoints = [...currentPoints, newPointsEntry];
+            // Get the current points array or initialize an empty array
+            let currentPointsArray = [];
+            if (studentData.points && Array.isArray(studentData.points)) {
+              currentPointsArray = [...studentData.points];
+            }
+            
+            // Add the new assignment points entry to the array
+            currentPointsArray.push(newPointsEntry);
             
             // Calculate total points
-            const totalPoints = updatedPoints.reduce((sum, entry) => sum + entry.points, 0);
+            const totalPoints = calculateTotalPoints(currentPointsArray);
             
-            // Update points in users collection
-            await updateDoc(studentRef, {
-              points: updatedPoints,
-              totalPoints: totalPoints
-            });
-
             // If marks are above 5, add 10 additional points
             if (obtainedMarks > 5) {
-              const additionalPointsEntry = {
-                points: 10,
-                date: new Date().toISOString(),
-                subject: selectedSubject,
-                score: percentage,
-                totalQuestions: totalMarks,
-                quizId: "assignment_bonus_" + new Date().getTime(), // Unique ID for bonus
-                topic: assignmentTitle + " (Bonus)",
-                userId: student.id,
-                type: "assignment" // Ensure type is set as assignment
-              };
-              
               // Add the additional points entry
-              const pointsWithBonus = [...updatedPoints, additionalPointsEntry];
+              currentPointsArray.push(additionalPointsEntry);
               
-              // Calculate new total points including bonus
+              // Update total points with bonus
               const totalPointsWithBonus = totalPoints + 10;
               
-              // Update points in users collection with bonus
-              await updateDoc(studentRef, {
-                points: pointsWithBonus,
+              // Update the student document with the new points array and total points
+              batch.update(studentRef, {
+                points: currentPointsArray,
                 totalPoints: totalPointsWithBonus
               });
               
-              console.log(`Added 10 bonus points for ${student.name} for marks above 5 in ${selectedSubject}`);
-            }
-            
-            // Also update the students collection
-            const studentsRef = doc(db, "students", student.id);
-            const studentsDoc = await getDoc(studentsRef);
-            
-            if (studentsDoc.exists()) {
-              // If student exists in students collection, update points
-              const studentsData = studentsDoc.data();
-              const studentsCurrentPoints = studentsData.points || [];
-              
-              // Add new points entry to students collection
-              const updatedStudentsPoints = [...studentsCurrentPoints, newPointsEntry];
-              
-              // Calculate total points for students collection
-              const studentsTotalPoints = updatedStudentsPoints.reduce((sum, entry) => sum + entry.points, 0);
-              
-              // Update points in students collection
-              await updateDoc(studentsRef, {
-                points: updatedStudentsPoints,
-                totalPoints: studentsTotalPoints
+              console.log(`Added ${pointsToAdd} points and 10 bonus points for ${student.name} for assignment in ${selectedSubject}. Total points: ${totalPointsWithBonus}`);
+            } else {
+              // Update the student document with the new points array and total points
+              batch.update(studentRef, {
+                points: currentPointsArray,
+                totalPoints: totalPoints
               });
               
-              // If marks are above 5, add bonus points to students collection too
-              if (obtainedMarks > 5) {
-                const studentsPointsWithBonus = [...updatedStudentsPoints, additionalPointsEntry];
-                const studentsTotalPointsWithBonus = studentsTotalPoints + 10;
-                
-                await updateDoc(studentsRef, {
-                  points: studentsPointsWithBonus,
-                  totalPoints: studentsTotalPointsWithBonus
-                });
-              }
-            } else {
-              // If student doesn't exist in students collection, create it
-              const newStudentData = {
-                id: student.id,
-                name: student.name,
-                email: student.email || "",
-                class: student.class,
-                createdAt: new Date().toISOString(),
-                points: obtainedMarks > 5 ? [newPointsEntry, additionalPointsEntry] : [newPointsEntry],
-                totalPoints: obtainedMarks > 5 ? pointsToAdd + 10 : pointsToAdd
-              };
-              
-              await setDoc(studentsRef, newStudentData);
+              console.log(`Added ${pointsToAdd} points for ${student.name} for assignment in ${selectedSubject}. Total points: ${totalPoints}`);
+            }
+          } else {
+            // Student doesn't exist, create new document
+            let initialPoints = [newPointsEntry];
+            let initialTotalPoints = pointsToAdd;
+            
+            // If marks are above 5, add 10 additional points
+            if (obtainedMarks > 5) {
+              initialPoints.push(additionalPointsEntry);
+              initialTotalPoints += 10;
             }
             
-            console.log(`Successfully updated points for ${student.name}:`, {
-              pointsAdded: pointsToAdd,
-              percentage: percentage,
-              totalPoints: obtainedMarks > 5 ? totalPointsWithBonus : totalPoints,
-              assignment: assignmentTitle
-            });
+            const newStudentData = {
+              id: student.id,
+              name: student.name,
+              email: student.email || "",
+              class: student.class,
+              createdAt: new Date().toISOString(),
+              points: initialPoints,
+              totalPoints: initialTotalPoints
+            };
+            
+            batch.set(studentRef, newStudentData);
+            console.log(`Creating new student document for ${student.name} with ${initialTotalPoints} assignment points.`);
           }
         }
       });
 
       await Promise.all(promises);
+      await batch.commit();
+      
       setSuccess(true);
       setError(null);
       
@@ -320,7 +304,18 @@ export default function Assignments() {
       console.error("Error adding assignment marks:", error);
       setError("Failed to add assignment marks");
       setSuccess(false);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  // Helper function to calculate total points
+  const calculateTotalPoints = (pointsArray) => {
+    if (!pointsArray || !Array.isArray(pointsArray)) return 0;
+    
+    return pointsArray.reduce((total, entry) => {
+      return total + (entry.points || 0);
+    }, 0);
   };
 
   return (

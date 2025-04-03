@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { auth, db } from "@/lib/firebase";
-import { collection, getDocs, addDoc, doc, getDoc, updateDoc } from "firebase/firestore";
+import { collection, getDocs, addDoc, doc, getDoc, updateDoc, setDoc, writeBatch } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import Navbar from "@/components/teacherNavbar";
 import styles from "./page.module.css";
@@ -175,16 +175,20 @@ export default function TestResults() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedClass || !selectedSubject || !totalScore) {
-      setError("Please select a class, subject and enter total score");
+    if (!selectedClass || !selectedSubject) {
+      setError("Please select a class and subject");
       return;
     }
 
     try {
+      setLoading(true);
+      const batch = writeBatch(db);
+      
       const promises = filteredStudents.map(async (student) => {
         const studentMarks = marks[student.id][selectedSubject];
+        // If marks are empty or not filled, use 0 as default
         const obtainedMarks = Number(studentMarks.obtained) || 0;
-        const totalMarks = Number(totalScore);
+        const totalMarks = Number(studentMarks.total) || 0;
         const percentage = Number(calculatePercentage(obtainedMarks, totalMarks));
 
         const marksData = {
@@ -200,85 +204,92 @@ export default function TestResults() {
         };
 
         // Add marks to the marks collection
-        await addDoc(collection(db, "marks"), marksData);
+        const marksRef = doc(collection(db, "marks"));
+        batch.set(marksRef, marksData);
 
-        // Get current student document
-        const studentRef = doc(db, "users", student.id);
-        const studentDoc = await getDoc(studentRef);
-        
-        if (studentDoc.exists()) {
-          const studentData = studentDoc.data();
-          // Ensure currentPointsArray is always an array
-          const currentPointsArray = Array.isArray(studentData.points) ? studentData.points : [];
-          let pointsToAdd = 0;
+        // Calculate points based on percentage
+        let pointsToAdd = 0;
+        if (percentage >= 90 && percentage <= 100) {
+          pointsToAdd = 50;
+        } else if (percentage >= 80 && percentage < 90) {
+          pointsToAdd = 25;
+        } else if (percentage >= 70 && percentage < 80) {
+          pointsToAdd = 15;
+        } else if (percentage >= 60 && percentage < 70) {
+          pointsToAdd = 10;
+        } else if (percentage >= 50 && percentage < 60) {
+          pointsToAdd = 5;
+        } else if (percentage >= 40 && percentage < 50) {
+          pointsToAdd = 2;
+        }
 
-          // Determine points to add based on percentage ranges
-          if (percentage >= 90 && percentage <= 100) {
-            pointsToAdd = 50;
-          } else if (percentage >= 80 && percentage < 90) {
-            pointsToAdd = 25;
-          } else if (percentage >= 70 && percentage < 80) {
-            pointsToAdd = 15;
-          } else if (percentage >= 60 && percentage < 70) {
-            pointsToAdd = 10;
-          } else if (percentage >= 50 && percentage < 60) {
-            pointsToAdd = 5;
-          } else if (percentage >= 40 && percentage < 50) {
-            pointsToAdd = 2;
-          }
+        // Only proceed if points are earned
+        if (pointsToAdd > 0) {
+          // Create a new assessment points entry
+          const newPointsEntry = {
+            points: pointsToAdd,
+            date: new Date().toISOString(),
+            subject: selectedSubject,
+            score: percentage,
+            totalQuestions: totalMarks,
+            quizId: "test_result_" + new Date().getTime(), // Unique ID for test result
+            topic: "test_result",
+            userId: student.id,
+            type: "assessment" // Add type field to identify as assessment points
+          };
 
-          // Update points if any points were earned
-          if (pointsToAdd > 0) {
-            const newPointsEntry = {
-              points: pointsToAdd,
-              date: new Date().toISOString(),
-              subject: selectedSubject,
-              score: percentage,
-              totalQuestions: totalMarks,
-              quizId: "test_result_" + new Date().getTime(), // Unique ID for test result
-              topic: "test_result",
-              userId: student.id,
-              type: "assessment" // Add type field to identify as assessment points
-            };
-
-            const updatedPointsArray = [...currentPointsArray, newPointsEntry];
-            console.log(`Updating points for ${student.name}: Adding ${pointsToAdd} points for ${percentage}% in ${selectedSubject}`);
+          // Check if student document exists in students collection
+          const studentRef = doc(db, "students", student.id);
+          const studentDoc = await getDoc(studentRef);
+          
+          if (studentDoc.exists()) {
+            // Student exists, update points array
+            const studentData = studentDoc.data();
+            
+            // Get the current points array or initialize an empty array
+            let currentPointsArray = [];
+            if (studentData.points && Array.isArray(studentData.points)) {
+              currentPointsArray = [...studentData.points];
+            }
+            
+            // Add the new assessment points entry to the array
+            currentPointsArray.push(newPointsEntry);
             
             // Calculate total points
-            const totalPoints = updatedPointsArray.reduce((sum, entry) => sum + entry.points, 0);
+            const totalPoints = calculateTotalPoints(currentPointsArray);
             
-            await updateDoc(studentRef, {
-              points: updatedPointsArray,
+            // Update the student document with the new points array and total points
+            batch.update(studentRef, {
+              points: currentPointsArray,
               totalPoints: totalPoints
             });
             
-            // Create points entry in the points collection
-            const pointsData = {
-              studentId: student.id,
-              studentName: student.name,
-              class: selectedClass,
-              subject: selectedSubject,
-              points: pointsToAdd,
-              date: new Date().toISOString(),
-              score: percentage,
-              totalMarks: totalMarks,
-              addedBy: auth.currentUser.uid,
-              type: "assessment",
-              totalPoints: totalPoints
+            console.log(`Added ${pointsToAdd} points for ${student.name} for test result in ${selectedSubject}. Total points: ${totalPoints}`);
+          } else {
+            // Student doesn't exist, create new document
+            const newStudentData = {
+              id: student.id,
+              name: student.name,
+              email: student.email || "",
+              class: student.class,
+              createdAt: new Date().toISOString(),
+              points: [newPointsEntry],
+              totalPoints: pointsToAdd
             };
             
-            // Add points to the points collection
-            await addDoc(collection(db, "points"), pointsData);
+            batch.set(studentRef, newStudentData);
+            console.log(`Creating new student document for ${student.name} with ${pointsToAdd} assessment points.`);
           }
         }
       });
 
       await Promise.all(promises);
+      await batch.commit();
+      
       setSuccess(true);
       setError(null);
       
       // Reset form
-      setTotalScore("");
       const resetMarks = {};
       filteredStudents.forEach(student => {
         const studentMarks = {};
@@ -291,12 +302,22 @@ export default function TestResults() {
         resetMarks[student.id] = studentMarks;
       });
       setMarks(resetMarks);
-      setPercentages({});
     } catch (error) {
-      console.error("Error adding marks:", error);
-      setError("Failed to add marks");
+      console.error("Error adding test results:", error);
+      setError("Failed to add test results");
       setSuccess(false);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  // Helper function to calculate total points
+  const calculateTotalPoints = (pointsArray) => {
+    if (!pointsArray || !Array.isArray(pointsArray)) return 0;
+    
+    return pointsArray.reduce((total, entry) => {
+      return total + (entry.points || 0);
+    }, 0);
   };
 
   return (
