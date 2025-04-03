@@ -6,7 +6,7 @@ import { collection, getDocs, addDoc, doc, getDoc, updateDoc, setDoc, writeBatch
 import { onAuthStateChanged } from "firebase/auth";
 import Navbar from "@/components/teacherNavbar";
 import styles from "./page.module.css";
-import { format } from 'date-fns';
+
 
 export default function TestResults() {
   const [students, setStudents] = useState([]);
@@ -418,11 +418,11 @@ export default function TestResults() {
             </div>
           </div>
 
-          {filteredResults.length > 0 && (
+          {filteredStudents.length > 0 && (
             <div className={styles.marksContainer}>
               <h2 className={styles.subtitle}>Enter Marks</h2>
               <p className={styles.instruction}>Note: Only fill in marks for students who have taken the test. Students who haven't taken the test will automatically get 0 marks.</p>
-              {filteredResults.map((student) => (
+              {filteredStudents.map((student) => (
                 <div key={student.id} className={styles.studentMarks}>
                   <h3 className={styles.studentName}>{student.name}</h3>
                   <div className={styles.marksInputs}>
@@ -457,7 +457,7 @@ export default function TestResults() {
           {error && <p className={styles.error}>{error}</p>}
           {success && <p className={styles.success}>Marks added successfully!</p>}
 
-          {filteredResults.length > 0 && (
+          {filteredStudents.length > 0 && (
             <button type="submit" className={styles.submitButton}>
               Add Marks
             </button>
