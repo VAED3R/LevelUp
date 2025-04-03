@@ -6,6 +6,7 @@ import { collection, getDocs, addDoc, doc, getDoc, updateDoc, setDoc, writeBatch
 import { onAuthStateChanged } from "firebase/auth";
 import Navbar from "@/components/teacherNavbar";
 import styles from "./page.module.css";
+import { format } from 'date-fns';
 
 
 export default function TestResults() {
@@ -22,8 +23,6 @@ export default function TestResults() {
   const [teacherEmail, setTeacherEmail] = useState("");
   const [percentages, setPercentages] = useState({});
   const [totalScore, setTotalScore] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -173,15 +172,6 @@ export default function TestResults() {
       });
       setMarks(resetMarks);
       setPercentages({});
-    }
-  };
-
-  const handleDateChange = (e) => {
-    const { name, value } = e.target;
-    if (name === "startDate") {
-      setStartDate(value);
-    } else if (name === "endDate") {
-      setEndDate(value);
     }
   };
 
@@ -391,29 +381,6 @@ export default function TestResults() {
                 className={styles.input}
                 required
                 placeholder="Enter total score"
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="startDate" className={styles.label}>Start Date:</label>
-              <input
-                type="date"
-                id="startDate"
-                name="startDate"
-                value={startDate}
-                onChange={handleDateChange}
-                className={styles.input}
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="endDate" className={styles.label}>End Date:</label>
-              <input
-                type="date"
-                id="endDate"
-                name="endDate"
-                value={endDate}
-                onChange={handleDateChange}
-                className={styles.input}
               />
             </div>
           </div>
