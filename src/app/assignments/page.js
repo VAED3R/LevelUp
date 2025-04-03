@@ -191,10 +191,10 @@ export default function Assignments() {
               subject: selectedSubject,
               score: percentage,
               totalQuestions: totalMarks,
-              quizId: "assignment",
+              quizId: "assignment_" + new Date().getTime(), // Unique ID for assignment
               topic: assignmentTitle,
               userId: student.id,
-              type: "assignment"
+              type: "assignment" // Ensure type is set as assignment
             };
 
             // Get current points array or initialize empty array
@@ -225,7 +225,7 @@ export default function Assignments() {
               assignmentTitle: assignmentTitle,
               assignmentDescription: assignmentDescription,
               addedBy: auth.currentUser.uid,
-              type: "assignment",
+              type: "assignment", // Ensure type is set as assignment
               totalPoints: totalPoints
             };
 
@@ -240,10 +240,10 @@ export default function Assignments() {
                 subject: selectedSubject,
                 score: percentage,
                 totalQuestions: totalMarks,
-                quizId: "assignment_bonus",
+                quizId: "assignment_bonus_" + new Date().getTime(), // Unique ID for bonus
                 topic: assignmentTitle + " (Bonus)",
                 userId: student.id,
-                type: "assignment"
+                type: "assignment" // Ensure type is set as assignment
               };
               
               // Add the additional points entry
