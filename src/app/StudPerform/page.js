@@ -276,7 +276,7 @@ export default function StudentPerformance() {
     
     try {
       const prompt = `
-        Generate a supportive and encouraging performance analysis for a student with the following data:
+        Generate a supportive and encouraging performance analysis for a parent about their child with the following data:
         
         Student Name: ${student.name}
         Class: ${student.class}
@@ -289,12 +289,13 @@ export default function StudentPerformance() {
         - Attendance Rate: ${metrics.attendanceRate}% (${metrics.totalAttendance} days)
         
         Please provide a gentle and supportive analysis of the student's performance, highlighting strengths and areas for improvement.
+        Address the analysis to the parent, not the student.
         Focus on positive aspects and frame suggestions for improvement in an encouraging way.
-        Avoid using harsh language, unnecessary symbols (like asterisks or hash symbols), or anything that might discourage the student.
-        Include specific, actionable recommendations for improvement based on the data.
+        Avoid using harsh language, unnecessary symbols (like asterisks or hash symbols), or anything that might discourage the parent or student.
+        Include specific, actionable recommendations for how the parent can support their child's improvement based on the data.
         The tone should be supportive and motivating, emphasizing that improvement is always possible.
         
-        End the analysis with a warm, supportive statement that encourages the student to continue their efforts.
+        End the analysis with a warm, supportive statement that encourages the parent to continue supporting their child's efforts.
         Do not include any signature or "Warm regards" at the end.
       `;
       
