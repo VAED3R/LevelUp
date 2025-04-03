@@ -28,10 +28,10 @@ export default function Navbar() {
       <div className={styles.navContent}>
         <ul className={styles.navList}>
           <li className={styles.navItem}>
-            <Link href="/teacherDashboard" className={styles.navLink}>Dashboard</Link>
+            <Link href="/parentDashboard" className={styles.navLink}>Dashboard</Link>
           </li>
           <li className={styles.navItem}>
-            <Link href="/Attendance" className={styles.navLink}>Student Performance</Link>
+            <Link href="/StudPerform" className={styles.navLink}>Student Performance</Link>
           </li>
         </ul>
       </div>
