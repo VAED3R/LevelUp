@@ -146,9 +146,7 @@ export default function StudentQuiz() {
         totalQuestions: quiz.questions.length,
         date: new Date().toISOString(),
         subject: quiz.subject,
-        topic: quiz.topic,
-        type: "quiz", // Add type field to identify as quiz points
-        userId: user.uid
+        topic: quiz.topic
       };
 
       // Update points in users collection
@@ -162,26 +160,17 @@ export default function StudentQuiz() {
 
       if (studentDoc.exists()) {
         // If student document exists, update points
-        const studentData = studentDoc.data();
-        const currentPoints = studentData.points || [];
-        const updatedPoints = [...currentPoints, pointsData];
-        
-        // Calculate total points
-        const totalPoints = updatedPoints.reduce((sum, entry) => sum + entry.points, 0);
-        
         await updateDoc(studentRef, {
-          points: updatedPoints,
-          totalPoints: totalPoints
+          points: arrayUnion(pointsData)
         });
       } else {
         // If student document doesn't exist, create it with initial points
         await setDoc(studentRef, {
-          id: user.uid,
-          name: userData.name,
+          userId: user.uid,
           email: user.email,
+          name: userData.name,
           class: userData.class,
           points: [pointsData],
-          totalPoints: finalScore,
           createdAt: new Date().toISOString()
         });
       }

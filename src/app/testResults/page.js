@@ -6,6 +6,7 @@ import { collection, getDocs, addDoc, doc, getDoc, updateDoc } from "firebase/fi
 import { onAuthStateChanged } from "firebase/auth";
 import Navbar from "@/components/teacherNavbar";
 import styles from "./page.module.css";
+import { format } from 'date-fns';
 
 export default function TestResults() {
   const [students, setStudents] = useState([]);
@@ -21,6 +22,8 @@ export default function TestResults() {
   const [teacherEmail, setTeacherEmail] = useState("");
   const [percentages, setPercentages] = useState({});
   const [totalScore, setTotalScore] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -173,6 +176,15 @@ export default function TestResults() {
     }
   };
 
+  const handleDateChange = (e) => {
+    const { name, value } = e.target;
+    if (name === "startDate") {
+      setStartDate(value);
+    } else if (name === "endDate") {
+      setEndDate(value);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedClass || !selectedSubject || !totalScore) {
@@ -235,40 +247,17 @@ export default function TestResults() {
               subject: selectedSubject,
               score: percentage,
               totalQuestions: totalMarks,
-              quizId: "test_result_" + new Date().getTime(), // Unique ID for test result
+              quizId: "test_result",
               topic: "test_result",
-              userId: student.id,
-              type: "assessment" // Add type field to identify as assessment points
+              userId: student.id
             };
 
             const updatedPointsArray = [...currentPointsArray, newPointsEntry];
             console.log(`Updating points for ${student.name}: Adding ${pointsToAdd} points for ${percentage}% in ${selectedSubject}`);
             
-            // Calculate total points
-            const totalPoints = updatedPointsArray.reduce((sum, entry) => sum + entry.points, 0);
-            
             await updateDoc(studentRef, {
-              points: updatedPointsArray,
-              totalPoints: totalPoints
+              points: updatedPointsArray
             });
-            
-            // Create points entry in the points collection
-            const pointsData = {
-              studentId: student.id,
-              studentName: student.name,
-              class: selectedClass,
-              subject: selectedSubject,
-              points: pointsToAdd,
-              date: new Date().toISOString(),
-              score: percentage,
-              totalMarks: totalMarks,
-              addedBy: auth.currentUser.uid,
-              type: "assessment",
-              totalPoints: totalPoints
-            };
-            
-            // Add points to the points collection
-            await addDoc(collection(db, "points"), pointsData);
           }
         }
       });
@@ -298,6 +287,13 @@ export default function TestResults() {
       setSuccess(false);
     }
   };
+
+  const filteredResults = filteredStudents.filter(student => {
+    const studentMarks = marks[student.id][selectedSubject];
+    const markDate = new Date(studentMarks.addedAt);
+    return (!startDate || markDate >= new Date(startDate)) && 
+           (!endDate || markDate <= new Date(endDate));
+  });
 
   return (
     <div className={styles.container}>
@@ -360,13 +356,36 @@ export default function TestResults() {
                 placeholder="Enter total score"
               />
             </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="startDate" className={styles.label}>Start Date:</label>
+              <input
+                type="date"
+                id="startDate"
+                name="startDate"
+                value={startDate}
+                onChange={handleDateChange}
+                className={styles.input}
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label htmlFor="endDate" className={styles.label}>End Date:</label>
+              <input
+                type="date"
+                id="endDate"
+                name="endDate"
+                value={endDate}
+                onChange={handleDateChange}
+                className={styles.input}
+              />
+            </div>
           </div>
 
-          {filteredStudents.length > 0 && (
+          {filteredResults.length > 0 && (
             <div className={styles.marksContainer}>
               <h2 className={styles.subtitle}>Enter Marks</h2>
               <p className={styles.instruction}>Note: Only fill in marks for students who have taken the test. Students who haven't taken the test will automatically get 0 marks.</p>
-              {filteredStudents.map((student) => (
+              {filteredResults.map((student) => (
                 <div key={student.id} className={styles.studentMarks}>
                   <h3 className={styles.studentName}>{student.name}</h3>
                   <div className={styles.marksInputs}>
@@ -401,7 +420,7 @@ export default function TestResults() {
           {error && <p className={styles.error}>{error}</p>}
           {success && <p className={styles.success}>Marks added successfully!</p>}
 
-          {filteredStudents.length > 0 && (
+          {filteredResults.length > 0 && (
             <button type="submit" className={styles.submitButton}>
               Add Marks
             </button>
