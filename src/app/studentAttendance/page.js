@@ -1,211 +1,207 @@
 "use client";
 
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { db } from '@/lib/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import Navbar from "@/components/studentNavbar";
-import { useState, useEffect } from "react";
-import { db, auth } from "@/lib/firebase";
-import {
-    collection,
-    doc,
-    getDocs,
-    getDoc,
-    query,
-    where
-} from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
-import styles from "./page.module.css";
+import styles from './page.module.css';
 
 export default function StudentAttendance() {
-    const [studentInfo, setStudentInfo] = useState(null);
-    const [subjects, setSubjects] = useState([]);
-    const [selectedSubject, setSelectedSubject] = useState("");
-    const [attendanceData, setAttendanceData] = useState({});
-    const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState({
-        totalClasses: 0,
-        presentClasses: 0,
-        absentClasses: 0,
-        attendancePercentage: 0
-    });
+  const { user } = useAuth();
+  const [selectedSubject, setSelectedSubject] = useState('');
+  const [attendance, setAttendance] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [subjects, setSubjects] = useState([]);
+  const [stats, setStats] = useState({
+    totalClasses: 0,
+    present: 0,
+    absent: 0,
+    percentage: 0
+  });
 
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                // Fetch student information
-                const usersRef = collection(db, "users");
-                const querySnapshot = await getDocs(usersRef);
-                const studentDoc = querySnapshot.docs.find(
-                    (doc) => doc.data().email === user.email
-                );
+  useEffect(() => {
+    if (user) {
+      fetchSubjects();
+    }
+  }, [user]);
 
-                if (studentDoc) {
-                    const studentData = studentDoc.data();
-                    setStudentInfo({
-                        id: studentDoc.id,
-                        ...studentData
-                    });
+  useEffect(() => {
+    if (user && selectedSubject) {
+      fetchAttendance();
+    }
+  }, [user, selectedSubject]);
 
-                    // Get all teachers
-                    const teachersQuery = await getDocs(usersRef);
-                    const teachers = teachersQuery.docs
-                        .filter(doc => doc.data().role === "teacher")
-                        .map(doc => doc.data());
+  const fetchSubjects = async () => {
+    try {
+      const usersRef = collection(db, 'users');
+      const teachersQuery = query(usersRef, where('role', '==', 'teacher'));
+      const querySnapshot = await getDocs(teachersQuery);
+      
+      const allSubjects = new Set();
+      querySnapshot.forEach((doc) => {
+        const teacherData = doc.data();
+        if (teacherData.subject) {
+          teacherData.subject.split(',').forEach(subject => {
+            allSubjects.add(subject.trim().toLowerCase().replace(/ /g, '_'));
+          });
+        }
+      });
 
-                    // Get unique subjects from all teachers
-                    const allSubjects = new Set();
-                    teachers.forEach(teacher => {
-                        if (teacher.subject) {
-                            teacher.subject.split(",").forEach(subject => {
-                                allSubjects.add(subject.trim().toLowerCase().replace(/ /g, "_"));
-                            });
-                        }
-                    });
+      setSubjects(Array.from(allSubjects).sort());
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching subjects:', err);
+      setError('Failed to fetch subjects. Please try again later.');
+      setLoading(false);
+    }
+  };
 
-                    setSubjects(Array.from(allSubjects));
-                }
-            }
+  const fetchAttendance = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      if (!selectedSubject) {
+        setAttendance([]);
+        setStats({
+          totalClasses: 0,
+          present: 0,
+          absent: 0,
+          percentage: 0
+        });
+        return;
+      }
+
+      const attendanceRef = collection(db, 'attendance');
+      const q = query(
+        attendanceRef,
+        where('studentId', '==', user.uid),
+        where('subject', '==', selectedSubject)
+      );
+
+      const querySnapshot = await getDocs(q);
+      const attendanceData = [];
+      let presentCount = 0;
+      let absentCount = 0;
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        attendanceData.push({
+          id: doc.id,
+          date: data.date.toDate().toLocaleDateString(),
+          status: data.status,
+          subject: data.subject
         });
 
-        return () => unsubscribe();
-    }, []);
+        if (data.status === 'present') {
+          presentCount++;
+        } else if (data.status === 'absent') {
+          absentCount++;
+        }
+      });
 
-    useEffect(() => {
-        const fetchAttendance = async () => {
-            if (!selectedSubject || !studentInfo) return;
+      const totalClasses = attendanceData.length;
+      const percentage = totalClasses > 0 ? Math.round((presentCount / totalClasses) * 100) : 0;
 
-            setLoading(true);
-            try {
-                // Create a reference to the student's attendance document
-                const attendanceRef = doc(db, "attendance", `${selectedSubject}_${studentInfo.id}`);
-                const attendanceDoc = await getDoc(attendanceRef);
+      setAttendance(attendanceData);
+      setStats({
+        totalClasses,
+        present: presentCount,
+        absent: absentCount,
+        percentage
+      });
+    } catch (err) {
+      console.error('Error fetching attendance:', err);
+      setError('Failed to fetch attendance data. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                if (attendanceDoc.exists()) {
-                    const data = attendanceDoc.data();
-                    // Transform the data to match the expected format
-                    const transformedData = {};
-                    Object.entries(data).forEach(([date, record]) => {
-                        transformedData[date] = record.present;
-                    });
-                    setAttendanceData(transformedData);
+  const handleSubjectChange = (e) => {
+    setSelectedSubject(e.target.value);
+  };
 
-                    // Calculate statistics
-                    const totalClasses = Object.keys(transformedData).length;
-                    const presentClasses = Object.values(transformedData).filter(Boolean).length;
-                    const absentClasses = totalClasses - presentClasses;
-                    const attendancePercentage = totalClasses > 0 
-                        ? Math.round((presentClasses / totalClasses) * 100) 
-                        : 0;
-
-                    setStats({
-                        totalClasses,
-                        presentClasses,
-                        absentClasses,
-                        attendancePercentage
-                    });
-                } else {
-                    setAttendanceData({});
-                    setStats({
-                        totalClasses: 0,
-                        presentClasses: 0,
-                        absentClasses: 0,
-                        attendancePercentage: 0
-                    });
-                }
-            } catch (error) {
-                console.error("Error fetching attendance:", error);
-                setAttendanceData({});
-                setStats({
-                    totalClasses: 0,
-                    presentClasses: 0,
-                    absentClasses: 0,
-                    attendancePercentage: 0
-                });
-            }
-            setLoading(false);
-        };
-
-        fetchAttendance();
-    }, [selectedSubject, studentInfo]);
-
+  if (!user) {
     return (
-        <div>
-            <Navbar />
-            <div className={styles.container}>
-                <h1>My Attendance</h1>
-
-                {studentInfo && (
-                    <div className={styles.studentInfo}>
-                        <h2>Welcome, {studentInfo.name}</h2>
-                        <p>Class: {studentInfo.class}</p>
-                    </div>
-                )}
-
-                <div className={styles.subjectSelector}>
-                    <label>Select Subject:</label>
-                    <select
-                        value={selectedSubject}
-                        onChange={(e) => setSelectedSubject(e.target.value)}
-                    >
-                        <option value="">Choose a subject</option>
-                        {subjects.map((subject) => (
-                            <option key={subject} value={subject}>
-                                {subject.replace(/_/g, " ")}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                {loading ? (
-                    <div className={styles.loading}>Loading attendance...</div>
-                ) : selectedSubject ? (
-                    <div className={styles.attendanceContainer}>
-                        <h3>Attendance Record for {selectedSubject.replace(/_/g, " ")}</h3>
-                        
-                        {/* Statistics Section */}
-                        <div className={styles.statsContainer}>
-                            <div className={styles.statCard}>
-                                <div className={styles.statValue}>{stats.attendancePercentage}%</div>
-                                <div className={styles.statLabel}>Attendance Rate</div>
-                            </div>
-                            <div className={styles.statCard}>
-                                <div className={styles.statValue}>{stats.totalClasses}</div>
-                                <div className={styles.statLabel}>Total Classes</div>
-                            </div>
-                            <div className={styles.statCard}>
-                                <div className={styles.statValue}>{stats.presentClasses}</div>
-                                <div className={styles.statLabel}>Present</div>
-                            </div>
-                            <div className={styles.statCard}>
-                                <div className={styles.statValue}>{stats.absentClasses}</div>
-                                <div className={styles.statLabel}>Absent</div>
-                            </div>
-                        </div>
-
-                        <div className={styles.attendanceList}>
-                            {Object.entries(attendanceData)
-                                .sort((a, b) => new Date(b[0]) - new Date(a[0]))
-                                .map(([date, isPresent]) => (
-                                    <div
-                                        key={date}
-                                        className={`${styles.attendanceItem} ${
-                                            isPresent ? styles.present : styles.absent
-                                        }`}
-                                    >
-                                        <span className={styles.date}>
-                                            {new Date(date).toLocaleDateString()}
-                                        </span>
-                                        <span className={styles.status}>
-                                            {isPresent ? "Present" : "Absent"}
-                                        </span>
-                                    </div>
-                                ))}
-                        </div>
-                    </div>
-                ) : (
-                    <div className={styles.message}>
-                        Please select a subject to view your attendance
-                    </div>
-                )}
-            </div>
+      <div>
+        <Navbar />
+        <div className={styles.container}>
+          <div className={styles.content}>
+            <div className={styles.error}>Please log in to view attendance.</div>
+          </div>
         </div>
+      </div>
     );
+  }
+
+  return (
+    <div>
+      <Navbar />
+      <div className={styles.container}>
+        <div className={styles.content}>
+          <h1 className={styles.title}>Attendance</h1>
+          
+          <div className={styles.subjectSelector}>
+            <label htmlFor="subject">Select Subject</label>
+            <select
+              id="subject"
+              value={selectedSubject}
+              onChange={handleSubjectChange}
+            >
+              <option value="">Choose a subject</option>
+              {subjects.map((subject) => (
+                <option key={subject} value={subject}>
+                  {subject.replace(/_/g, ' ')}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {loading ? (
+            <div className={styles.loading}>Loading...</div>
+          ) : error ? (
+            <div className={styles.error}>{error}</div>
+          ) : selectedSubject ? (
+            <div className={styles.attendanceContainer}>
+              <div className={styles.statsContainer}>
+                <div className={styles.statCard}>
+                  <h3>Total Classes</h3>
+                  <p>{stats.totalClasses}</p>
+                </div>
+                <div className={styles.statCard}>
+                  <h3>Present</h3>
+                  <p>{stats.present}</p>
+                </div>
+                <div className={styles.statCard}>
+                  <h3>Absent</h3>
+                  <p>{stats.absent}</p>
+                </div>
+                <div className={styles.statCard}>
+                  <h3>Attendance %</h3>
+                  <p>{stats.percentage}%</p>
+                </div>
+              </div>
+
+              <div className={styles.attendanceList}>
+                {attendance.map((record) => (
+                  <div
+                    key={record.id}
+                    className={`${styles.attendanceItem} ${styles[record.status]}`}
+                  >
+                    <p>{record.date}</p>
+                    <p>{record.status.toUpperCase()}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className={styles.loading}>Select a subject to view attendance</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }

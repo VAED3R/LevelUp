@@ -4,85 +4,97 @@
 /* Main container */
 .classContainer {
     min-height: 100vh;
-    background: radial-gradient(circle at bottom, #5a35ab, #181e39, #0a0a1a);
-    color: #fff; /* White text */
-    padding: 40px 20px;
+    background: linear-gradient(135deg, #1a0033, #7f37c6, #632298);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
     padding-top: 100px;
-    font-family: 'Press Start 2P', cursive; /* Classic arcade font */
-    text-align: center;
+    overflow: hidden;
 }
 
 /* Content wrapper */
 .content {
     max-width: 1200px;
-    margin: 0 auto;
+    width: 100%;
+    text-align: center;
+    position: relative;
+    height: calc(100vh - 140px);
+    display: flex;
+    flex-direction: column;
 }
 
 /* Title */
 .title {
-    text-align: center;
-    font-size: 2rem;
-    margin-bottom: 40px;
-    color: #fff; /* White text */
-    font-weight: bold;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 32px;
     text-transform: uppercase;
-    border: 4px solid #9333ea; /* Darker purple outline */
-    padding: 15px;
+    margin-bottom: 30px;
+    color: #fff;
+    padding: 10px 20px;
     display: inline-block;
+    border-radius: 8px;
+    text-shadow: 4px 4px 0px #000;
 }
 
 /* Grid Layout */
 .cardGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
+    gap: 30px;
+    margin-top: 30px;
 }
 
 /* Card Styling */
 .card {
-    background: linear-gradient(135deg, #5b21b6, #7c3aed);
-    color: #fff; /* White text */
-    border-radius: 12px;
-    border: 3px solid #a855f7;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-    padding: 25px;
-    transition: transform 0.3s, box-shadow 0.3s;
-    cursor: pointer;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
+    background: rgba(0, 0, 0, 0.7);
+    border: 4px solid #7f37c6;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 5px 5px 0px #452d57;
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
 }
 
 .card h2 {
-    font-size: 1.2rem;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 18px;
+    color: #fff;
     margin-bottom: 20px;
-    color: #fff; /* White text */
+    text-shadow: 2px 2px 0px #000;
 }
 
 /* Button Styling - View Materials */
 .button {
-    font-family: 'Press Start 2P', cursive; /* Classic Arcade Font */
-    background: #a855f7;
-    color: #fff; /* White text */
-    border: 3px solid #c084fc;
-    padding: 12px 20px;
-    border-radius: 8px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 12px;
+    background: linear-gradient(45deg, #9c34d0, #4b217b);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 12px 25px;
     cursor: pointer;
-    font-size: 0.8rem;
-    transition: background 0.3s, transform 0.2s;
-    width: 100%;
-    max-width: 250px;
+    transition: all 0.3s ease;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    text-align: center;
+    box-shadow: 0 4px 0 #452d57;
+    text-decoration: none;
+    display: inline-block;
 }
 
 .button:hover {
-    background: #9333ea;
-    transform: scale(1.05);
-    box-shadow: 0 0 15px #d8b4fe;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #452d57;
+    background: linear-gradient(45deg, #a944e0, #5b318b);
+}
+
+.button:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #452d57;
 }
 
 /* Responsive Design */
