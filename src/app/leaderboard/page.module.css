@@ -45,11 +45,13 @@
 /* Table styling */
 .table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   background: #000;
-  border: 4px solid #7f37c6; /* Pixelated Border */
+  border: 4px solid #7f37c6;
   border-radius: 8px;
   box-shadow: 5px 5px 0px #452d57;
+  table-layout: fixed;
 }
 
 .table th, .table td {
@@ -58,6 +60,26 @@
   font-family: 'Press Start 2P', cursive;
   font-size: 12px;
   letter-spacing: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Set specific widths for columns */
+.table th:nth-child(1), .table td:nth-child(1) {
+  width: 10%;
+}
+
+.table th:nth-child(2), .table td:nth-child(2) {
+  width: 50%;
+}
+
+.table th:nth-child(3), .table td:nth-child(3) {
+  width: 20%;
+}
+
+.table th:nth-child(4), .table td:nth-child(4) {
+  width: 20%;
 }
 
 /* Table Header - Retro Arcade Glow */
@@ -352,4 +374,138 @@ tr:hover {
 .requestButton:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+
+/* 1v1 Button Container */
+.onevoneButtonContainer {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+/* 1v1 Button */
+.onevoneButton {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 12px;
+  background: linear-gradient(45deg, #9c34d0, #4b217b);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 12px 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  box-shadow: 0 4px 0 #452d57;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.onevoneButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #452d57;
+  background: linear-gradient(45deg, #a944e0, #5b318b);
+}
+
+.onevoneButton:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #452d57;
+}
+
+/* Current User Container */
+.currentUserContainer {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #1a0033, #7f37c6, #632298);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Other Students Container */
+.otherStudentsContainer {
+  max-height: 60vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #7f37c6 #1a0033;
+}
+
+.otherStudentsContainer::-webkit-scrollbar {
+  width: 8px;
+}
+
+.otherStudentsContainer::-webkit-scrollbar-track {
+  background: #1a0033;
+  border-radius: 4px;
+}
+
+.otherStudentsContainer::-webkit-scrollbar-thumb {
+  background-color: #7f37c6;
+  border-radius: 4px;
+}
+
+/* Leaderboard Container */
+.leaderboardContainer {
+  max-height: 70vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #7f37c6 #1a0033;
+  position: relative;
+  width: 100%;
+}
+
+.leaderboardContainer::-webkit-scrollbar {
+  width: 8px;
+}
+
+.leaderboardContainer::-webkit-scrollbar-track {
+  background: #1a0033;
+  border-radius: 4px;
+}
+
+.leaderboardContainer::-webkit-scrollbar-thumb {
+  background-color: #7f37c6;
+  border-radius: 4px;
+}
+
+/* Current User Row */
+.currentUserRow {
+  background: linear-gradient(135deg, #1a0033, #7f37c6, #632298) !important;
+  font-weight: bold;
+  position: sticky;
+  z-index: 1;
+  margin-bottom: 1px;
+}
+
+/* When current user is in top half of the table */
+.currentUserRow[data-position="top"] {
+  top: 0;
+}
+
+/* When current user is in bottom half of the table */
+.currentUserRow[data-position="bottom"] {
+  bottom: 0;
+}
+
+.currentUserRow td {
+  color: #fff;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  padding: 12px;
+}
+
+/* Add spacing after current user row */
+.currentUserRow + tr {
+  margin-top: 1px;
+}
+
+/* Current User Badge */
+.currentUserBadge {
+  color: #fff;
+  font-weight: bold;
+  margin-left: 5px;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }

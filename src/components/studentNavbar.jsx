@@ -52,9 +52,6 @@ export default function Navbar() {
           <li className={styles.navItem}>
             <Link href="/globalSearch" className={styles.navLink}>Global Search</Link>
           </li>
-          <li className={styles.navItem}>
-            <Link href="/onevsoneRequests" className={styles.navLink}>1v1</Link>
-          </li>
         </ul>
       </div>
       <div className={styles.buttonContainer}>

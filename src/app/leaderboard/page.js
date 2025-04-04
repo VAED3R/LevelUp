@@ -5,6 +5,8 @@ import { db } from "@/lib/firebase";
 import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp } from "firebase/firestore";
 import Navbar from "@/components/studentNavbar";
 import styles from "./page.module.css";  // Import CSS module
+import Link from "next/link";
+import { getAuth } from "firebase/auth";
 
 export default function Leaderboard() {
   const [students, setStudents] = useState([]);
@@ -29,17 +31,28 @@ export default function Leaderboard() {
     const fetchStudents = async () => {
       setLoading(true);
       try {
-        // Fetch students from the students collection instead of users
+        // Get current user from authentication
+        const auth = getAuth();
+        const currentUserAuth = auth.currentUser;
+        
+        if (!currentUserAuth) {
+          console.error("No user logged in");
+          setLoading(false);
+          return;
+        }
+
+        console.log("Current user UID:", currentUserAuth.uid); // Debug log
+
+        // Fetch students from the students collection
         const querySnapshot = await getDocs(collection(db, "students"));
 
         const studentsList = querySnapshot.docs
           .map(doc => ({
             id: doc.id,
             ...doc.data(),
-            // Use the totalPoints field directly from the student document
             totalPoints: doc.data().totalPoints || 0
           }))
-          .sort((a, b) => b.totalPoints - a.totalPoints);  // Sort by total points (descending)
+          .sort((a, b) => b.totalPoints - a.totalPoints);
 
         // Set the overall topper (first in the sorted list)
         const topOverall = studentsList[0] || null;
@@ -61,19 +74,17 @@ export default function Leaderboard() {
           new Set(studentsList.map(student => student.class || "Unknown"))
         );
 
+        // Find the current user in the students list by matching the UID
+        const currentUserStudent = studentsList.find(student => student.id === currentUserAuth.uid);
+        
+        console.log("Found current user student:", currentUserStudent); // Debug log
+
         setStudents(studentsList);
         setFilteredStudents(studentsList);
         setClasses(["All", ...uniqueClasses]);
         setClassToppers(classTopperMap);
         setOverallTopper(topOverall);
-
-        // Get current user (for now, we'll use the first student as the current user)
-        // In a real app, you would get this from authentication
-        if (studentsList.length > 0) {
-          setCurrentUser(studentsList[0]);
-        }
-
-        console.log("Fetched students with total points:", studentsList);
+        setCurrentUser(currentUserStudent);
 
       } catch (error) {
         console.error("Error fetching students:", error);
@@ -112,6 +123,12 @@ export default function Leaderboard() {
 
   // Handle student row click
   const handleStudentClick = async (studentId) => {
+    // Check if the selected student is the current user
+    if (currentUser && studentId === currentUser.id) {
+      alert("You cannot challenge yourself!");
+      return;
+    }
+
     try {
       setRequestLoading(true);
       const studentDoc = await getDoc(doc(db, "students", studentId));
@@ -217,6 +234,13 @@ export default function Leaderboard() {
       <div className={styles.content}>
         <h1 className={styles.title}>Leaderboard</h1>
 
+        {/* 1v1 Button */}
+        <div className={styles.onevoneButtonContainer}>
+          <Link href="/onevsoneRequests" className={styles.onevoneButton}>
+            Go to 1v1 Challenges
+          </Link>
+        </div>
+
         {/* 1v1 Request Form Modal */}
         {showRequestForm && selectedStudent && (
           <div className={styles.modalOverlay}>
@@ -320,33 +344,48 @@ export default function Leaderboard() {
         {loading ? (
           <p className={styles.loading}>Loading...</p>
         ) : (
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Name</th>
-                <th>Class</th>
-                <th>Points</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredStudents.map((student, index) => (
-                <tr 
-                  key={student.id} 
-                  onClick={() => handleStudentClick(student.id)}
-                  className={styles.clickableRow}
-                >
-                  <td>{index + 1}</td>
-                  <td>
-                    {student.name || "Unknown"} 
-                    <span className={styles.badge}> {getBadges(student)}</span>
-                  </td>
-                  <td>{student.class || "N/A"}</td>
-                  <td>{student.totalPoints}</td>
+          <div className={styles.leaderboardContainer}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Class</th>
+                  <th>Points</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredStudents
+                  .sort((a, b) => b.totalPoints - a.totalPoints)
+                  .map((student, index) => {
+                    const isCurrentUser = currentUser && student.id === currentUser.id;
+                    const rank = index + 1;
+                    const totalStudents = filteredStudents.length;
+                    const isTopHalf = rank <= Math.ceil(totalStudents / 2);
+                    const position = isCurrentUser ? (isTopHalf ? "top" : "bottom") : null;
+                    
+                    return (
+                      <tr 
+                        key={student.id} 
+                        onClick={() => handleStudentClick(student.id)}
+                        className={`${styles.clickableRow} ${isCurrentUser ? styles.currentUserRow : ''}`}
+                        data-rank={rank}
+                        data-position={position}
+                      >
+                        <td>{rank}</td>
+                        <td>
+                          {student.name || "Unknown"} 
+                          <span className={styles.badge}> {getBadges(student)}</span>
+                          {isCurrentUser && <span className={styles.currentUserBadge}> (You)</span>}
+                        </td>
+                        <td>{student.class || "N/A"}</td>
+                        <td>{student.totalPoints}</td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
