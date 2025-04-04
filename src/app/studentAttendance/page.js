@@ -88,9 +88,21 @@ export default function StudentAttendance() {
 
       querySnapshot.forEach((doc) => {
         const data = doc.data();
+        
+        // Format the date string to a readable format
+        let formattedDate = "Unknown Date";
+        if (data.addedAt) {
+          try {
+            const dateObj = new Date(data.addedAt);
+            formattedDate = dateObj.toLocaleDateString();
+          } catch (err) {
+            console.error("Error formatting date:", err);
+          }
+        }
+        
         attendanceData.push({
           id: doc.id,
-          date: data.date.toDate().toLocaleDateString(),
+          date: formattedDate,
           status: data.status,
           subject: data.subject
         });
