@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styles from './ParentChatbot.module.css';
 import { FaRobot, FaTimes, FaGraduationCap, FaHandHoldingHeart, FaQuestion } from 'react-icons/fa';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, getDoc, doc } from 'firebase/firestore';
 
 const ParentChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -30,7 +30,12 @@ const ParentChatbot = () => {
     try {
       // Get parent's email from localStorage or auth context
       const parentEmail = localStorage.getItem('userEmail');
-      if (!parentEmail) return;
+      console.log('Parent email:', parentEmail);
+      
+      if (!parentEmail) {
+        console.log('No parent email found');
+        return;
+      }
 
       // Find parent document
       const parentQuery = query(
@@ -40,11 +45,19 @@ const ParentChatbot = () => {
       );
       const parentSnapshot = await getDocs(parentQuery);
       
-      if (parentSnapshot.empty) return;
+      if (parentSnapshot.empty) {
+        console.log('No parent document found');
+        return;
+      }
+      
       const parentData = parentSnapshot.docs[0].data();
       const childEmail = parentData.child;
+      console.log('Child email:', childEmail);
 
-      if (!childEmail) return;
+      if (!childEmail) {
+        console.log('No child email found in parent data');
+        return;
+      }
 
       // Find student document
       const studentQuery = query(
@@ -54,22 +67,89 @@ const ParentChatbot = () => {
       );
       const studentSnapshot = await getDocs(studentQuery);
       
-      if (studentSnapshot.empty) return;
-      const studentId = studentSnapshot.docs[0].id;
+      if (studentSnapshot.empty) {
+        console.log('No student document found');
+        return;
+      }
+      
+      const studentDoc = studentSnapshot.docs[0];
+      const studentId = studentDoc.id;
+      console.log('Student ID:', studentId);
 
-      // Fetch performance data
-      const [quizzesSnapshot, assignmentsSnapshot, testsSnapshot] = await Promise.all([
+      // Get the student document from the students collection
+      const studentRef = doc(db, "students", studentId);
+      const studentSnap = await getDoc(studentRef);
+      
+      if (!studentSnap.exists()) {
+        console.log('Student data not found in students collection');
+        return;
+      }
+
+      const studentInfo = {
+        id: studentId,
+        ...studentDoc.data(),
+        ...studentSnap.data()
+      };
+      console.log('Student info:', studentInfo);
+
+      // Fetch performance data from both marks and quizzes collections
+      const [quizzesSnapshot, marksSnapshot] = await Promise.all([
         getDocs(query(collection(db, "quizzes"), where("studentId", "==", studentId))),
-        getDocs(query(collection(db, "assignments"), where("studentId", "==", studentId))),
-        getDocs(query(collection(db, "testResults"), where("studentId", "==", studentId)))
+        getDocs(query(collection(db, "marks"), where("studentId", "==", studentId)))
       ]);
 
+      console.log('Quizzes found:', quizzesSnapshot.size);
+      console.log('Marks found:', marksSnapshot.size);
+
+      const quizzes = quizzesSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          ...data,
+          id: doc.id,
+          type: 'quiz',
+          score: data.score || 0,
+          totalQuestions: data.totalQuestions || 0
+        };
+      });
+
+      const tests = marksSnapshot.docs.map(doc => {
+        const data = doc.data();
+        const percentage = data.totalMarks > 0 
+          ? ((data.obtainedMarks / data.totalMarks) * 100).toFixed(2) 
+          : 0;
+        
+        return {
+          ...data,
+          id: doc.id,
+          type: 'test',
+          percentage
+        };
+      });
+
+      // Calculate performance metrics
+      const quizScores = quizzes.map(q => q.score || 0);
+      const avgQuizScore = quizScores.length > 0 
+        ? (quizScores.reduce((a, b) => a + b, 0) / quizScores.length).toFixed(2)
+        : 0;
+
+      const testScores = tests.map(t => parseFloat(t.percentage) || 0);
+      const avgTestScore = testScores.length > 0
+        ? (testScores.reduce((a, b) => a + b, 0) / testScores.length).toFixed(2)
+        : 0;
+
       const performance = {
-        quizzes: quizzesSnapshot.docs.map(doc => doc.data()),
-        assignments: assignmentsSnapshot.docs.map(doc => doc.data()),
-        tests: testsSnapshot.docs.map(doc => doc.data())
+        student: studentInfo,
+        quizzes,
+        tests,
+        metrics: {
+          avgQuizScore,
+          avgTestScore,
+          totalQuizzes: quizzes.length,
+          totalTests: tests.length
+        }
       };
 
+      console.log('Performance data:', performance);
       setStudentPerformance(performance);
     } catch (error) {
       console.error('Error fetching student performance:', error);
@@ -124,10 +204,16 @@ const ParentChatbot = () => {
         // Create a performance summary for career guidance
         const performanceSummary = studentPerformance ? `
           Student Performance Summary:
+          Student Name: ${studentPerformance.student.name}
+          Class: ${studentPerformance.student.class}
+          Total Points: ${studentPerformance.student.totalPoints || 0}
+          
+          Performance Metrics:
           - Quizzes: ${studentPerformance.quizzes.length} completed
-          - Assignments: ${studentPerformance.assignments.length} completed
           - Tests: ${studentPerformance.tests.length} completed
-          Average scores and subject strengths will be analyzed for career recommendations.
+          ${studentPerformance.quizzes.length > 0 ? `- Average Quiz Score: ${studentPerformance.metrics.avgQuizScore}%` : ''}
+          ${studentPerformance.tests.length > 0 ? `- Average Test Score: ${studentPerformance.metrics.avgTestScore}%` : ''}
+          ${studentPerformance.quizzes.length === 0 && studentPerformance.tests.length === 0 ? 'No performance data available yet.' : 'Average scores and subject strengths will be analyzed for career recommendations.'}
         ` : "No performance data available yet.";
         
         context = `You are a career guidance assistant helping parents understand career options for their children. 

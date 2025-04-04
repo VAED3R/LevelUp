@@ -49,7 +49,7 @@ export default function StudentPerformance() {
 
   // Format date from ISO string to local date string
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
+    if (!dateString) return '';
     
     try {
       // Check if the date is in ISO format
@@ -62,7 +62,7 @@ export default function StudentPerformance() {
       }
     } catch (error) {
       console.error("Error formatting date:", error);
-      return "Invalid Date";
+      return '';
     }
   };
 
@@ -192,19 +192,25 @@ export default function StudentPerformance() {
         ...doc.data()
       }));
 
-      // Fetch test results
+      // Fetch test results from marks collection instead of testResults
       const testsQuery = query(
-        collection(db, "testResults"),
+        collection(db, "marks"),
         where("studentId", "==", studentId)
       );
       const testsSnapshot = await getDocs(testsQuery);
-      const tests = testsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        percentage: doc.data().totalMarks > 0 
-          ? ((doc.data().obtainedMarks / doc.data().totalMarks) * 100).toFixed(2) 
-          : 0
-      }));
+      const tests = testsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        // Calculate percentage based on obtained marks and total marks
+        const percentage = data.totalMarks > 0 
+          ? ((data.obtainedMarks / data.totalMarks) * 100).toFixed(2) 
+          : 0;
+        
+        return {
+          id: doc.id,
+          ...data,
+          percentage
+        };
+      });
 
       // Fetch attendance
       const attendanceQuery = query(
@@ -686,7 +692,6 @@ export default function StudentPerformance() {
                   <table className={styles.table}>
                     <thead>
                       <tr>
-                        <th>Date</th>
                         <th>Subject</th>
                         <th>Score</th>
                         <th>Total Marks</th>
@@ -696,7 +701,6 @@ export default function StudentPerformance() {
                     <tbody>
                       {performanceData.tests.map(test => (
                         <tr key={test.id}>
-                          <td>{formatDate(test.date)}</td>
                           <td>{test.subject}</td>
                           <td>{test.obtainedMarks}</td>
                           <td>{test.totalMarks}</td>
