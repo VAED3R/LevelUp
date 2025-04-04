@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, query, where, orderBy, updateDoc, doc } from "firebase/firestore";
+import { collection, getDocs, query, where, updateDoc, doc } from "firebase/firestore";
 import Navbar from "@/components/studentNavbar";
 import styles from "./page.module.css";
 
@@ -28,10 +28,10 @@ export default function OneVsOneRequests() {
           setCurrentUser(firstStudent);
           
           // Fetch requests where the current user is the recipient
+          // Removed orderBy to avoid requiring a composite index
           const requestsQuery = query(
             collection(db, "onevsoneRequests"),
-            where("toUserId", "==", firstStudent.id),
-            orderBy("createdAt", "desc")
+            where("toUserId", "==", firstStudent.id)
           );
           
           const requestsSnapshot = await getDocs(requestsQuery);
@@ -40,6 +40,9 @@ export default function OneVsOneRequests() {
             ...doc.data(),
             createdAt: doc.data().createdAt?.toDate() || new Date()
           }));
+          
+          // Sort the requests by createdAt in memory instead
+          requestsList.sort((a, b) => b.createdAt - a.createdAt);
           
           setRequests(requestsList);
         }
