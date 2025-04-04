@@ -110,13 +110,18 @@ export default function StudentQuiz() {
   };
 
   const calculateScore = () => {
+    if (!quiz || !quiz.questions) return 0;
+    
     let correctAnswers = 0;
     quiz.questions.forEach((question, index) => {
       if (selectedAnswers[index] === question.correctAnswer) {
         correctAnswers++;
       }
     });
-    return (correctAnswers / quiz.questions.length) * 100;
+    
+    const calculatedScore = (correctAnswers / quiz.questions.length) * 100;
+    console.log(`Score calculation: ${correctAnswers} correct out of ${quiz.questions.length} questions = ${calculatedScore}%`);
+    return calculatedScore;
   };
 
   const handleSubmit = async () => {
@@ -124,26 +129,55 @@ export default function StudentQuiz() {
     
     setIsSubmitting(true);
     const finalScore = calculateScore();
+    console.log(`Final score: ${finalScore}%`);
     setScore(finalScore);
     setQuizCompleted(true);
 
     try {
       const studentRef = doc(db, "students", user.uid);
-      await updateDoc(studentRef, {
-        points: arrayUnion({
-          points: finalScore,
+      const studentDoc = await getDoc(studentRef);
+      
+      if (studentDoc.exists()) {
+        const studentData = studentDoc.data();
+        
+        // Create new points entry
+        const newPointsEntry = {
+          points: Math.round(finalScore / 10), // 1 point per 10% score
           date: new Date().toISOString(),
           subject: quiz.subject,
           score: finalScore,
           quizId: id,
           topic: quiz.topic,
           userId: user.uid,
-        }),
-        totalPoints: finalScore,
-        lastUpdated: new Date().toISOString(),
-      });
+        };
+        
+        // Get current points array or create empty one
+        let currentPointsArray = [];
+        if (studentData.points && Array.isArray(studentData.points)) {
+          currentPointsArray = [...studentData.points];
+        }
+        
+        // Add the new points entry
+        currentPointsArray.push(newPointsEntry);
+        
+        // Calculate total points
+        const totalPoints = currentPointsArray.reduce((total, entry) => total + (entry.points || 0), 0);
+        
+        // Update the student document
+        await updateDoc(studentRef, {
+          points: currentPointsArray,
+          totalPoints: totalPoints,
+          lastUpdated: new Date().toISOString()
+        });
+        
+        console.log(`Updated student points: Added ${newPointsEntry.points} points. New total: ${totalPoints}`);
+      } else {
+        console.error("Student document not found");
+        setError("Failed to update points: Student record not found");
+      }
     } catch (err) {
       console.error("Error updating student points:", err);
+      setError("Failed to update points. Please try again later.");
     }
   };
 
