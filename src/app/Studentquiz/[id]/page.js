@@ -351,7 +351,7 @@ export default function StudentQuiz() {
               <button
                 className={styles.navButton}
                 onClick={handleNext}
-                disabled={!selectedAnswers[currentQuestionIndex]}
+                disabled={selectedAnswers[currentQuestionIndex] === undefined}
               >
                 Next
               </button>
