@@ -354,23 +354,45 @@
 
 .resultsContainer {
     display: grid;
-    gap: 1rem;
+    gap: 1.5rem;
     width: 100%;
-    max-width: 800px;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1rem;
 }
 
 .resultCard {
     background: rgba(0, 0, 0, 0.8);
-    padding: 1rem;
+    padding: 1.5rem;
     border: 2px solid #7f37c6;
-    border-radius: 5px;
+    border-radius: 8px;
     box-shadow: 5px 5px 0px #452d57;
     transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.resultCard::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #9c34d0, #7f37c6, #4b217b, #7f37c6, #9c34d0);
+    background-size: 200% 100%;
+    animation: gradientMove 3s linear infinite;
+}
+
+@keyframes gradientMove {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 200% 0%; }
 }
 
 .resultCard:hover {
     transform: translateY(-5px);
     box-shadow: 0 0 20px rgba(127, 55, 198, 0.7);
+    border-color: #9c34d0;
 }
 
 .resultTitle {
@@ -378,23 +400,105 @@
     text-decoration: none;
     font-family: 'Press Start 2P', cursive;
     font-size: 14px;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
     display: block;
     text-shadow: 2px 2px 0px #000;
     transition: color 0.3s;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px dashed rgba(127, 55, 198, 0.5);
+    line-height: 1.5;
+    letter-spacing: 0.5px;
 }
 
 .resultTitle:hover {
-    color: #7f37c6;
+    color: #9c34d0;
     text-decoration: none;
 }
 
 .resultDescription {
-    color: #fff;
+    color: #ddd;
     margin: 0;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    text-shadow: 1px 1px 0px #000;
+    padding: 0.5rem 0;
+    position: relative;
+}
+
+.resultDescription::before {
+    content: "►";
+    color: #9c34d0;
+    position: absolute;
+    left: -15px;
+    top: 0.5rem;
+    font-size: 10px;
+}
+
+/* Add a source indicator */
+.resultCard::after {
+    content: attr(data-source);
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
     font-family: 'Press Start 2P', cursive;
-    font-size: 12px;
-    text-shadow: 2px 2px 0px #000;
+    font-size: 8px;
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(0, 0, 0, 0.5);
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(127, 55, 198, 0.5);
+}
+
+/* Add a relevance score indicator */
+.resultCard .relevanceScore {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 8px;
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(0, 0, 0, 0.5);
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(127, 55, 198, 0.5);
+}
+
+/* Add a category tag */
+.resultCard .categoryTag {
+    display: inline-block;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 8px;
+    color: #fff;
+    background: rgba(127, 55, 198, 0.7);
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-top: 10px;
+    margin-right: 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Add a read time indicator */
+.resultCard .readTime {
+    display: inline-block;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 8px;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-top: 10px;
+    border: 1px solid rgba(127, 55, 198, 0.5);
+}
+
+/* Add a highlight for search terms */
+.resultDescription mark {
+    background-color: rgba(156, 52, 208, 0.3);
+    color: #fff;
+    padding: 0 2px;
+    border-radius: 2px;
+    font-weight: bold;
 }
 
 @media (max-width: 768px) {
@@ -408,5 +512,17 @@
     
     .button, .aiButton, .useImprovedButton {
         width: 100%;
+    }
+    
+    .resultCard {
+        padding: 1.2rem;
+    }
+    
+    .resultTitle {
+        font-size: 12px;
+    }
+    
+    .resultDescription {
+        font-size: 12px;
     }
 }
