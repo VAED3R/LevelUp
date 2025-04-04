@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import Navbar from "@/components/studentNavbar";
+import IntroAnimation from "../../components/IntroAnimation";
 import styles from './page.module.css';
 
 export default function StudentAttendance() {
@@ -150,70 +151,72 @@ export default function StudentAttendance() {
   }
 
   return (
-    <div>
-      <Navbar />
-      <div className={styles.container}>
-        <div className={styles.content}>
-          <h1 className={styles.title}>Attendance</h1>
-          
-          <div className={styles.subjectSelector}>
-            <label htmlFor="subject">Select Subject</label>
-            <select
-              id="subject"
-              value={selectedSubject}
-              onChange={handleSubjectChange}
-            >
-              <option value="">Choose a subject</option>
-              {subjects.map((subject) => (
-                <option key={subject} value={subject}>
-                  {subject.replace(/_/g, ' ')}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {loading ? (
-            <div className={styles.loading}>Loading...</div>
-          ) : error ? (
-            <div className={styles.error}>{error}</div>
-          ) : selectedSubject ? (
-            <div className={styles.attendanceContainer}>
-              <div className={styles.statsContainer}>
-                <div className={styles.statCard}>
-                  <h3>Total Classes</h3>
-                  <p>{stats.totalClasses}</p>
-                </div>
-                <div className={styles.statCard}>
-                  <h3>Present</h3>
-                  <p>{stats.present}</p>
-                </div>
-                <div className={styles.statCard}>
-                  <h3>Absent</h3>
-                  <p>{stats.absent}</p>
-                </div>
-                <div className={styles.statCard}>
-                  <h3>Attendance %</h3>
-                  <p>{stats.percentage}%</p>
-                </div>
-              </div>
-
-              <div className={styles.attendanceList}>
-                {attendance.map((record) => (
-                  <div
-                    key={record.id}
-                    className={`${styles.attendanceItem} ${styles[record.status]}`}
-                  >
-                    <p>{record.date}</p>
-                    <p>{record.status.toUpperCase()}</p>
-                  </div>
+    <IntroAnimation loadingText="Loading Attendance Records...">
+      <div>
+        <Navbar />
+        <div className={styles.container}>
+          <div className={styles.content}>
+            <h1 className={styles.title}>Attendance</h1>
+            
+            <div className={styles.subjectSelector}>
+              <label htmlFor="subject">Select Subject</label>
+              <select
+                id="subject"
+                value={selectedSubject}
+                onChange={handleSubjectChange}
+              >
+                <option value="">Choose a subject</option>
+                {subjects.map((subject) => (
+                  <option key={subject} value={subject}>
+                    {subject.replace(/_/g, ' ')}
+                  </option>
                 ))}
-              </div>
+              </select>
             </div>
-          ) : (
-            <div className={styles.loading}>Select a subject to view attendance</div>
-          )}
+
+            {loading ? (
+              <div className={styles.loading}>Loading...</div>
+            ) : error ? (
+              <div className={styles.error}>{error}</div>
+            ) : selectedSubject ? (
+              <div className={styles.attendanceContainer}>
+                <div className={styles.statsContainer}>
+                  <div className={styles.statCard}>
+                    <h3>Total Classes</h3>
+                    <p>{stats.totalClasses}</p>
+                  </div>
+                  <div className={styles.statCard}>
+                    <h3>Present</h3>
+                    <p>{stats.present}</p>
+                  </div>
+                  <div className={styles.statCard}>
+                    <h3>Absent</h3>
+                    <p>{stats.absent}</p>
+                  </div>
+                  <div className={styles.statCard}>
+                    <h3>Attendance %</h3>
+                    <p>{stats.percentage}%</p>
+                  </div>
+                </div>
+
+                <div className={styles.attendanceList}>
+                  {attendance.map((record) => (
+                    <div
+                      key={record.id}
+                      className={`${styles.attendanceItem} ${styles[record.status]}`}
+                    >
+                      <p>{record.date}</p>
+                      <p>{record.status.toUpperCase()}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className={styles.loading}>Select a subject to view attendance</div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </IntroAnimation>
   );
 }

@@ -8,6 +8,7 @@ import { app } from "@/lib/firebase";  // Your Firebase config
 import Navbar from "@/components/studentNavbar";
 import styles from "./page.module.css";
 import Loading from '@/components/loading';
+import IntroAnimation from "../../components/IntroAnimation";
 
 export default function Materials() {
   const [files, setFiles] = useState([]);
@@ -120,10 +121,12 @@ export default function Materials() {
 
   if (loading) {
     return (
-      <div className={styles.container}>
-        <Navbar />
-        <div className={styles.loading}>Loading materials...</div>
-      </div>
+      <IntroAnimation loadingText="Loading Study Materials...">
+        <div className={styles.container}>
+          <Navbar />
+          <div className={styles.loading}>Loading materials...</div>
+        </div>
+      </IntroAnimation>
     );
   }
 
@@ -137,55 +140,57 @@ export default function Materials() {
   }
 
   return (
-    <div className={styles.container}>
-      <Navbar />
-      <div className={styles.content}>
-        <h1 className={styles.title}>
-          {subject ? `${subject} Materials - ${userClass}` : `All Materials - ${userClass}`}
-        </h1>
-        
-        {files.length > 0 && (
-          <div className={styles.searchContainer}>
-            <input
-              type="text"
-              placeholder="Search by title, description, or subject..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={styles.searchInput}
-              aria-label="Search materials"
-            />
-          </div>
-        )}
-        
-        {filteredFiles.length === 0 ? (
-          <p className={styles.nofile}>
-            {searchTerm ? "No materials found matching your search." : "No materials available yet."}
-          </p>
-        ) : (
-          <div className={styles.fileList}>
-            {filteredFiles.map((file) => (
-              <div key={file.id} className={styles.fileCard}>
-                <h2>{file.title}</h2>
-                <p><strong>Subject:</strong> {file.subject}</p>
-                <p><strong>Class:</strong> {file.className}</p>
-                <p className={styles.description}>{file.description}</p>
-                <div className={styles.buttonContainer}>
-                  <a href={file.url} target="_blank" rel="noopener noreferrer">View File</a>
-                  <button 
-                    onClick={() => handleSummary(file.url)}
-                    className={styles.summaryButton}
-                  >
-                    Summary
-                  </button>
+    <IntroAnimation loadingText="Loading Study Materials...">
+      <div className={styles.container}>
+        <Navbar />
+        <div className={styles.content}>
+          <h1 className={styles.title}>
+            {subject ? `${subject} Materials - ${userClass}` : `All Materials - ${userClass}`}
+          </h1>
+          
+          {files.length > 0 && (
+            <div className={styles.searchContainer}>
+              <input
+                type="text"
+                placeholder="Search by title, description, or subject..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={styles.searchInput}
+                aria-label="Search materials"
+              />
+            </div>
+          )}
+          
+          {filteredFiles.length === 0 ? (
+            <p className={styles.nofile}>
+              {searchTerm ? "No materials found matching your search." : "No materials available yet."}
+            </p>
+          ) : (
+            <div className={styles.fileList}>
+              {filteredFiles.map((file) => (
+                <div key={file.id} className={styles.fileCard}>
+                  <h2>{file.title}</h2>
+                  <p><strong>Subject:</strong> {file.subject}</p>
+                  <p><strong>Class:</strong> {file.className}</p>
+                  <p className={styles.description}>{file.description}</p>
+                  <div className={styles.buttonContainer}>
+                    <a href={file.url} target="_blank" rel="noopener noreferrer">View File</a>
+                    <button 
+                      onClick={() => handleSummary(file.url)}
+                      className={styles.summaryButton}
+                    >
+                      Summary
+                    </button>
+                  </div>
+                  <p className={styles.uploadDate}>
+                    Uploaded: {formatDate(file.uploadedAt)}
+                  </p>
                 </div>
-                <p className={styles.uploadDate}>
-                  Uploaded: {formatDate(file.uploadedAt)}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </IntroAnimation>
   );
 }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Navbar from "@/components/studentNavbar";
 import styles from "./page.module.css";
+import IntroAnimation from "../../components/IntroAnimation";
 
 export default function GlobalSearch() {
     const [query, setQuery] = useState("");
@@ -126,78 +127,80 @@ export default function GlobalSearch() {
     };
 
     return (
-        <div className={styles.container}>
-            <Navbar />
-            <h1 className={styles.heading}>AI-Enhanced Learning Resources</h1>
-            
-            <div className={styles.searchSection}>
-                <form onSubmit={handleSearch} className={styles.form}>
-                    <input
-                        type="text"
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        placeholder="What would you like to learn about?"
-                        className={styles.input}
-                        disabled={loading}
-                    />
-                    <button 
-                        type="submit"
-                        disabled={loading}
-                        className={styles.button}
-                    >
-                        {loading ? "Searching..." : "Search"}
-                    </button>
-                </form>
-
-                <div className={styles.aiButtons}>
-                    <button
-                        onClick={improveSearchQuery}
-                        disabled={!query.trim() || isImprovingQuery}
-                        className={styles.aiButton}
-                    >
-                        {isImprovingQuery ? "Improving..." : "Improve Search Query"}
-                    </button>
-                    <button
-                        onClick={filterSearchResults}
-                        disabled={searchResults.length === 0 || isFilteringResults}
-                        className={styles.aiButton}
-                    >
-                        {isFilteringResults ? "Filtering..." : "Filter Results"}
-                    </button>
-                </div>
-
-                {improvedQuery && (
-                    <div className={styles.improvedQuery}>
-                        <p>Improved query: {improvedQuery}</p>
-                        <button
-                            onClick={handleUseImprovedQuery}
-                            className={styles.useImprovedButton}
+        <IntroAnimation loadingText="Loading Search Results...">
+            <div className={styles.container}>
+                <Navbar />
+                <h1 className={styles.heading}>AI-Enhanced Learning Resources</h1>
+                
+                <div className={styles.searchSection}>
+                    <form onSubmit={handleSearch} className={styles.form}>
+                        <input
+                            type="text"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder="What would you like to learn about?"
+                            className={styles.input}
+                            disabled={loading}
+                        />
+                        <button 
+                            type="submit"
+                            disabled={loading}
+                            className={styles.button}
                         >
-                            Use Improved Query
+                            {loading ? "Searching..." : "Search"}
+                        </button>
+                    </form>
+
+                    <div className={styles.aiButtons}>
+                        <button
+                            onClick={improveSearchQuery}
+                            disabled={!query.trim() || isImprovingQuery}
+                            className={styles.aiButton}
+                        >
+                            {isImprovingQuery ? "Improving..." : "Improve Search Query"}
+                        </button>
+                        <button
+                            onClick={filterSearchResults}
+                            disabled={searchResults.length === 0 || isFilteringResults}
+                            className={styles.aiButton}
+                        >
+                            {isFilteringResults ? "Filtering..." : "Filter Results"}
                         </button>
                     </div>
-                )}
 
-                {error && <p className={styles.error}>{error}</p>}
-            </div>
+                    {improvedQuery && (
+                        <div className={styles.improvedQuery}>
+                            <p>Improved query: {improvedQuery}</p>
+                            <button
+                                onClick={handleUseImprovedQuery}
+                                className={styles.useImprovedButton}
+                            >
+                                Use Improved Query
+                            </button>
+                        </div>
+                    )}
 
-            <div className={styles.resultsContainer}>
-                {(filteredResults.length > 0 ? filteredResults : searchResults).map((result, index) => (
-                    <div key={index} className={styles.resultCard}>
-                        <a 
-                            href={result.url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className={styles.resultTitle}
-                        >
-                            {result.title}
-                        </a>
-                        <p className={styles.resultDescription}>
-                            {result.snippet}
-                        </p>
-                    </div>
-                ))}
+                    {error && <p className={styles.error}>{error}</p>}
+                </div>
+
+                <div className={styles.resultsContainer}>
+                    {(filteredResults.length > 0 ? filteredResults : searchResults).map((result, index) => (
+                        <div key={index} className={styles.resultCard}>
+                            <a 
+                                href={result.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className={styles.resultTitle}
+                            >
+                                {result.title}
+                            </a>
+                            <p className={styles.resultDescription}>
+                                {result.snippet}
+                            </p>
+                        </div>
+                    ))}
+                </div>
             </div>
-        </div>
+        </IntroAnimation>
     );
 }

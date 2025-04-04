@@ -7,6 +7,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/studentNavbar";
 import styles from "./page.module.css";
+import IntroAnimation from "../../components/IntroAnimation";
 
 export default function OneVsOneRequests() {
   const router = useRouter();
@@ -595,44 +596,46 @@ export default function OneVsOneRequests() {
   };
 
     return (
-    <div className={styles.container}>
+    <IntroAnimation loadingText="Loading Challenge Requests...">
+      <div className={styles.container}>
         <Navbar />
-      <div className={styles.content}>
-        <h1 className={styles.title}>1v1 Challenge Requests</h1>
-        
-        {/* Tab navigation */}
-        <div className={styles.tabNavigation}>
-          <button 
-            className={`${styles.tabButton} ${activeTab === "received" ? styles.activeTab : ""}`}
-            onClick={() => setActiveTab("received")}
-          >
-            Received Challenges
-          </button>
-          <button 
-            className={`${styles.tabButton} ${activeTab === "sent" ? styles.activeTab : ""}`}
-            onClick={() => setActiveTab("sent")}
-          >
-            Sent Challenges
-          </button>
-        </div>
-        
-        {loading ? (
-          <p className={styles.loading}>Loading requests...</p>
-        ) : error ? (
-          <p className={styles.error}>{error}</p>
-        ) : activeTab === "received" && receivedRequests.length === 0 ? (
-          <p className={styles.noRequests}>No received challenge requests found.</p>
-        ) : activeTab === "sent" && sentRequests.length === 0 ? (
-          <p className={styles.noRequests}>No sent challenge requests found.</p>
-        ) : (
-          <div className={styles.requestsContainer}>
-            {activeTab === "received" 
-              ? receivedRequests.map(request => renderRequestCard(request, true))
-              : sentRequests.map(request => renderRequestCard(request, false))
-            }
+        <div className={styles.content}>
+          <h1 className={styles.title}>1v1 Challenge Requests</h1>
+          
+          {/* Tab navigation */}
+          <div className={styles.tabNavigation}>
+            <button 
+              className={`${styles.tabButton} ${activeTab === "received" ? styles.activeTab : ""}`}
+              onClick={() => setActiveTab("received")}
+            >
+              Received Challenges
+            </button>
+            <button 
+              className={`${styles.tabButton} ${activeTab === "sent" ? styles.activeTab : ""}`}
+              onClick={() => setActiveTab("sent")}
+            >
+              Sent Challenges
+            </button>
           </div>
-        )}
+          
+          {loading ? (
+            <p className={styles.loading}>Loading requests...</p>
+          ) : error ? (
+            <p className={styles.error}>{error}</p>
+          ) : activeTab === "received" && receivedRequests.length === 0 ? (
+            <p className={styles.noRequests}>No received challenge requests found.</p>
+          ) : activeTab === "sent" && sentRequests.length === 0 ? (
+            <p className={styles.noRequests}>No sent challenge requests found.</p>
+          ) : (
+            <div className={styles.requestsContainer}>
+              {activeTab === "received" 
+                ? receivedRequests.map(request => renderRequestCard(request, true))
+                : sentRequests.map(request => renderRequestCard(request, false))
+              }
+            </div>
+          )}
+        </div>
       </div>
-      </div>
-    );
-  }
+    </IntroAnimation>
+  );
+}

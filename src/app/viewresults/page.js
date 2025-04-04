@@ -5,6 +5,7 @@ import { collection, query, where, getDocs, orderBy, doc, getDoc } from "firebas
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/studentNavbar";
 import styles from './page.module.css';
+import IntroAnimation from "../../components/IntroAnimation";
 
 export default function ViewResults() {
   const [results, setResults] = useState([]);
@@ -67,71 +68,73 @@ export default function ViewResults() {
   };
 
   return (
-    <div className={styles.container}>
-      <Navbar />
-      <div className={styles.content}>
-        <h1 className={styles.title}>Your Test Results</h1>
-        
-        {loading ? (
-          <div className={styles.loading}>Loading your results...</div>
-        ) : error ? (
-          <div className={styles.error}>{error}</div>
-        ) : (
-          <>
-            <div className={styles.filters}>
-              <div className={styles.formGroup}>
-                <label htmlFor="subject" className={styles.label}>Filter by Subject:</label>
-                <select
-                  id="subject"
-                  value={selectedSubject}
-                  onChange={(e) => setSelectedSubject(e.target.value)}
-                  className={styles.select}
-                >
-                  <option value="">All Subjects</option>
-                  {subjects.map((subject) => (
-                    <option key={subject} value={subject}>
-                      {subject.replace(/_/g, " ")}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            
-            {filteredResults.length === 0 ? (
-              <div className={styles.noResults}>
-                <p>No test results found.</p>
-              </div>
-            ) : (
-              <>
-                <div className={styles.summary}>
-                  <h2>Summary</h2>
-                  <p>Total Tests: {filteredResults.length}</p>
-                  <p>Average Score: {calculateAverage(filteredResults)}%</p>
+    <IntroAnimation loadingText="Loading Test Results...">
+      <div className={styles.container}>
+        <Navbar />
+        <div className={styles.content}>
+          <h1 className={styles.title}>Your Test Results</h1>
+          
+          {loading ? (
+            <div className={styles.loading}>Loading your results...</div>
+          ) : error ? (
+            <div className={styles.error}>{error}</div>
+          ) : (
+            <>
+              <div className={styles.filters}>
+                <div className={styles.formGroup}>
+                  <label htmlFor="subject" className={styles.label}>Filter by Subject:</label>
+                  <select
+                    id="subject"
+                    value={selectedSubject}
+                    onChange={(e) => setSelectedSubject(e.target.value)}
+                    className={styles.select}
+                  >
+                    <option value="">All Subjects</option>
+                    {subjects.map((subject) => (
+                      <option key={subject} value={subject}>
+                        {subject.replace(/_/g, " ")}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-                
-                <div className={styles.resultsGrid}>
-                  {filteredResults.map((result) => (
-                    <div key={result.id} className={styles.resultCard}>
-                      <h3>{result.subject.replace(/_/g, " ")}</h3>
-                      <div className={styles.resultDetails}>
-                        <p><strong>Score:</strong> {result.obtainedMarks}/{result.totalMarks}</p>
-                        <p><strong>Percentage:</strong> {result.percentage}%</p>
-                        <p><strong>Date:</strong> {new Date(result.addedAt).toLocaleDateString()}</p>
-                      </div>
-                      <div className={styles.percentageBar}>
-                        <div 
-                          className={styles.percentageFill} 
-                          style={{ width: `${result.percentage}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  ))}
+              </div>
+              
+              {filteredResults.length === 0 ? (
+                <div className={styles.noResults}>
+                  <p>No test results found.</p>
                 </div>
-              </>
-            )}
-          </>
-        )}
+              ) : (
+                <>
+                  <div className={styles.summary}>
+                    <h2>Summary</h2>
+                    <p>Total Tests: {filteredResults.length}</p>
+                    <p>Average Score: {calculateAverage(filteredResults)}%</p>
+                  </div>
+                  
+                  <div className={styles.resultsGrid}>
+                    {filteredResults.map((result) => (
+                      <div key={result.id} className={styles.resultCard}>
+                        <h3>{result.subject.replace(/_/g, " ")}</h3>
+                        <div className={styles.resultDetails}>
+                          <p><strong>Score:</strong> {result.obtainedMarks}/{result.totalMarks}</p>
+                          <p><strong>Percentage:</strong> {result.percentage}%</p>
+                          <p><strong>Date:</strong> {new Date(result.addedAt).toLocaleDateString()}</p>
+                        </div>
+                        <div className={styles.percentageBar}>
+                          <div 
+                            className={styles.percentageFill} 
+                            style={{ width: `${result.percentage}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </IntroAnimation>
   );
 }

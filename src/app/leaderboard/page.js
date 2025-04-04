@@ -8,6 +8,7 @@ import styles from "./page.module.css";  // Import CSS module
 import Link from "next/link";
 import { getAuth } from "firebase/auth";
 import { useRouter } from "next/navigation";
+import IntroAnimation from "../../components/IntroAnimation";
 
 export default function Leaderboard() {
   const [students, setStudents] = useState([]);
@@ -236,177 +237,179 @@ export default function Leaderboard() {
   };
 
   return (
-    <div className={styles.container}>
-      <Navbar />
-      <div className={styles.content}>
-        <h1 className={styles.title}>Leaderboard</h1>
+    <IntroAnimation loadingText="Loading Leaderboard...">
+      <div className={styles.container}>
+        <Navbar />
+        <div className={styles.content}>
+          <h1 className={styles.title}>Leaderboard</h1>
 
-        {authError ? (
-          <div className={styles.authErrorContainer}>
-            <h2>Authentication Required</h2>
-            <p>Please log in to view the leaderboard.</p>
-            <Link href="/login" className={styles.loginButton}>
-              Go to Login
-            </Link>
-          </div>
-        ) : (
-          <>
-            {/* 1v1 Request Form Modal */}
-            {showRequestForm && selectedStudent && (
-              <div className={styles.modalOverlay}>
-                <div className={styles.modalContent}>
-                  <button className={styles.closeButton} onClick={handleCloseForm}>×</button>
-                  <h2 className={styles.modalTitle}>1v1 Challenge Request</h2>
-                  
-                  <div className={styles.studentCard}>
-                    <h3 className={styles.studentName}>{selectedStudent.name}</h3>
-                    <div className={styles.studentInfo}>
-                      <p><strong>Class:</strong> {selectedStudent.class || "N/A"}</p>
-                      <p><strong>Points:</strong> {selectedStudent.totalPoints || 0}</p>
-                    </div>
+          {authError ? (
+            <div className={styles.authErrorContainer}>
+              <h2>Authentication Required</h2>
+              <p>Please log in to view the leaderboard.</p>
+              <Link href="/login" className={styles.loginButton}>
+                Go to Login
+              </Link>
+            </div>
+          ) : (
+            <>
+              {/* 1v1 Request Form Modal */}
+              {showRequestForm && selectedStudent && (
+                <div className={styles.modalOverlay}>
+                  <div className={styles.modalContent}>
+                    <button className={styles.closeButton} onClick={handleCloseForm}>×</button>
+                    <h2 className={styles.modalTitle}>1v1 Challenge Request</h2>
                     
-                    <div className={styles.formGroup}>
-                      <label htmlFor="topic" className={styles.formLabel}>Quiz Topic:</label>
-                      <input
-                        type="text"
-                        id="topic"
-                        name="topic"
-                        value={quizParams.topic}
-                        onChange={handleInputChange}
-                        className={styles.formInput}
-                        placeholder="Enter quiz topic (e.g., Math, Science)"
-                      />
-                    </div>
-                    
-                    <div className={styles.formGroup}>
-                      <label htmlFor="difficulty" className={styles.formLabel}>Difficulty:</label>
-                      <select
-                        id="difficulty"
-                        name="difficulty"
-                        value={quizParams.difficulty}
-                        onChange={handleInputChange}
-                        className={styles.formSelect}
+                    <div className={styles.studentCard}>
+                      <h3 className={styles.studentName}>{selectedStudent.name}</h3>
+                      <div className={styles.studentInfo}>
+                        <p><strong>Class:</strong> {selectedStudent.class || "N/A"}</p>
+                        <p><strong>Points:</strong> {selectedStudent.totalPoints || 0}</p>
+                      </div>
+                      
+                      <div className={styles.formGroup}>
+                        <label htmlFor="topic" className={styles.formLabel}>Quiz Topic:</label>
+                        <input
+                          type="text"
+                          id="topic"
+                          name="topic"
+                          value={quizParams.topic}
+                          onChange={handleInputChange}
+                          className={styles.formInput}
+                          placeholder="Enter quiz topic (e.g., Math, Science)"
+                        />
+                      </div>
+                      
+                      <div className={styles.formGroup}>
+                        <label htmlFor="difficulty" className={styles.formLabel}>Difficulty:</label>
+                        <select
+                          id="difficulty"
+                          name="difficulty"
+                          value={quizParams.difficulty}
+                          onChange={handleInputChange}
+                          className={styles.formSelect}
+                        >
+                          <option value="easy">Easy</option>
+                          <option value="medium">Medium</option>
+                          <option value="hard">Hard</option>
+                        </select>
+                      </div>
+                      
+                      <div className={styles.formGroup}>
+                        <label htmlFor="timeLimit" className={styles.formLabel}>Time Limit (seconds):</label>
+                        <input
+                          type="number"
+                          id="timeLimit"
+                          name="timeLimit"
+                          value={quizParams.timeLimit}
+                          onChange={handleInputChange}
+                          className={styles.formInput}
+                          min="10"
+                          max="120"
+                        />
+                      </div>
+                      
+                      <div className={styles.formGroup}>
+                        <label htmlFor="pointsWagered" className={styles.formLabel}>Points to Wager:</label>
+                        <input
+                          type="number"
+                          id="pointsWagered"
+                          name="pointsWagered"
+                          value={quizParams.pointsWagered}
+                          onChange={handleInputChange}
+                          className={styles.formInput}
+                          min="1"
+                          max={currentUser?.totalPoints || 100}
+                        />
+                        <small className={styles.helpText}>You have {currentUser?.totalPoints || 0} points available</small>
+                      </div>
+                      
+                      <button 
+                        className={styles.requestButton}
+                        onClick={handleSendRequest}
+                        disabled={requestLoading || !quizParams.topic.trim()}
                       >
-                        <option value="easy">Easy</option>
-                        <option value="medium">Medium</option>
-                        <option value="hard">Hard</option>
-                      </select>
+                        {requestLoading ? "Sending..." : "Send Challenge Request"}
+                      </button>
                     </div>
-                    
-                    <div className={styles.formGroup}>
-                      <label htmlFor="timeLimit" className={styles.formLabel}>Time Limit (seconds):</label>
-                      <input
-                        type="number"
-                        id="timeLimit"
-                        name="timeLimit"
-                        value={quizParams.timeLimit}
-                        onChange={handleInputChange}
-                        className={styles.formInput}
-                        min="10"
-                        max="120"
-                      />
-                    </div>
-                    
-                    <div className={styles.formGroup}>
-                      <label htmlFor="pointsWagered" className={styles.formLabel}>Points to Wager:</label>
-                      <input
-                        type="number"
-                        id="pointsWagered"
-                        name="pointsWagered"
-                        value={quizParams.pointsWagered}
-                        onChange={handleInputChange}
-                        className={styles.formInput}
-                        min="1"
-                        max={currentUser?.totalPoints || 100}
-                      />
-                      <small className={styles.helpText}>You have {currentUser?.totalPoints || 0} points available</small>
-                    </div>
-                    
-                    <button 
-                      className={styles.requestButton}
-                      onClick={handleSendRequest}
-                      disabled={requestLoading || !quizParams.topic.trim()}
-                    >
-                      {requestLoading ? "Sending..." : "Send Challenge Request"}
-                    </button>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Dropdown for filtering */}
-            <div className={styles.filterContainer}>
-              <div className={styles.filterGroup}>
-                <label htmlFor="classFilter" className={styles.label}>Filter by Class:</label>
-                <select
-                  id="classFilter"
-                  value={selectedClass}
-                  onChange={handleClassChange}
-                  className={styles.select}
-                >
-                  {classes.map((className, index) => (
-                    <option key={index} value={className}>
-                      {className}
-                    </option>
-                  ))}
-                </select>
+              {/* Dropdown for filtering */}
+              <div className={styles.filterContainer}>
+                <div className={styles.filterGroup}>
+                  <label htmlFor="classFilter" className={styles.label}>Filter by Class:</label>
+                  <select
+                    id="classFilter"
+                    value={selectedClass}
+                    onChange={handleClassChange}
+                    className={styles.select}
+                  >
+                    {classes.map((className, index) => (
+                      <option key={index} value={className}>
+                        {className}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className={styles.onevoneButtonContainer}>
+                  <Link href="/onevsoneRequests" className={styles.onevoneButton}>
+                    Go to 1v1 Challenges
+                  </Link>
+                </div>
               </div>
-              <div className={styles.onevoneButtonContainer}>
-                <Link href="/onevsoneRequests" className={styles.onevoneButton}>
-                  Go to 1v1 Challenges
-                </Link>
-              </div>
-            </div>
 
-            {loading ? (
-              <p className={styles.loading}>Loading...</p>
-            ) : (
-              <div className={styles.leaderboardContainer}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Name</th>
-                      <th>Class</th>
-                      <th>Points</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredStudents
-                      .sort((a, b) => b.totalPoints - a.totalPoints)
-                      .map((student, index) => {
-                        const isCurrentUser = currentUser && student.id === currentUser.id;
-                        const rank = index + 1;
-                        const totalStudents = filteredStudents.length;
-                        const isTopHalf = rank <= Math.ceil(totalStudents / 2);
-                        const position = isCurrentUser ? (isTopHalf ? "top" : "bottom") : null;
-                        
-                        return (
-                          <tr 
-                            key={student.id} 
-                            onClick={() => handleStudentClick(student.id)}
-                            className={`${styles.clickableRow} ${isCurrentUser ? styles.currentUserRow : ''}`}
-                            data-rank={rank}
-                            data-position={position}
-                          >
-                            <td>{rank}</td>
-                            <td>
-                              {student.name} 
-                              <span className={styles.badge}> {getBadges(student)}</span>
-                              {isCurrentUser && <span className={styles.currentUserBadge}> (You)</span>}
-                            </td>
-                            <td>{student.class || "N/A"}</td>
-                            <td>{student.totalPoints}</td>
-                          </tr>
-                        );
-                      })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </>
-        )}
+              {loading ? (
+                <p className={styles.loading}>Loading...</p>
+              ) : (
+                <div className={styles.leaderboardContainer}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Class</th>
+                        <th>Points</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredStudents
+                        .sort((a, b) => b.totalPoints - a.totalPoints)
+                        .map((student, index) => {
+                          const isCurrentUser = currentUser && student.id === currentUser.id;
+                          const rank = index + 1;
+                          const totalStudents = filteredStudents.length;
+                          const isTopHalf = rank <= Math.ceil(totalStudents / 2);
+                          const position = isCurrentUser ? (isTopHalf ? "top" : "bottom") : null;
+                          
+                          return (
+                            <tr 
+                              key={student.id} 
+                              onClick={() => handleStudentClick(student.id)}
+                              className={`${styles.clickableRow} ${isCurrentUser ? styles.currentUserRow : ''}`}
+                              data-rank={rank}
+                              data-position={position}
+                            >
+                              <td>{rank}</td>
+                              <td>
+                                {student.name} 
+                                <span className={styles.badge}> {getBadges(student)}</span>
+                                {isCurrentUser && <span className={styles.currentUserBadge}> (You)</span>}
+                              </td>
+                              <td>{student.class || "N/A"}</td>
+                              <td>{student.totalPoints}</td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </IntroAnimation>
   );
 }

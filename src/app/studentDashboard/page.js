@@ -5,6 +5,7 @@ import { doc, getDoc, collection, query, where, getDocs } from "firebase/firesto
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import style from './page.module.css';
+import IntroAnimation from "../../components/IntroAnimation";
 
 import Navbar from "@/components/studentNavbar";
 
@@ -86,74 +87,76 @@ export default function StudentDashboard() {
   };
 
   return (
-    <div className={style.container}>
-      <Navbar />
-      <div className={style.content}>
-        <div className={style.header}>
-          <h1 className={style.title}>Welcome, {userData?.name}</h1>
-          <p className={style.subtitle}>Student Dashboard</p>
-        </div>
+    <IntroAnimation loadingText="Loading Student Dashboard...">
+      <div className={style.container}>
+        <Navbar />
+        <div className={style.content}>
+          <div className={style.header}>
+            <h1 className={style.title}>Welcome, {userData?.name}</h1>
+            <p className={style.subtitle}>Student Dashboard</p>
+          </div>
 
-        <div className={style.cardContainer}>
-          <div className={style.userCard}>
-            <h2>Your Information</h2>
-            <p><strong>Name:</strong> {userData?.name}</p>
-            <p><strong>Class:</strong> {userData?.class}</p>
-            <div className={style.pointsInfo}>
-              <p><strong>Total Points:</strong> {pointsData?.totalPoints || 0}</p>
+          <div className={style.cardContainer}>
+            <div className={style.userCard}>
+              <h2>Your Information</h2>
+              <p><strong>Name:</strong> {userData?.name}</p>
+              <p><strong>Class:</strong> {userData?.class}</p>
+              <div className={style.pointsInfo}>
+                <p><strong>Total Points:</strong> {pointsData?.totalPoints || 0}</p>
+              </div>
+            </div>
+            
+            <div className={style.userCard}>
+              <h2>Your Results</h2>
+              <p>View your test results and performance across all subjects</p>
+              <button 
+                className={style.viewButton}
+                onClick={() => router.push('/viewresults')}
+              >
+                View Test Results
+              </button>
             </div>
           </div>
-          
-          <div className={style.userCard}>
-            <h2>Your Results</h2>
-            <p>View your test results and performance across all subjects</p>
-            <button 
-              className={style.viewButton}
-              onClick={() => router.push('/viewresults')}
-            >
-              View Test Results
-            </button>
-          </div>
-        </div>
 
-        {loading ? (
-          <div className={style.loading}>Loading quizzes...</div>
-        ) : (
-          <div className={style.quizzesSection}>
-            <h2 className={style.sectionTitle}>Available Quizzes</h2>
-            <div className={style.quizzesGrid}>
-              {quizzes.length === 0 ? (
-                <div className={style.quizCard}>
-                  <div className={style.quizActions}>
-                    <button className={style.viewButton} onClick={() => router.push('/Studentquiz')}>
-                      View All Quizzes
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                quizzes.map((quiz) => (
-                  <div key={quiz.id} className={style.quizCard}>
-                    <h3 className={style.quizTitle}>{quiz.topic || 'Untitled Quiz'}</h3>
-                    <p className={style.quizSubject}>{quiz.subject ? quiz.subject.replace(/_/g, " ") : 'No Subject'}</p>
-                    <div className={style.quizDetails}>
-                      <p>Questions: {quiz.questions.length}</p>
-                      <p>Created: {new Date(quiz.createdAt).toLocaleDateString()}</p>
-                    </div>
+          {loading ? (
+            <div className={style.loading}>Loading quizzes...</div>
+          ) : (
+            <div className={style.quizzesSection}>
+              <h2 className={style.sectionTitle}>Available Quizzes</h2>
+              <div className={style.quizzesGrid}>
+                {quizzes.length === 0 ? (
+                  <div className={style.quizCard}>
                     <div className={style.quizActions}>
-                      <button 
-                        className={style.viewButton}
-                        onClick={() => handleStartQuiz(quiz.id)}
-                      >
-                        Start Quiz
+                      <button className={style.viewButton} onClick={() => router.push('/Studentquiz')}>
+                        View All Quizzes
                       </button>
                     </div>
                   </div>
-                ))
-              )}
+                ) : (
+                  quizzes.map((quiz) => (
+                    <div key={quiz.id} className={style.quizCard}>
+                      <h3 className={style.quizTitle}>{quiz.topic || 'Untitled Quiz'}</h3>
+                      <p className={style.quizSubject}>{quiz.subject ? quiz.subject.replace(/_/g, " ") : 'No Subject'}</p>
+                      <div className={style.quizDetails}>
+                        <p>Questions: {quiz.questions.length}</p>
+                        <p>Created: {new Date(quiz.createdAt).toLocaleDateString()}</p>
+                      </div>
+                      <div className={style.quizActions}>
+                        <button 
+                          className={style.viewButton}
+                          onClick={() => handleStartQuiz(quiz.id)}
+                        >
+                          Start Quiz
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </IntroAnimation>
   );
 }
