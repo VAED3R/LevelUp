@@ -23,6 +23,21 @@ export default function OneVsOneRequests() {
         try {
           setLoading(true);
           
+          // Check if challenges collection exists
+          const challengesRef = collection(db, "challenges");
+          const challengesSnapshot = await getDocs(challengesRef);
+          
+          // If challenges collection is empty, create an initial document to ensure the collection exists
+          if (challengesSnapshot.empty) {
+            const initialChallengeRef = doc(challengesRef);
+            await setDoc(initialChallengeRef, {
+              type: "initial",
+              createdAt: new Date().toISOString(),
+              description: "Initial document to ensure challenges collection exists"
+            });
+            console.log("Created challenges collection with initial document");
+          }
+          
           // Get the current user's data from students collection
           const studentDoc = await getDoc(doc(db, "students", user.uid));
           if (studentDoc.exists()) {
