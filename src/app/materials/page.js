@@ -14,6 +14,8 @@ export default function Materials() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [userClass, setUserClass] = useState("");
+  const [filteredFiles, setFilteredFiles] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const searchParams = useSearchParams();
   const subject = searchParams.get("subject");
@@ -67,6 +69,7 @@ export default function Materials() {
         );
 
         setFiles(filteredFiles);
+        setFilteredFiles(filteredFiles);
       } catch (error) {
         console.error("Error fetching files:", error);
         setError("Failed to load files. Please try again.");
@@ -80,47 +83,103 @@ export default function Materials() {
     }
   }, [subject, userClass]);
 
+  // Filter files based on search term
+  useEffect(() => {
+    if (!files || files.length === 0) return;
+    
+    if (searchTerm.trim() === "") {
+      setFilteredFiles(files);
+    } else {
+      const searchTermLower = searchTerm.toLowerCase().trim();
+      const filtered = files.filter(file => 
+        (file.title && file.title.toLowerCase().includes(searchTermLower)) ||
+        (file.description && file.description.toLowerCase().includes(searchTermLower)) ||
+        (file.subject && file.subject.toLowerCase().includes(searchTermLower))
+      );
+      setFilteredFiles(filtered);
+      console.log(`Searching for "${searchTerm}" - Found ${filtered.length} results`);
+    }
+  }, [searchTerm, files]);
+
   // 🛠️ Function to navigate to the summary page with the file URL as a query param
   const handleSummary = (fileUrl) => {
     router.push(`/summary?fileUrl=${encodeURIComponent(fileUrl)}`);
   };
 
+  // Format date to a more readable format
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   if (loading) {
-    return <Loading />;
+    return (
+      <div className={styles.container}>
+        <Navbar />
+        <div className={styles.loading}>Loading materials...</div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div>{error}</div>;
+    return (
+      <div className={styles.container}>
+        <Navbar />
+        <div className={styles.error}>{error}</div>
+      </div>
+    );
   }
 
   return (
-    <div>
+    <div className={styles.container}>
       <Navbar />
-      <div className={styles.container}>
+      <div className={styles.content}>
         <h1 className={styles.title}>
-          {subject ? `Materials for ${subject} - ${userClass}` : "Uploaded Materials"}
+          {subject ? `${subject} Materials - ${userClass}` : `All Materials - ${userClass}`}
         </h1>
-        {files.length === 0 ? (
-          <p className={styles.nofile}>No files uploaded yet.</p>
+        
+        {files.length > 0 && (
+          <div className={styles.searchContainer}>
+            <input
+              type="text"
+              placeholder="Search by title, description, or subject..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={styles.searchInput}
+              aria-label="Search materials"
+            />
+          </div>
+        )}
+        
+        {filteredFiles.length === 0 ? (
+          <p className={styles.nofile}>
+            {searchTerm ? "No materials found matching your search." : "No materials available yet."}
+          </p>
         ) : (
           <div className={styles.fileList}>
-            {files.map((file) => (
+            {filteredFiles.map((file) => (
               <div key={file.id} className={styles.fileCard}>
                 <h2>{file.title}</h2>
                 <p><strong>Subject:</strong> {file.subject}</p>
                 <p><strong>Class:</strong> {file.className}</p>
-                <p>{file.description}</p>
-                <a href={file.url} target="_blank" rel="noopener noreferrer">View File</a>
-                {/* 🚀 Button to go to Summary page */}
-                <button 
-                  style={{ marginLeft: "15px", cursor: "pointer" }} 
-                  onClick={() => handleSummary(file.url)}
-                  className={styles.summaryButton}
-                >
-                  Summary
-                </button>
+                <p className={styles.description}>{file.description}</p>
+                <div className={styles.buttonContainer}>
+                  <a href={file.url} target="_blank" rel="noopener noreferrer">View File</a>
+                  <button 
+                    onClick={() => handleSummary(file.url)}
+                    className={styles.summaryButton}
+                  >
+                    Summary
+                  </button>
+                </div>
                 <p className={styles.uploadDate}>
-                  Uploaded: {new Date(file.uploadedAt).toLocaleString()}
+                  Uploaded: {formatDate(file.uploadedAt)}
                 </p>
               </div>
             ))}

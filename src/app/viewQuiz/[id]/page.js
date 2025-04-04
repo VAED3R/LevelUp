@@ -261,63 +261,63 @@ export default function ViewQuiz() {
                 ) : (
                     // Student view - existing quiz taking interface
                     !showResults ? (
-                        <div className={styles.quizCard}>
-                            {timeLeft !== null && (
-                                <div className={styles.timer}>
-                                    Time Remaining: {formatTime(timeLeft)}
-                                </div>
-                            )}
-                            
-                            <div className={styles.questionContainer}>
-                                <h2 className={styles.questionTitle}>
-                                    Question {currentQuestion + 1} of {quiz.questions.length}
-                                </h2>
-                                <p className={styles.questionText}>
-                                    {quiz.questions[currentQuestion].question}
-                                </p>
-                                <div className={styles.options}>
-                                    {quiz.questions[currentQuestion].options.map((option, index) => (
-                                        <button
-                                            key={index}
-                                            className={`${styles.option} ${
-                                                answers[currentQuestion] === index ? styles.selected : ""
-                                            }`}
-                                            onClick={() => handleAnswerSelect(currentQuestion, index)}
-                                        >
-                                            {option}
-                                        </button>
-                                    ))}
-                                </div>
+                    <div className={styles.quizCard}>
+                        {timeLeft !== null && (
+                            <div className={styles.timer}>
+                                Time Remaining: {formatTime(timeLeft)}
                             </div>
-
-                            <div className={styles.navigation}>
-                                <button
-                                    className={styles.navButton}
-                                    onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
-                                    disabled={currentQuestion === 0}
-                                >
-                                    Previous
-                                </button>
-                                <button
-                                    className={styles.navButton}
-                                    onClick={() => setCurrentQuestion(prev => Math.min(quiz.questions.length - 1, prev + 1))}
-                                    disabled={currentQuestion === quiz.questions.length - 1}
-                                >
-                                    Next
-                                </button>
-                                {currentQuestion === quiz.questions.length - 1 && (
+                        )}
+                        
+                        <div className={styles.questionContainer}>
+                            <h2 className={styles.questionTitle}>
+                                Question {currentQuestion + 1} of {quiz.questions.length}
+                            </h2>
+                            <p className={styles.questionText}>
+                                {quiz.questions[currentQuestion].question}
+                            </p>
+                            <div className={styles.options}>
+                                {quiz.questions[currentQuestion].options.map((option, index) => (
                                     <button
-                                        className={styles.submitButton}
-                                        onClick={handleSubmit}
-                                        disabled={Object.keys(answers).length !== quiz.questions.length}
+                                        key={index}
+                                        className={`${styles.option} ${
+                                            answers[currentQuestion] === index ? styles.selected : ""
+                                        }`}
+                                        onClick={() => handleAnswerSelect(currentQuestion, index)}
                                     >
-                                        Submit Quiz
+                                        {option}
                                     </button>
-                                )}
+                                ))}
                             </div>
                         </div>
-                    ) : (
-                        <div className={styles.resultsCard}>
+
+                        <div className={styles.navigation}>
+                            <button
+                                className={styles.navButton}
+                                onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
+                                disabled={currentQuestion === 0}
+                            >
+                                Previous
+                            </button>
+                            <button
+                                className={styles.navButton}
+                                onClick={() => setCurrentQuestion(prev => Math.min(quiz.questions.length - 1, prev + 1))}
+                                disabled={currentQuestion === quiz.questions.length - 1}
+                            >
+                                Next
+                            </button>
+                            {currentQuestion === quiz.questions.length - 1 && (
+                                <button
+                                    className={styles.submitButton}
+                                    onClick={handleSubmit}
+                                        disabled={Object.keys(answers).length !== quiz.questions.length}
+                                >
+                                    Submit Quiz
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    <div className={styles.resultsCard}>
                             <h2>Quiz Results</h2>
                             <p>Your Score: {score}</p>
                             <div className={styles.questionsReview}>

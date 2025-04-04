@@ -200,7 +200,10 @@ export default function StudentPerformance() {
       const testsSnapshot = await getDocs(testsQuery);
       const tests = testsSnapshot.docs.map(doc => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
+        percentage: doc.data().totalMarks > 0 
+          ? ((doc.data().obtainedMarks / doc.data().totalMarks) * 100).toFixed(2) 
+          : 0
       }));
 
       // Fetch attendance
@@ -428,10 +431,39 @@ export default function StudentPerformance() {
       quizPerformanceData.datasets[0].data = sortedQuizzes.map(quiz => quiz.score || 0);
     }
     
+    // Test performance over time
+    const testPerformanceData = {
+      labels: [],
+      datasets: [
+        {
+          label: 'Test Score (%)',
+          data: [],
+          fill: false,
+          borderColor: 'rgba(255, 206, 86, 1)',
+          tension: 0.1
+        }
+      ]
+    };
+    
+    // Only add test data if we have tests
+    if (performanceData.tests && performanceData.tests.length > 0) {
+      // Sort tests by date
+      const sortedTests = [...performanceData.tests].sort((a, b) => {
+        const dateA = a.date ? new Date(a.date) : new Date(0);
+        const dateB = b.date ? new Date(b.date) : new Date(0);
+        return dateA - dateB;
+      });
+      
+      // Set labels and data
+      testPerformanceData.labels = sortedTests.map(test => formatDate(test.date));
+      testPerformanceData.datasets[0].data = sortedTests.map(test => test.percentage || 0);
+    }
+    
     return {
       performanceData: performanceChartData,
       activityData,
-      quizPerformanceData
+      quizPerformanceData,
+      testPerformanceData
     };
   };
 
@@ -549,6 +581,27 @@ export default function StudentPerformance() {
                     <p className={styles.noData}>No quiz data available</p>
                   )}
                 </div>
+                
+                <div className={styles.chart}>
+                  <h3>Test Performance Over Time</h3>
+                  {chartData && performanceData.tests.length > 0 && (
+                    <Line 
+                      data={chartData.testPerformanceData} 
+                      options={{
+                        responsive: true,
+                        scales: {
+                          y: {
+                            beginAtZero: true,
+                            max: 100
+                          }
+                        }
+                      }}
+                    />
+                  )}
+                  {performanceData.tests.length === 0 && (
+                    <p className={styles.noData}>No test data available</p>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -629,26 +682,32 @@ export default function StudentPerformance() {
               {/* Tests */}
               <div className={styles.dataSection}>
                 <h3>Tests</h3>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Subject</th>
-                      <th>Score</th>
-                      <th>Total Marks</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {performanceData.tests.map(test => (
-                      <tr key={test.id}>
-                        <td>{formatDate(test.date)}</td>
-                        <td>{test.subject}</td>
-                        <td>{test.obtainedMarks}</td>
-                        <td>{test.totalMarks}</td>
+                {performanceData.tests.length > 0 ? (
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Subject</th>
+                        <th>Score</th>
+                        <th>Total Marks</th>
+                        <th>Percentage</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {performanceData.tests.map(test => (
+                        <tr key={test.id}>
+                          <td>{formatDate(test.date)}</td>
+                          <td>{test.subject}</td>
+                          <td>{test.obtainedMarks}</td>
+                          <td>{test.totalMarks}</td>
+                          <td>{test.percentage}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p className={styles.noData}>No test data available</p>
+                )}
               </div>
 
               {/* Attendance */}
