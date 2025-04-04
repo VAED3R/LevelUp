@@ -30,6 +30,12 @@ export default function AddNotes() {
       return;
     }
 
+    // Validate file size
+    if (file.size > 10 * 1024 * 1024) {
+      setError("File size exceeds 10MB limit. Please choose a smaller file.");
+      return;
+    }
+
     setUploading(true);
     setError("");
     setSuccess("");
@@ -39,7 +45,7 @@ export default function AddNotes() {
     formData.append("title", title);
     formData.append("subject", subject);
     formData.append("description", description);
-    formData.append("class", className);  // Add class name
+    formData.append("class", className);
 
     try {
       const response = await fetch("/api/upload", {
@@ -47,22 +53,13 @@ export default function AddNotes() {
         body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to upload file.");
-      }
-
       const data = await response.json();
 
-      // Check if metadata exists before accessing it
-      const context = data.context || {};
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to upload file.");
+      }
 
-      setSuccess(`File uploaded successfully`);
-
-      // setSuccess(`File uploaded successfully: ${data.url}
-      //   Title: ${context.title || "N/A"}
-      //   Subject: ${context.subject || "N/A"}
-      //   Description: ${context.description || "N/A"}
-      //   Class: ${context.class || "N/A"}`);
+      setSuccess("File uploaded successfully!");
 
       // Reset form
       setFile(null);
@@ -74,7 +71,7 @@ export default function AddNotes() {
       document.getElementById("fileInput").value = "";
     } catch (error) {
       console.error("Upload failed:", error);
-      setError("Upload failed. Please try again.");
+      setError(error.message || "Upload failed. Please try again.");
     } finally {
       setUploading(false);
     }
