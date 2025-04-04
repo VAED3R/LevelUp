@@ -245,29 +245,22 @@
 
 /* Delete button */
 .deleteButton {
-  font-family: 'Press Start 2P', cursive;
-  font-size: 10px;
-  background: linear-gradient(45deg, #ff5722, #e64a19);
-  color: #fff;
+  background-color: #dc3545;
+  color: white;
   border: none;
-  border-radius: 5px;
-  padding: 10px 15px;
+  padding: 8px 16px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  box-shadow: 0 4px 0 #bf360c;
-  width: 100%;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
 }
 
 .deleteButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 0 #bf360c;
-  background: linear-gradient(45deg, #ff7043, #f4511e);
+  background-color: #c82333;
 }
 
 .deleteButton:active {
-  transform: translateY(2px);
-  box-shadow: 0 2px 0 #bf360c;
+  background-color: #bd2130;
 }
 
 /* Quiz pending */

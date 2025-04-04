@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { db } from "@/lib/firebase";
-import { collection, getDocs, query, where, updateDoc, doc, deleteDoc } from "firebase/firestore";
+import { db, auth } from "@/lib/firebase";
+import { collection, getDocs, query, where, updateDoc, doc, deleteDoc, getDoc, setDoc } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 import Navbar from "@/components/studentNavbar";
 import styles from "./page.module.css";
 
@@ -15,95 +16,137 @@ export default function OneVsOneRequests() {
   const [activeTab, setActiveTab] = useState("received"); // "received" or "sent"
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        
-        // For demo purposes, we'll use the first student as the current user
-        // In a real app, you would get this from authentication
-        const studentsSnapshot = await getDocs(collection(db, "students"));
-        if (!studentsSnapshot.empty) {
-          const firstStudent = {
-            id: studentsSnapshot.docs[0].id,
-            ...studentsSnapshot.docs[0].data()
-          };
-          setCurrentUser(firstStudent);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          setLoading(true);
           
-          // Fetch requests where the current user is the recipient
-          const receivedRequestsQuery = query(
-            collection(db, "onevsoneRequests"),
-            where("toUserId", "==", firstStudent.id)
-          );
-          
-          // Fetch requests where the current user is the sender
-          const sentRequestsQuery = query(
-            collection(db, "onevsoneRequests"),
-            where("fromUserId", "==", firstStudent.id)
-          );
-          
-          const [receivedSnapshot, sentSnapshot] = await Promise.all([
-            getDocs(receivedRequestsQuery),
-            getDocs(sentRequestsQuery)
-          ]);
-          
-          // Process received requests
-          const receivedRequestsList = [];
-          for (const doc of receivedSnapshot.docs) {
-            const data = doc.data();
-            // Skip test or invalid requests
-            if (!data.fromUserId || !data.toUserId || !data.topic) {
-              console.log("Skipping invalid request:", doc.id);
-              continue;
+          // Get the current user's data from students collection
+          const studentDoc = await getDoc(doc(db, "students", user.uid));
+          if (studentDoc.exists()) {
+            const studentData = {
+              id: studentDoc.id,
+              ...studentDoc.data()
+            };
+            setCurrentUser(studentData);
+            
+            // Fetch requests where the current user is the recipient
+            const receivedRequestsQuery = query(
+              collection(db, "onevsoneRequests"),
+              where("toUserId", "==", user.uid)
+            );
+            
+            // Fetch requests where the current user is the sender
+            const sentRequestsQuery = query(
+              collection(db, "onevsoneRequests"),
+              where("fromUserId", "==", user.uid)
+            );
+            
+            const [receivedSnapshot, sentSnapshot] = await Promise.all([
+              getDocs(receivedRequestsQuery),
+              getDocs(sentRequestsQuery)
+            ]);
+            
+            // Process received requests
+            const receivedRequestsList = [];
+            for (const doc of receivedSnapshot.docs) {
+              const data = doc.data();
+              if (!data.fromUserId || !data.toUserId || !data.topic) {
+                console.log("Skipping invalid request:", doc.id);
+                continue;
+              }
+              
+              receivedRequestsList.push({
+                id: doc.id,
+                ...data,
+                createdAt: data.createdAt?.toDate() || new Date(),
+                isReceiver: true
+              });
             }
             
-            receivedRequestsList.push({
-              id: doc.id,
-              ...data,
-              createdAt: data.createdAt?.toDate() || new Date(),
-              isReceiver: true
-            });
-          }
-          
-          // Process sent requests
-          const sentRequestsList = [];
-          for (const doc of sentSnapshot.docs) {
-            const data = doc.data();
-            // Skip test or invalid requests
-            if (!data.fromUserId || !data.toUserId || !data.topic) {
-              console.log("Skipping invalid request:", doc.id);
-              continue;
+            // Process sent requests
+            const sentRequestsList = [];
+            for (const doc of sentSnapshot.docs) {
+              const data = doc.data();
+              if (!data.fromUserId || !data.toUserId || !data.topic) {
+                console.log("Skipping invalid request:", doc.id);
+                continue;
+              }
+              
+              sentRequestsList.push({
+                id: doc.id,
+                ...data,
+                createdAt: data.createdAt?.toDate() || new Date(),
+                isReceiver: false
+              });
             }
             
-            sentRequestsList.push({
-              id: doc.id,
-              ...data,
-              createdAt: data.createdAt?.toDate() || new Date(),
-              isReceiver: false
-            });
+            // Sort requests by createdAt
+            receivedRequestsList.sort((a, b) => b.createdAt - a.createdAt);
+            sentRequestsList.sort((a, b) => b.createdAt - a.createdAt);
+            
+            setReceivedRequests(receivedRequestsList);
+            setSentRequests(sentRequestsList);
+          } else {
+            setError("Student data not found");
           }
-          
-          // Sort requests by createdAt
-          receivedRequestsList.sort((a, b) => b.createdAt - a.createdAt);
-          sentRequestsList.sort((a, b) => b.createdAt - a.createdAt);
-          
-          setReceivedRequests(receivedRequestsList);
-          setSentRequests(sentRequestsList);
+        } catch (err) {
+          console.error("Error fetching data:", err);
+          setError("Failed to load requests");
+        } finally {
+          setLoading(false);
         }
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("Failed to load requests");
-      } finally {
+      } else {
+        setError("User not authenticated");
         setLoading(false);
       }
-    };
+    });
 
-    fetchData();
+    return () => unsubscribe();
   }, []);
 
   const handleAcceptRequest = async (requestId) => {
     try {
-      await updateDoc(doc(db, "onevsoneRequests", requestId), {
-        status: "accepted"
+      const requestRef = doc(db, "onevsoneRequests", requestId);
+      const requestDoc = await getDoc(requestRef);
+      const requestData = requestDoc.data();
+
+      // Update the request status
+      await updateDoc(requestRef, {
+        status: "accepted",
+        acceptedAt: new Date().toISOString()
+      });
+
+      // Create a challenge document for both users
+      const challengeData = {
+        requestId: requestId,
+        fromUserId: requestData.fromUserId,
+        toUserId: requestData.toUserId,
+        fromUserName: requestData.fromUserName,
+        toUserName: requestData.toUserName,
+        topic: requestData.topic,
+        difficulty: requestData.difficulty,
+        status: "accepted",
+        createdAt: requestData.createdAt,
+        acceptedAt: new Date().toISOString(),
+        quizId: null, // Will be set when quiz is generated
+        fromUserScore: null,
+        toUserScore: null,
+        winner: null
+      };
+
+      // Create challenge document for the sender
+      const senderChallengeRef = doc(collection(db, "challenges"), `${requestId}_${requestData.fromUserId}`);
+      await setDoc(senderChallengeRef, {
+        ...challengeData,
+        isSender: true
+      });
+
+      // Create challenge document for the receiver
+      const receiverChallengeRef = doc(collection(db, "challenges"), `${requestId}_${requestData.toUserId}`);
+      await setDoc(receiverChallengeRef, {
+        ...challengeData,
+        isSender: false
       });
       
       // Update the local state
@@ -124,8 +167,42 @@ export default function OneVsOneRequests() {
 
   const handleRejectRequest = async (requestId) => {
     try {
-      await updateDoc(doc(db, "onevsoneRequests", requestId), {
-        status: "rejected"
+      const requestRef = doc(db, "onevsoneRequests", requestId);
+      const requestDoc = await getDoc(requestRef);
+      const requestData = requestDoc.data();
+
+      // Update the request status
+      await updateDoc(requestRef, {
+        status: "rejected",
+        rejectedAt: new Date().toISOString()
+      });
+
+      // Create challenge documents for both users with rejected status
+      const challengeData = {
+        requestId: requestId,
+        fromUserId: requestData.fromUserId,
+        toUserId: requestData.toUserId,
+        fromUserName: requestData.fromUserName,
+        toUserName: requestData.toUserName,
+        topic: requestData.topic,
+        difficulty: requestData.difficulty,
+        status: "rejected",
+        createdAt: requestData.createdAt,
+        rejectedAt: new Date().toISOString()
+      };
+
+      // Create challenge document for the sender
+      const senderChallengeRef = doc(collection(db, "challenges"), `${requestId}_${requestData.fromUserId}`);
+      await setDoc(senderChallengeRef, {
+        ...challengeData,
+        isSender: true
+      });
+
+      // Create challenge document for the receiver
+      const receiverChallengeRef = doc(collection(db, "challenges"), `${requestId}_${requestData.toUserId}`);
+      await setDoc(receiverChallengeRef, {
+        ...challengeData,
+        isSender: false
       });
       
       // Update the local state
@@ -146,8 +223,42 @@ export default function OneVsOneRequests() {
 
   const handleCancelRequest = async (requestId) => {
     try {
-      await updateDoc(doc(db, "onevsoneRequests", requestId), {
-        status: "cancelled"
+      const requestRef = doc(db, "onevsoneRequests", requestId);
+      const requestDoc = await getDoc(requestRef);
+      const requestData = requestDoc.data();
+
+      // Update the request status
+      await updateDoc(requestRef, {
+        status: "cancelled",
+        cancelledAt: new Date().toISOString()
+      });
+
+      // Create challenge documents for both users with cancelled status
+      const challengeData = {
+        requestId: requestId,
+        fromUserId: requestData.fromUserId,
+        toUserId: requestData.toUserId,
+        fromUserName: requestData.fromUserName,
+        toUserName: requestData.toUserName,
+        topic: requestData.topic,
+        difficulty: requestData.difficulty,
+        status: "cancelled",
+        createdAt: requestData.createdAt,
+        cancelledAt: new Date().toISOString()
+      };
+
+      // Create challenge document for the sender
+      const senderChallengeRef = doc(collection(db, "challenges"), `${requestId}_${requestData.fromUserId}`);
+      await setDoc(senderChallengeRef, {
+        ...challengeData,
+        isSender: true
+      });
+
+      // Create challenge document for the receiver
+      const receiverChallengeRef = doc(collection(db, "challenges"), `${requestId}_${requestData.toUserId}`);
+      await setDoc(receiverChallengeRef, {
+        ...challengeData,
+        isSender: false
       });
       
       // Update the local state
@@ -168,9 +279,22 @@ export default function OneVsOneRequests() {
 
   const handleDeleteRequest = async (requestId, isReceived) => {
     try {
+      // Delete the request from onevsoneRequests collection
       await deleteDoc(doc(db, "onevsoneRequests", requestId));
+
+      // Delete the corresponding challenge documents
+      const challengesQuery = query(
+        collection(db, "challenges"),
+        where("requestId", "==", requestId)
+      );
+      const challengesSnapshot = await getDocs(challengesQuery);
       
-      // Update the local state based on whether it's a received or sent request
+      const deletePromises = challengesSnapshot.docs.map(doc => 
+        deleteDoc(doc.ref)
+      );
+      await Promise.all(deletePromises);
+      
+      // Update the local state
       if (isReceived) {
         setReceivedRequests(prevRequests => 
           prevRequests.filter(request => request.id !== requestId)
@@ -181,7 +305,7 @@ export default function OneVsOneRequests() {
         );
       }
       
-      alert("Request deleted.");
+      alert("Request deleted successfully.");
     } catch (err) {
       console.error("Error deleting request:", err);
       alert("Failed to delete request. Please try again.");
@@ -228,7 +352,14 @@ export default function OneVsOneRequests() {
 
   // Format date to readable string
   const formatDate = (date) => {
-    return new Date(date).toLocaleString();
+    if (!date) return "N/A";
+    try {
+      const dateObj = date.toDate ? date.toDate() : new Date(date);
+      return dateObj.toLocaleString();
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "N/A";
+    }
   };
 
   // Get status badge color
@@ -255,147 +386,80 @@ export default function OneVsOneRequests() {
     }
   };
 
-  // Render the appropriate action buttons based on request status and user role
-  const renderActionButtons = (request, isReceived) => {
-    // If the request is pending
-    if (request.status === "pending") {
-      // If the current user is the receiver, show accept/reject buttons
-      if (isReceived) {
-        return (
-          <div className={styles.requestActions}>
-            <button 
-              className={styles.acceptButton}
-              onClick={() => handleAcceptRequest(request.id)}
-            >
-              Accept Challenge
-            </button>
-            <button 
-              className={styles.rejectButton}
-              onClick={() => handleRejectRequest(request.id)}
-            >
-              Reject
-            </button>
-          </div>
-        );
-      } 
-      // If the current user is the sender, show cancel button
-      else {
-        return (
-          <div className={styles.requestActions}>
+  // Render the request card based on user role
+  const renderRequestCard = (request, isReceived) => {
+    return (
+      <div key={request.id} className={styles.requestCard}>
+        <div className={styles.requestHeader}>
+          <h3 className={styles.requestTitle}>
+            {isReceived ? `Challenge from ${request.fromUserName || request.fromUsername}` : `Challenge to ${request.toUserName || request.toUsername}`}
+          </h3>
+          <span className={`${styles.statusBadge} ${getStatusBadgeClass(request.status)}`}>
+            {getStatusText(request.status)}
+          </span>
+        </div>
+        
+        <div className={styles.requestDetails}>
+          <p><strong>Topic:</strong> {request.topic}</p>
+          <p><strong>Difficulty:</strong> {request.difficulty}</p>
+          <p><strong>Sent:</strong> {formatDate(request.createdAt)}</p>
+          {request.acceptedAt && <p><strong>Accepted:</strong> {formatDate(request.acceptedAt)}</p>}
+          {request.rejectedAt && <p><strong>Rejected:</strong> {formatDate(request.rejectedAt)}</p>}
+          {request.cancelledAt && <p><strong>Cancelled:</strong> {formatDate(request.cancelledAt)}</p>}
+        </div>
+        
+        <div className={styles.requestActions}>
+          {request.status === "pending" && isReceived && (
+            <>
+              <button 
+                className={styles.acceptButton}
+                onClick={() => handleAcceptRequest(request.id)}
+              >
+                Accept
+              </button>
+              <button 
+                className={styles.rejectButton}
+                onClick={() => handleRejectRequest(request.id)}
+              >
+                Reject
+              </button>
+            </>
+          )}
+          
+          {request.status === "pending" && !isReceived && (
             <button 
               className={styles.cancelButton}
               onClick={() => handleCancelRequest(request.id)}
             >
-              Cancel Request
+              Cancel
             </button>
-          </div>
-        );
-      }
-    }
-    
-    // If the request is accepted and quiz is generated
-    if (request.status === "accepted" && request.quizGenerated) {
-      // If the user hasn't started the quiz yet
-      if (!request.hasStartedQuiz) {
-        return (
-          <div className={styles.quizReady}>
-            <p>Quiz is ready! Click below to start.</p>
+          )}
+          
+          {request.status === "accepted" && request.quizId && !request.hasStartedQuiz && (
             <button 
-              className={styles.startQuizButton}
+              className={styles.startButton}
               onClick={() => handleStartQuiz(request.id, isReceived)}
             >
               Start Quiz
             </button>
-          </div>
-        );
-      } 
-      // If the user has already started the quiz
-      else {
-        return (
-          <div className={styles.quizStarted}>
-            <p>You've already started this quiz.</p>
-            <p>Started at: {formatDate(request.quizStartedAt)}</p>
-          </div>
-        );
-      }
-    }
-    
-    // If the request is accepted but quiz is still being generated
-    if (request.status === "accepted" && !request.quizGenerated) {
-      return (
-        <div className={styles.quizPending}>
-          <p>Quiz is being generated by AI...</p>
-        </div>
-      );
-    }
-    
-    // For rejected or cancelled requests, show delete button
-    if (request.status === "rejected" || request.status === "cancelled") {
-      return (
-        <div className={styles.requestActions}>
-          <button 
-            className={styles.deleteButton}
-            onClick={() => handleDeleteRequest(request.id, isReceived)}
-          >
-            Delete Request
-          </button>
-        </div>
-      );
-    }
-    
-    return null;
-  };
-
-  // Render the request card based on user role
-  const renderRequestCard = (request, isReceived) => {
-    if (isReceived) {
-      // For receivers, show only challenge details and accept/decline options
-      return (
-        <div key={request.id} className={styles.requestCard}>
-          <div className={styles.requestHeader}>
-            <h3 className={styles.requestTitle}>
-              Challenge from {request.fromUserName}
-            </h3>
-            <span className={`${styles.statusBadge} ${getStatusBadgeClass(request.status)}`}>
-              {getStatusText(request.status)}
-            </span>
-          </div>
+          )}
           
-          <div className={styles.requestDetails}>
-            <p><strong>Topic:</strong> {request.topic}</p>
-            <p><strong>Difficulty:</strong> {request.difficulty}</p>
-            <p><strong>Time Limit:</strong> {request.timeLimit} seconds per question</p>
-            <p><strong>Sent:</strong> {formatDate(request.createdAt)}</p>
-          </div>
-          
-          {renderActionButtons(request, true)}
+          {/* Show delete button only for completed or rejected requests */}
+          {(request.status === "completed" || request.status === "rejected" || request.status === "cancelled") && (
+            <button 
+              className={styles.deleteButton}
+              onClick={() => {
+                if (window.confirm("Are you sure you want to delete this request?")) {
+                  handleDeleteRequest(request.id, isReceived);
+                }
+              }}
+            >
+              Delete
+            </button>
+          )}
         </div>
-      );
-    } else {
-      // For senders, show details with status
-      return (
-        <div key={request.id} className={styles.requestCard}>
-          <div className={styles.requestHeader}>
-            <h3 className={styles.requestTitle}>
-              Challenge to {request.toUserName}
-            </h3>
-            <span className={`${styles.statusBadge} ${getStatusBadgeClass(request.status)}`}>
-              {getStatusText(request.status)}
-            </span>
-          </div>
-          
-          <div className={styles.requestDetails}>
-            <p><strong>Topic:</strong> {request.topic}</p>
-            <p><strong>Difficulty:</strong> {request.difficulty}</p>
-            <p><strong>Time Limit:</strong> {request.timeLimit} seconds per question</p>
-            <p><strong>Sent:</strong> {formatDate(request.createdAt)}</p>
-            <p><strong>Status:</strong> {getStatusText(request.status)}</p>
-          </div>
-          
-          {renderActionButtons(request, false)}
-        </div>
-      );
-    }
+      </div>
+    );
   };
 
     return (
