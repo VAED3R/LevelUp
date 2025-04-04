@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './ParentChatbot.module.css';
 import { FaRobot, FaTimes, FaGraduationCap, FaHandHoldingHeart, FaQuestion } from 'react-icons/fa';
 import { db } from '@/lib/firebase';
@@ -11,6 +11,16 @@ const ParentChatbot = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [studentPerformance, setStudentPerformance] = useState(null);
+  const [showWelcomePopup, setShowWelcomePopup] = useState(true);
+
+  useEffect(() => {
+    // Show welcome popup for 5 seconds
+    const timer = setTimeout(() => {
+      setShowWelcomePopup(false);
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const formatMessage = (text) => {
     // Remove markdown symbols and format the text
@@ -271,88 +281,109 @@ const ParentChatbot = () => {
   };
 
   return (
-    <div className={styles.chatbotContainer}>
-      <button 
-        className={styles.chatbotButton}
-        onClick={handleChatbotClick}
-      >
-        <FaRobot className={styles.chatbotIcon} />
-      </button>
-
-      {isOpen && (
-        <div className={styles.chatWindow}>
-          <div className={styles.chatHeader}>
-            <h3>Parent Assistant</h3>
+    <>
+      {showWelcomePopup && (
+        <div className={styles.welcomePopup}>
+          <div className={styles.welcomeContent}>
+            <FaRobot className={styles.welcomeIcon} />
+            <p>Hi! I'm your AI assistant. I can help you with:</p>
+            <ul>
+              <li>Career guidance for your child</li>
+              <li>Academic counseling</li>
+              <li>General queries about education</li>
+            </ul>
             <button 
-              className={styles.closeButton}
-              onClick={handleChatbotClick}
+              className={styles.closeWelcome}
+              onClick={() => setShowWelcomePopup(false)}
             >
-              <FaTimes />
+              Got it!
             </button>
           </div>
-
-          {!activeChat ? (
-            <div className={styles.optionsContainer}>
-              <button 
-                className={styles.optionButton}
-                onClick={() => handleOptionClick('counseling')}
-              >
-                <FaHandHoldingHeart className={styles.optionIcon} />
-                Counseling
-              </button>
-              <button 
-                className={styles.optionButton}
-                onClick={() => handleOptionClick('career')}
-              >
-                <FaGraduationCap className={styles.optionIcon} />
-                Career Guidance
-              </button>
-              <button 
-                className={styles.optionButton}
-                onClick={() => handleOptionClick('other')}
-              >
-                <FaQuestion className={styles.optionIcon} />
-                Other
-              </button>
-            </div>
-          ) : (
-            <div className={styles.chatContent}>
-              <div className={styles.messagesContainer}>
-                {messages.map((message, index) => (
-                  <div 
-                    key={index} 
-                    className={`${styles.message} ${message.type === 'user' ? styles.userMessage : styles.botMessage}`}
-                    dangerouslySetInnerHTML={{ __html: message.text }}
-                  />
-                ))}
-                {isLoading && (
-                  <div className={`${styles.message} ${styles.botMessage}`}>
-                    Thinking...
-                  </div>
-                )}
-              </div>
-              <form onSubmit={handleSendMessage} className={styles.inputContainer}>
-                <input
-                  type="text"
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  placeholder="Type your message..."
-                  className={styles.messageInput}
-                  disabled={isLoading}
-                />
-                <button 
-                  type="submit" 
-                  className={styles.sendButton}
-                  disabled={isLoading}
-                >
-                  Send
-                </button>
-              </form>
-            </div>
-          )}
         </div>
       )}
-    </div>
+      <div className={styles.chatbotContainer}>
+        <button 
+          className={styles.chatbotButton}
+          onClick={handleChatbotClick}
+        >
+          <FaRobot className={styles.chatbotIcon} />
+        </button>
+
+        {isOpen && (
+          <div className={styles.chatWindow}>
+            <div className={styles.chatHeader}>
+              <h3>Parent Assistant</h3>
+              <button 
+                className={styles.closeButton}
+                onClick={handleChatbotClick}
+              >
+                <FaTimes />
+              </button>
+            </div>
+
+            {!activeChat ? (
+              <div className={styles.optionsContainer}>
+                <button 
+                  className={styles.optionButton}
+                  onClick={() => handleOptionClick('counseling')}
+                >
+                  <FaHandHoldingHeart className={styles.optionIcon} />
+                  Counseling
+                </button>
+                <button 
+                  className={styles.optionButton}
+                  onClick={() => handleOptionClick('career')}
+                >
+                  <FaGraduationCap className={styles.optionIcon} />
+                  Career Guidance
+                </button>
+                <button 
+                  className={styles.optionButton}
+                  onClick={() => handleOptionClick('other')}
+                >
+                  <FaQuestion className={styles.optionIcon} />
+                  Other
+                </button>
+              </div>
+            ) : (
+              <div className={styles.chatContent}>
+                <div className={styles.messagesContainer}>
+                  {messages.map((message, index) => (
+                    <div 
+                      key={index} 
+                      className={`${styles.message} ${message.type === 'user' ? styles.userMessage : styles.botMessage}`}
+                      dangerouslySetInnerHTML={{ __html: message.text }}
+                    />
+                  ))}
+                  {isLoading && (
+                    <div className={`${styles.message} ${styles.botMessage}`}>
+                      Thinking...
+                    </div>
+                  )}
+                </div>
+                <form onSubmit={handleSendMessage} className={styles.inputContainer}>
+                  <input
+                    type="text"
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    placeholder="Type your message..."
+                    className={styles.messageInput}
+                    disabled={isLoading}
+                  />
+                  <button 
+                    type="submit" 
+                    className={styles.sendButton}
+                    disabled={isLoading}
+                  >
+                    Send
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 

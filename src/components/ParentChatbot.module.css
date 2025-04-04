@@ -192,4 +192,87 @@
     bottom: 80px;
     right: 20px;
   }
+}
+
+.welcomePopup {
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  z-index: 1000;
+  animation: slideIn 0.5s ease-out;
+}
+
+.welcomeContent {
+  background: #fff;
+  border: 1px solid rgba(127, 55, 198, 0.5);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  max-width: 300px;
+}
+
+.welcomeIcon {
+  color: #7f37c6;
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.welcomeContent p {
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.welcomeContent ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0 0 15px 0;
+}
+
+.welcomeContent li {
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  color: #555;
+  margin: 5px 0;
+  padding-left: 20px;
+  position: relative;
+}
+
+.welcomeContent li:before {
+  content: "•";
+  color: #7f37c6;
+  position: absolute;
+  left: 0;
+}
+
+.closeWelcome {
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  background: linear-gradient(45deg, #9c34d0, #4b217b);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.closeWelcome:hover {
+  background: linear-gradient(45deg, #a944e0, #5b318b);
+  transform: translateY(-2px);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 } 

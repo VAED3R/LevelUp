@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, getDoc, doc } from 'firebase/firestore';
 import Navbar from "@/components/parentNavbar";
+import ParentChatbot from '@/components/ParentChatbot';
 import styles from './page.module.css';
 
 export default function ParentDashboard() {
@@ -121,6 +122,7 @@ export default function ParentDashboard() {
           </div>
         )}
       </div>
+      <ParentChatbot />
     </div>
   );
 }
