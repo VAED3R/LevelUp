@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { db, auth } from "@/lib/firebase";
-import { doc, getDoc, updateDoc, collection, getDocs, query, where } from "firebase/firestore";
+import { doc, getDoc, updateDoc, collection, getDocs, query, where, onSnapshot } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import Navbar from "@/components/studentNavbar";
 import styles from "./page.module.css";
@@ -14,7 +14,7 @@ export default function StudentQuizChallenge() {
   const challengeId = searchParams.get("challengeId");
   
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(null); 
   const [currentUser, setCurrentUser] = useState(null);
   const [challenge, setChallenge] = useState(null);
   const [quiz, setQuiz] = useState(null);
@@ -29,6 +29,97 @@ export default function StudentQuizChallenge() {
   const [questionTimes, setQuestionTimes] = useState([]);
   const [timeRemaining, setTimeRemaining] = useState(null);
   const [timerInterval, setTimerInterval] = useState(null);
+  
+  // Add a useEffect to update the UI when the challenge state changes
+  useEffect(() => {
+    if (challenge) {
+      console.log("[useEffect] Challenge state changed:", challenge);
+      console.log("[useEffect] senderCompleted:", challenge.senderCompleted);
+      console.log("[useEffect] receiverCompleted:", challenge.receiverCompleted);
+      
+      // Check if both players have completed the quiz
+      if (challenge.senderCompleted && challenge.receiverCompleted) {
+        console.log("[useEffect] Both players have completed");
+        
+        // If there's no winner set but both have completed, determine the winner
+        if (!challenge.winner) {
+          console.log("[useEffect] No winner set yet, determining winner");
+          const challengeRef = doc(db, "challenges", challengeId);
+          
+          // Determine winner based on scores and time
+          const fromUserWins = 
+            challenge.fromUserScore > challenge.toUserScore || 
+            (challenge.fromUserScore === challenge.toUserScore && 
+             challenge.fromUserTime < challenge.toUserTime);
+          
+          const winner = fromUserWins ? "fromUser" : "toUser";
+          console.log("[useEffect] Winner determined:", winner);
+          
+          const winnerId = fromUserWins ? challenge.fromUserId : challenge.toUserId;
+          const loserId = fromUserWins ? challenge.toUserId : challenge.fromUserId;
+          const pointsWagered = challenge.pointsWagered || 10;
+          
+          // Update challenge with winner
+          updateDoc(challengeRef, {
+            winner,
+            status: "completed",
+            completedAt: new Date().toISOString()
+          }).then(() => {
+            console.log("[useEffect] Updated challenge with winner");
+            // Update request status
+            const requestRef = doc(db, "onevsoneRequests", challenge.requestId);
+            return updateDoc(requestRef, {
+              status: "completed",
+              completedAt: new Date().toISOString(),
+              winner: winnerId
+            });
+          }).then(() => {
+            console.log("[useEffect] Updated request status");
+            // Get current points for both users
+            return Promise.all([
+              getDoc(doc(db, "students", winnerId)),
+              getDoc(doc(db, "students", loserId))
+            ]);
+          }).then(([winnerDoc, loserDoc]) => {
+            const winnerPoints = winnerDoc.data().totalPoints || 0;
+            const loserPoints = loserDoc.data().totalPoints || 0;
+            
+            // Transfer points
+            return Promise.all([
+              updateDoc(doc(db, "students", winnerId), {
+                totalPoints: winnerPoints + pointsWagered
+              }),
+              updateDoc(doc(db, "students", loserId), {
+                totalPoints: Math.max(0, loserPoints - pointsWagered)
+              })
+            ]);
+          }).then(() => {
+            console.log("[useEffect] Transferred points");
+            // Get final challenge state
+            return getDoc(challengeRef);
+          }).then((doc) => {
+            if (doc.exists()) {
+              const updatedChallenge = doc.data();
+              console.log("[useEffect] Final challenge state:", updatedChallenge);
+              setChallenge(updatedChallenge);
+            }
+          }).catch((err) => {
+            console.error("[useEffect] Error updating winner:", err);
+          });
+        }
+        
+        setQuizCompleted(true);
+        
+        // Update the score and time if the user has already completed the quiz
+        const isFromUser = challenge.fromUserId === currentUser?.id;
+        if ((isFromUser && challenge.senderCompleted) || 
+            (!isFromUser && challenge.receiverCompleted)) {
+          setScore(isFromUser ? challenge.fromUserScore : challenge.toUserScore);
+          setTotalTime(isFromUser ? challenge.fromUserTime : challenge.toUserTime);
+        }
+      }
+    }
+  }, [challenge, currentUser, challengeId]);
   
   // Redirect if no challengeId is provided
   useEffect(() => {
@@ -92,6 +183,43 @@ export default function StudentQuizChallenge() {
                   setScore(isFromUser ? challengeData.fromUserScore : challengeData.toUserScore);
                   setTotalTime(isFromUser ? challengeData.fromUserTime : challengeData.toUserTime);
                 }
+                
+                // Set up real-time listener for challenge updates
+                const challengeRef = doc(db, "challenges", challengeId);
+                const unsubscribeChallenge = onSnapshot(challengeRef, (doc) => {
+                  if (doc.exists()) {
+                    const updatedChallenge = doc.data();
+                    console.log("Real-time challenge update:", updatedChallenge);
+                    
+                    // Force a UI update by creating a new object
+                    setChallenge({...updatedChallenge});
+                    
+                    // Update UI if the other player has completed the quiz
+                    const isFromUser = updatedChallenge.fromUserId === user.uid;
+                    if ((isFromUser && updatedChallenge.toUserScore !== null) || 
+                        (!isFromUser && updatedChallenge.fromUserScore !== null)) {
+                      // The other player has completed the quiz
+                      console.log("Other player has completed the quiz");
+                      
+                      // If both players have completed the quiz, update the UI
+                      if (updatedChallenge.fromUserScore !== null && updatedChallenge.toUserScore !== null) {
+                        console.log("Both players have completed the quiz");
+                        setQuizCompleted(true);
+                        
+                        // If the user has already completed the quiz, update their score and time
+                        if ((isFromUser && updatedChallenge.fromUserScore !== null) || 
+                            (!isFromUser && updatedChallenge.toUserScore !== null)) {
+                          setScore(isFromUser ? updatedChallenge.fromUserScore : updatedChallenge.toUserScore);
+                          setTotalTime(isFromUser ? updatedChallenge.fromUserTime : updatedChallenge.toUserTime);
+                        }
+                      }
+                    }
+                  }
+                });
+                
+                return () => {
+                  unsubscribeChallenge();
+                };
               } else {
                 console.error("Challenge not found for ID:", challengeId);
                 setError("Challenge not found. Please return to the challenges page.");
@@ -218,64 +346,80 @@ export default function StudentQuizChallenge() {
       const isFromUser = challenge.fromUserId === currentUser.id;
       const challengeRef = doc(db, "challenges", challengeId);
       
-      // Update the challenge document with the user's score and time
-      const updateData = isFromUser 
-        ? { 
-            fromUserScore: score, 
-            fromUserTime: totalTime,
-            fromUserCompletedAt: new Date().toISOString()
-          } 
-        : { 
-            toUserScore: score, 
-            toUserTime: totalTime,
-            toUserCompletedAt: new Date().toISOString()
-          };
+      console.log("[saveQuizResults] Starting to save results");
+      console.log("[saveQuizResults] isFromUser:", isFromUser);
+      console.log("[saveQuizResults] Current challenge state:", challenge);
       
+      // Update the challenge document with the user's score, time, and completion status
+      const updateData = {
+        ...(isFromUser ? {
+          fromUserScore: score,
+          fromUserTime: totalTime,
+          fromUserCompletedAt: new Date().toISOString(),
+          senderCompleted: true
+        } : {
+          toUserScore: score,
+          toUserTime: totalTime,
+          toUserCompletedAt: new Date().toISOString(),
+          receiverCompleted: true
+        })
+      };
+
+      // If this is the first time saving, initialize the other completion status to false
+      if (!challenge.senderCompleted && !challenge.receiverCompleted) {
+        updateData[isFromUser ? 'receiverCompleted' : 'senderCompleted'] = false;
+      }
+      
+      console.log("[saveQuizResults] Update data to be saved:", updateData);
+      
+      // First update the user's score and time
       await updateDoc(challengeRef, updateData);
+      console.log("[saveQuizResults] Updated user's score and time");
       
-      // Check if both users have completed the quiz
+      // Get the latest challenge data
       const challengeDoc = await getDoc(challengeRef);
       const updatedChallenge = challengeDoc.data();
+      console.log("[saveQuizResults] Latest challenge data:", updatedChallenge);
       
-      if (updatedChallenge.fromUserScore !== null && updatedChallenge.toUserScore !== null) {
-        // Both users have completed the quiz, determine the winner
-        let winner = null;
-        let pointsWagered = updatedChallenge.pointsWagered || 10;
+      // Check if both users have completed
+      const bothCompleted = updatedChallenge.senderCompleted && updatedChallenge.receiverCompleted;
+      console.log("[saveQuizResults] Both completed:", bothCompleted);
+      
+      // If both users have completed, determine and set the winner immediately
+      if (bothCompleted) {
+        console.log("[saveQuizResults] Both users have completed, determining winner");
         
-        // First check scores - higher score wins
-        if (updatedChallenge.fromUserScore > updatedChallenge.toUserScore) {
-          winner = "fromUser";
-        } else if (updatedChallenge.toUserScore > updatedChallenge.fromUserScore) {
-          winner = "toUser";
-        } else {
-          // Scores are equal, check time - faster time wins
-          if (updatedChallenge.fromUserTime < updatedChallenge.toUserTime) {
-            winner = "fromUser";
-          } else {
-            winner = "toUser";
-          }
-        }
+        // Determine winner based on scores first, then time
+        const fromUserWins = 
+          updatedChallenge.fromUserScore > updatedChallenge.toUserScore || 
+          (updatedChallenge.fromUserScore === updatedChallenge.toUserScore && 
+           updatedChallenge.fromUserTime < updatedChallenge.toUserTime);
         
-        // Update the challenge with the winner
+        const winner = fromUserWins ? "fromUser" : "toUser";
+        console.log("[saveQuizResults] Winner determined:", winner);
+        
+        const winnerId = fromUserWins ? updatedChallenge.fromUserId : updatedChallenge.toUserId;
+        const loserId = fromUserWins ? updatedChallenge.toUserId : updatedChallenge.fromUserId;
+        const pointsWagered = updatedChallenge.pointsWagered || 10;
+        
+        // Update challenge with winner
         await updateDoc(challengeRef, {
           winner,
           status: "completed",
           completedAt: new Date().toISOString()
         });
+        console.log("[saveQuizResults] Updated challenge with winner");
         
-        // Update the onevsoneRequests document
+        // Update request status
         const requestRef = doc(db, "onevsoneRequests", challenge.requestId);
         await updateDoc(requestRef, {
           status: "completed",
           completedAt: new Date().toISOString(),
-          winner: winner === "fromUser" ? challenge.fromUserId : challenge.toUserId
+          winner: winnerId
         });
+        console.log("[saveQuizResults] Updated request status");
         
-        // Transfer points between users
-        const winnerId = winner === "fromUser" ? challenge.fromUserId : challenge.toUserId;
-        const loserId = winner === "fromUser" ? challenge.toUserId : challenge.fromUserId;
-        
-        // Get the current points for both users
+        // Get current points for both users
         const [winnerDoc, loserDoc] = await Promise.all([
           getDoc(doc(db, "students", winnerId)),
           getDoc(doc(db, "students", loserId))
@@ -284,7 +428,7 @@ export default function StudentQuizChallenge() {
         const winnerPoints = winnerDoc.data().totalPoints || 0;
         const loserPoints = loserDoc.data().totalPoints || 0;
         
-        // Update points
+        // Transfer points
         await Promise.all([
           updateDoc(doc(db, "students", winnerId), {
             totalPoints: winnerPoints + pointsWagered
@@ -293,9 +437,24 @@ export default function StudentQuizChallenge() {
             totalPoints: Math.max(0, loserPoints - pointsWagered)
           })
         ]);
+        console.log("[saveQuizResults] Transferred points between users");
+        
+        // Get final challenge state
+        const finalChallengeDoc = await getDoc(challengeRef);
+        const finalChallenge = finalChallengeDoc.data();
+        console.log("[saveQuizResults] Final challenge state:", finalChallenge);
+        
+        // Update local state
+        setChallenge(finalChallenge);
+        setQuizCompleted(true);
+      } else {
+        console.log("[saveQuizResults] Only one user has completed");
+        // If only one user has completed, just update the local state
+        setChallenge(updatedChallenge);
+        setQuizCompleted(true);
       }
     } catch (err) {
-      console.error("Error saving quiz results:", err);
+      console.error("[saveQuizResults] Error:", err);
       alert("Failed to save quiz results. Please try again.");
     }
   };
@@ -364,7 +523,46 @@ export default function StudentQuizChallenge() {
   // Render the quiz results
   const renderResults = () => {
     const isFromUser = challenge.fromUserId === currentUser.id;
-    const isWinner = challenge.winner === (isFromUser ? "fromUser" : "toUser");
+    const bothCompleted = challenge.senderCompleted && challenge.receiverCompleted;
+    
+    console.log("[renderResults] Current challenge state:", challenge);
+    console.log("[renderResults] isFromUser:", isFromUser);
+    console.log("[renderResults] bothCompleted:", bothCompleted);
+    console.log("[renderResults] senderCompleted:", challenge.senderCompleted);
+    console.log("[renderResults] receiverCompleted:", challenge.receiverCompleted);
+    
+    // Determine winner based on scores and time if both have completed
+    let resultMessage = "Waiting for opponent to complete";
+    let isWinner = false;
+    
+    if (bothCompleted) {
+      console.log("[renderResults] Both players have completed");
+      // If winner is already set in the challenge, use that
+      if (challenge.winner) {
+        console.log("[renderResults] Winner is set:", challenge.winner);
+        isWinner = challenge.winner === (isFromUser ? "fromUser" : "toUser");
+      } else {
+        console.log("[renderResults] Determining winner based on scores and time");
+        // Otherwise determine winner based on scores and time
+        const fromUserWins = 
+          challenge.fromUserScore > challenge.toUserScore || 
+          (challenge.fromUserScore === challenge.toUserScore && 
+           challenge.fromUserTime < challenge.toUserTime);
+        isWinner = isFromUser ? fromUserWins : !fromUserWins;
+      }
+      resultMessage = isWinner ? "Winner!" : "Better luck next time!";
+    } else {
+      // Show appropriate message based on who has completed
+      if (isFromUser && challenge.senderCompleted) {
+        resultMessage = "Waiting for opponent to complete";
+      } else if (!isFromUser && challenge.receiverCompleted) {
+        resultMessage = "Waiting for opponent to complete";
+      }
+    }
+    
+    console.log("[renderResults] Final result message:", resultMessage);
+    console.log("[renderResults] isWinner:", isWinner);
+    
     const pointsWagered = challenge.pointsWagered || 10;
     
     // If quiz data is not available, show a simplified results view
@@ -377,14 +575,19 @@ export default function StudentQuizChallenge() {
             <div className={styles.resultHeader}>
               <h3>Quiz Results</h3>
               <span className={`${styles.resultBadge} ${isWinner ? styles.winner : styles.loser}`}>
-                {isWinner ? 'Winner!' : 'Better luck next time!'}
+                {resultMessage}
               </span>
             </div>
             
             <div className={styles.resultDetails}>
               <p><strong>Your Score:</strong> {score}</p>
               <p><strong>Time Taken:</strong> {formatTime(totalTime)}</p>
-              <p><strong>Points {isWinner ? 'Won' : 'Lost'}:</strong> {pointsWagered}</p>
+              {bothCompleted && (
+                <>
+                  <p><strong>Opponent's Score:</strong> {isFromUser ? challenge.toUserScore : challenge.fromUserScore}</p>
+                  <p><strong>Points {isWinner ? 'Won' : 'Lost'}:</strong> {pointsWagered}</p>
+                </>
+              )}
             </div>
             
             <div className={styles.resultActions}>
@@ -408,14 +611,19 @@ export default function StudentQuizChallenge() {
           <div className={styles.resultHeader}>
             <h3>{quiz.topic} Quiz</h3>
             <span className={`${styles.resultBadge} ${isWinner ? styles.winner : styles.loser}`}>
-              {isWinner ? 'Winner!' : 'Better luck next time!'}
+              {resultMessage}
             </span>
           </div>
           
           <div className={styles.resultDetails}>
             <p><strong>Your Score:</strong> {score} / {quiz.questions.length}</p>
             <p><strong>Time Taken:</strong> {formatTime(totalTime)}</p>
-            <p><strong>Points {isWinner ? 'Won' : 'Lost'}:</strong> {pointsWagered}</p>
+            {bothCompleted && (
+              <>
+                <p><strong>Opponent's Score:</strong> {isFromUser ? challenge.toUserScore : challenge.fromUserScore} / {quiz.questions.length}</p>
+                <p><strong>Points {isWinner ? 'Won' : 'Lost'}:</strong> {pointsWagered}</p>
+              </>
+            )}
           </div>
           
           <div className={styles.resultActions}>
@@ -460,12 +668,30 @@ export default function StudentQuizChallenge() {
               <p><strong>Opponent:</strong> {challenge?.fromUserId === currentUser?.id ? challenge?.toUserName : challenge?.fromUserName}</p>
             </div>
             
-            <button 
-              className={styles.startButton}
-              onClick={startQuiz}
-            >
-              Start Quiz
-            </button>
+            {/* Only show the Start Quiz button if both players haven't completed the quiz */}
+            {!(challenge?.fromUserScore !== null && challenge?.toUserScore !== null) && (
+              <button 
+                className={styles.startButton}
+                onClick={startQuiz}
+              >
+                Start Quiz
+              </button>
+            )}
+            
+            {/* Show a message if both players have completed the quiz */}
+            {challenge?.fromUserScore !== null && challenge?.toUserScore !== null && (
+              <div className={styles.completedMessage}>
+                <p>Both players have completed this quiz.</p>
+                <p><strong>Winner:</strong> {challenge?.winner === "fromUser" ? challenge?.fromUserName : challenge?.toUserName}</p>
+                <p><strong>Score:</strong> {challenge?.fromUserScore} - {challenge?.toUserScore}</p>
+                <button 
+                  className={styles.returnButton}
+                  onClick={() => router.push('/onevsoneRequests')}
+                >
+                  Return to Challenges
+                </button>
+              </div>
+            )}
           </div>
         ) : quizCompleted ? (
           renderResults()
