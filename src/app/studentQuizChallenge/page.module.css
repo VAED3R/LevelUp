@@ -1,0 +1,276 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+}
+
+.content {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.title {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: #333;
+  text-align: center;
+}
+
+.loading, .error {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.2rem;
+}
+
+.error {
+  color: #e74c3c;
+}
+
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.errorContainer .error {
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+}
+
+/* Start Quiz Container */
+.startContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.challengeInfo {
+  width: 100%;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #3498db;
+}
+
+.challengeInfo h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.challengeInfo p {
+  margin: 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.startButton {
+  padding: 0.8rem 2rem;
+  font-size: 1.2rem;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.startButton:hover {
+  background-color: #2980b9;
+}
+
+/* Quiz Container */
+.quizContainer {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.quizHeader {
+  padding: 1.5rem;
+  background-color: #3498db;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.quizTitle {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.quizInfo {
+  display: flex;
+  gap: 1rem;
+  font-size: 1rem;
+}
+
+.timer {
+  font-weight: bold;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+}
+
+.questionContainer {
+  padding: 2rem;
+}
+
+.questionText {
+  font-size: 1.3rem;
+  margin-bottom: 1.5rem;
+  color: #2c3e50;
+}
+
+.optionsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.option {
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.option:hover {
+  background-color: #e9ecef;
+}
+
+.option.selected {
+  background-color: #e3f2fd;
+  border-color: #3498db;
+}
+
+.optionLabel {
+  font-weight: bold;
+  margin-right: 1rem;
+  color: #3498db;
+}
+
+.nextButton {
+  padding: 0.8rem 2rem;
+  font-size: 1.1rem;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  float: right;
+}
+
+.nextButton:hover {
+  background-color: #2980b9;
+}
+
+.nextButton:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+}
+
+/* Results Container */
+.resultsContainer {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.resultsTitle {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #2c3e50;
+}
+
+.resultCard {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.resultHeader {
+  padding: 1.5rem;
+  background-color: #3498db;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.resultHeader h3 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.resultBadge {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.winner {
+  background-color: #2ecc71;
+}
+
+.loser {
+  background-color: #e74c3c;
+}
+
+.resultDetails {
+  padding: 2rem;
+}
+
+.resultDetails p {
+  margin: 0.8rem 0;
+  font-size: 1.1rem;
+}
+
+.resultActions {
+  padding: 1.5rem;
+  border-top: 1px solid #dee2e6;
+  display: flex;
+  justify-content: center;
+}
+
+.returnButton {
+  padding: 0.8rem 2rem;
+  font-size: 1.1rem;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.returnButton:hover {
+  background-color: #2980b9;
+}

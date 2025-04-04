@@ -20,7 +20,8 @@ export default function Leaderboard() {
   const [quizParams, setQuizParams] = useState({
     topic: "",
     difficulty: "medium",
-    timeLimit: 30
+    timeLimit: 30,
+    pointsWagered: 10
   });
   const [currentUser, setCurrentUser] = useState(null);
 
@@ -150,6 +151,16 @@ export default function Leaderboard() {
       return;
     }
 
+    if (parseInt(quizParams.pointsWagered) <= 0) {
+      alert("Please enter a valid number of points to wager");
+      return;
+    }
+
+    if (parseInt(quizParams.pointsWagered) > currentUser.totalPoints) {
+      alert("You don't have enough points to wager this amount");
+      return;
+    }
+
     try {
       setRequestLoading(true);
       
@@ -162,6 +173,7 @@ export default function Leaderboard() {
         topic: quizParams.topic,
         difficulty: quizParams.difficulty,
         timeLimit: parseInt(quizParams.timeLimit),
+        pointsWagered: parseInt(quizParams.pointsWagered),
         status: "pending", // pending, accepted, rejected, completed
         createdAt: serverTimestamp(),
         quizGenerated: false
@@ -176,7 +188,8 @@ export default function Leaderboard() {
       setQuizParams({
         topic: "",
         difficulty: "medium",
-        timeLimit: 30
+        timeLimit: 30,
+        pointsWagered: 10
       });
     } catch (error) {
       console.error("Error sending request:", error);
@@ -193,7 +206,8 @@ export default function Leaderboard() {
     setQuizParams({
       topic: "",
       difficulty: "medium",
-      timeLimit: 30
+      timeLimit: 30,
+      pointsWagered: 10
     });
   };
 
@@ -257,6 +271,21 @@ export default function Leaderboard() {
                     min="10"
                     max="120"
                   />
+                </div>
+                
+                <div className={styles.formGroup}>
+                  <label htmlFor="pointsWagered" className={styles.formLabel}>Points to Wager:</label>
+                  <input
+                    type="number"
+                    id="pointsWagered"
+                    name="pointsWagered"
+                    value={quizParams.pointsWagered}
+                    onChange={handleInputChange}
+                    className={styles.formInput}
+                    min="1"
+                    max={currentUser?.totalPoints || 100}
+                  />
+                  <small className={styles.helpText}>You have {currentUser?.totalPoints || 0} points available</small>
                 </div>
                 
                 <button 

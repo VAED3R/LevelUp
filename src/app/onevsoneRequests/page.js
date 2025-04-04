@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { db, auth } from "@/lib/firebase";
-import { collection, getDocs, query, where, updateDoc, doc, deleteDoc, getDoc, setDoc } from "firebase/firestore";
+import { collection, getDocs, query, where, updateDoc, doc, deleteDoc, getDoc, setDoc, addDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/studentNavbar";
 import styles from "./page.module.css";
 
 export default function OneVsOneRequests() {
+  const router = useRouter();
   const [receivedRequests, setReceivedRequests] = useState([]);
   const [sentRequests, setSentRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -126,12 +128,16 @@ export default function OneVsOneRequests() {
         toUserName: requestData.toUserName,
         topic: requestData.topic,
         difficulty: requestData.difficulty,
+        timeLimit: requestData.timeLimit,
+        pointsWagered: requestData.pointsWagered,
         status: "accepted",
         createdAt: requestData.createdAt,
         acceptedAt: new Date().toISOString(),
         quizId: null, // Will be set when quiz is generated
         fromUserScore: null,
         toUserScore: null,
+        fromUserTime: null,
+        toUserTime: null,
         winner: null
       };
 
@@ -158,7 +164,7 @@ export default function OneVsOneRequests() {
         )
       );
       
-      alert("Request accepted! The AI will now generate the quiz.");
+      alert("Request accepted! You can now take the quiz when you're ready.");
     } catch (err) {
       console.error("Error accepting request:", err);
       alert("Failed to accept request. Please try again.");
@@ -314,39 +320,149 @@ export default function OneVsOneRequests() {
 
   const handleStartQuiz = async (requestId, isReceived) => {
     try {
-      // In a real app, this would navigate to the quiz page with the request ID
-      // For now, we'll just show an alert
-      alert("Starting quiz... This would navigate to the quiz page in a real app.");
+      // Get the challenge document
+      const userId = currentUser.id;
+      const challengeId = `${requestId}_${userId}`;
+      console.log("Starting quiz with challenge ID:", challengeId);
       
-      // Update the local state to mark this user as having started the quiz
-      if (isReceived) {
-        setReceivedRequests(prevRequests => 
-          prevRequests.map(request => 
-            request.id === requestId 
-              ? { 
-                  ...request, 
-                  hasStartedQuiz: true,
-                  quizStartedAt: new Date()
-                } 
-              : request
-          )
-        );
-      } else {
-        setSentRequests(prevRequests => 
-          prevRequests.map(request => 
-            request.id === requestId 
-              ? { 
-                  ...request, 
-                  hasStartedQuiz: true,
-                  quizStartedAt: new Date()
-                } 
-              : request
-          )
-        );
+      const challengeRef = doc(db, "challenges", challengeId);
+      const challengeDoc = await getDoc(challengeRef);
+      
+      if (!challengeDoc.exists()) {
+        console.error("Challenge not found for ID:", challengeId);
+        alert("Challenge not found");
+        return;
       }
+      
+      const challengeData = challengeDoc.data();
+      console.log("Challenge data:", challengeData);
+      
+      // Check if quiz already exists
+      if (!challengeData.quizId) {
+        console.log("Generating new quiz for topic:", challengeData.topic);
+        try {
+          // Generate a new quiz
+          const quizData = await generateQuiz(challengeData.topic, challengeData.difficulty);
+          console.log("Generated quiz with ID:", quizData.id);
+          
+          // Update the challenge with the quiz ID
+          await updateDoc(challengeRef, {
+            quizId: quizData.id,
+            quizGeneratedAt: new Date().toISOString()
+          });
+          
+          // Also update the other user's challenge document
+          const otherUserId = isReceived ? challengeData.fromUserId : challengeData.toUserId;
+          const otherChallengeRef = doc(db, "challenges", `${requestId}_${otherUserId}`);
+          await updateDoc(otherChallengeRef, {
+            quizId: quizData.id,
+            quizGeneratedAt: new Date().toISOString()
+          });
+        } catch (quizError) {
+          console.error("Error generating quiz:", quizError);
+          alert(`Failed to generate quiz: ${quizError.message}`);
+          return;
+        }
+      } else {
+        console.log("Using existing quiz with ID:", challengeData.quizId);
+      }
+      
+      // Navigate to the quiz challenge page using Next.js router
+      console.log("Navigating to quiz challenge page with ID:", challengeId);
+      router.push(`/studentQuizChallenge?challengeId=${challengeId}`);
+      
     } catch (err) {
       console.error("Error starting quiz:", err);
       alert("Failed to start quiz. Please try again.");
+    }
+  };
+  
+  // Function to generate a quiz
+  const generateQuiz = async (topic, difficulty) => {
+    try {
+      // Number of questions based on difficulty
+      const numQuestions = difficulty === "easy" ? 5 : difficulty === "medium" ? 7 : 10;
+      
+      const prompt = `Generate ${numQuestions} multiple choice questions about ${topic}. 
+      IMPORTANT: Return ONLY a JSON array in the following format, with no additional text or explanation:
+      [
+          {
+              "question": "What is...",
+              "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
+              "correctAnswer": 0
+          },
+          ...
+      ]
+      Make sure the response is valid JSON and follows this exact structure.`;
+
+      console.log("Sending API request to generate quiz questions");
+      console.log("API Key available:", !!process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY);
+      
+      const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY}`
+          },
+          body: JSON.stringify({
+              model: "deepseek-chat",
+              messages: [{ 
+                  role: "user", 
+                  content: prompt 
+              }],
+              temperature: 0.7,
+              max_tokens: 2000
+          })
+      });
+
+      if (!response.ok) {
+          const errorText = await response.text();
+          console.error("API response not OK:", response.status, errorText);
+          throw new Error(`Failed to generate questions: ${response.status} ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log("API response received:", data);
+      
+      let generatedQuestions;
+      
+      try {
+          const content = data.choices[0].message.content.trim();
+          console.log("Raw content from API:", content);
+          generatedQuestions = JSON.parse(content);
+          
+          if (!Array.isArray(generatedQuestions) || generatedQuestions.length === 0) {
+              throw new Error("Invalid question format: not an array or empty");
+          }
+          
+          generatedQuestions.forEach((q, index) => {
+              if (!q.question || !Array.isArray(q.options) || q.options.length !== 4 || 
+                  typeof q.correctAnswer !== 'number' || q.correctAnswer < 0 || q.correctAnswer > 3) {
+                  throw new Error(`Invalid question format at index ${index}`);
+              }
+          });
+          
+          // Save the quiz to Firestore
+          const quizData = {
+              topic,
+              difficulty,
+              questions: generatedQuestions,
+              createdAt: new Date().toISOString()
+          };
+          
+          const quizRef = await addDoc(collection(db, "quizzes"), quizData);
+          
+          return {
+              id: quizRef.id,
+              ...quizData
+          };
+      } catch (parseError) {
+          console.error("Error parsing API response:", parseError);
+          throw new Error(`Failed to parse generated questions: ${parseError.message}`);
+      }
+    } catch (error) {
+      console.error("Error generating quiz:", error);
+      throw error;
     }
   };
 
@@ -402,6 +518,7 @@ export default function OneVsOneRequests() {
         <div className={styles.requestDetails}>
           <p><strong>Topic:</strong> {request.topic}</p>
           <p><strong>Difficulty:</strong> {request.difficulty}</p>
+          <p><strong>Points Wagered:</strong> {request.pointsWagered || 10}</p>
           <p><strong>Sent:</strong> {formatDate(request.createdAt)}</p>
           {request.acceptedAt && <p><strong>Accepted:</strong> {formatDate(request.acceptedAt)}</p>}
           {request.rejectedAt && <p><strong>Rejected:</strong> {formatDate(request.rejectedAt)}</p>}
@@ -435,12 +552,12 @@ export default function OneVsOneRequests() {
             </button>
           )}
           
-          {request.status === "accepted" && request.quizId && !request.hasStartedQuiz && (
+          {request.status === "accepted" && (
             <button 
               className={styles.startButton}
               onClick={() => handleStartQuiz(request.id, isReceived)}
             >
-              Start Quiz
+              Take Quiz
             </button>
           )}
           
