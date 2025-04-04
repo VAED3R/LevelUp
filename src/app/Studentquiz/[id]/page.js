@@ -90,10 +90,10 @@ export default function StudentQuiz() {
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
-  const handleAnswerSelect = (questionIndex, answer) => {
+  const handleAnswerSelect = (questionIndex, answer, optionIndex) => {
     setSelectedAnswers((prev) => ({
       ...prev,
-      [questionIndex]: answer,
+      [questionIndex]: optionIndex,
     }));
   };
 
@@ -115,13 +115,10 @@ export default function StudentQuiz() {
     let correctAnswers = 0;
     quiz.questions.forEach((question, index) => {
       // Debug the comparison
-      console.log(`Question ${index}: Selected answer: "${selectedAnswers[index]}", Correct answer: "${question.correctAnswer}"`);
+      console.log(`Question ${index}: Selected answer index: "${selectedAnswers[index]}", Correct answer index: "${question.correctAnswer}"`);
       
-      // Make sure we're comparing strings to strings
-      const selectedAnswer = String(selectedAnswers[index] || '');
-      const correctAnswer = String(question.correctAnswer || '');
-      
-      if (selectedAnswer === correctAnswer) {
+      // Compare the indices directly
+      if (selectedAnswers[index] === question.correctAnswer) {
         correctAnswers++;
       }
     });
@@ -317,12 +314,12 @@ export default function StudentQuiz() {
                 <div
                   key={index}
                   className={`${styles.option} ${
-                    selectedAnswers[currentQuestionIndex] === option
+                    selectedAnswers[currentQuestionIndex] === index
                       ? styles.selected
                       : ""
                   }`}
                   onClick={() =>
-                    handleAnswerSelect(currentQuestionIndex, option)
+                    handleAnswerSelect(currentQuestionIndex, option, index)
                   }
                 >
                   <div className={styles.optionLabel}>
