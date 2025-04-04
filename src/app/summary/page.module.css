@@ -1,148 +1,434 @@
-/* Container styling */
+/* Import Arcade Font */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+/* Main container - Arcade Style with Professional Touch */
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a0033, #7f37c6, #632298);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  padding-top: 100px;
+  overflow: hidden; /* Disable page scrolling */
+}
+
+/* Content wrapper */
+.content {
+  max-width: 1200px;
+  width: 100%;
+  text-align: center;
+  position: relative;
+  height: calc(100vh - 140px); /* Adjust height to fit viewport */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Title - Arcade Font with Professional Touch */
+.container h1 {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 32px;
+  text-transform: uppercase;
+  margin-bottom: 30px;
+  color: #fff;
+  padding: 15px 25px;
+  display: inline-block;
+  border-radius: 8px;
+  text-shadow: 4px 4px 0px #000;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid #7f37c6;
+  box-shadow: 5px 5px 0px #452d57;
+}
+
+/* Container styling - Arcade Style */
 .promptContainer {
   display: flex;
   flex-direction: column;
   gap: 12px;
   margin-bottom: 30px;
-  background: #f8f9fa;
+  background: #000;
   border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+  box-shadow: 5px 5px 0px #452d57;
+  border: 3px solid #7f37c6;
   transition: all 0.3s ease-in-out;
-  color : black;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  width: 90%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.promptContainer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(90deg, #9c34d0, #7f37c6, #4b217b, #7f37c6, #9c34d0);
+  background-size: 200% 100%;
+  animation: gradientMove 3s linear infinite;
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
 }
 
 .promptContainer:hover {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  box-shadow: 8px 8px 0px #452d57;
+  transform: translateY(-2px);
+  border-color: #9c34d0;
 }
 
-/* Prompt input field */
+.promptContainer label {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 14px;
+  color: #fff;
+  text-shadow: 2px 2px 0px #000;
+  margin-bottom: 10px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.promptContainer label::before {
+  content: "►";
+  color: #9c34d0;
+  font-size: 12px;
+}
+
+/* Prompt input field - Arcade Style */
 .promptInput {
   width: 100%;
   min-height: 120px;
   padding: 15px;
   font-size: 15px;
-  border: 1px solid #d1d5db;
+  font-family: 'Poppins', sans-serif;
+  border: 2px solid #7f37c6;
   border-radius: 10px;
   outline: none;
-  transition: box-shadow 0.2s, border 0.2s;
-  background: #ffffff;
-  color: #333;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  background: #111;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   resize: none;
+  position: relative;
 }
 
 .promptInput:focus {
-  border-color: #4CAF50;
-  box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+  border-color: #9c34d0;
+  box-shadow: 0 0 15px rgba(156, 52, 208, 0.5);
+  transform: translateY(-2px);
 }
 
-/* Summarize button with gradient */
+.promptInput::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+}
+
+/* Summarize button with arcade gradient */
 .summarizeButton {
-  background: linear-gradient(135deg, #4CAF50, #388E3C);
+  background: linear-gradient(45deg, #9c34d0, #4b217b);
   color: white;
   padding: 12px 20px;
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Press Start 2P', cursive;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 0 #452d57;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 10px;
+  position: relative;
+  overflow: hidden;
+  align-self: flex-end;
+  min-width: 200px;
+  margin-right: 10px;
+}
+
+.summarizeButton::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: all 0.5s ease;
 }
 
 .summarizeButton:hover {
-  background: linear-gradient(135deg, #45a049, #2e7d32);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(45deg, #a944e0, #5b318b);
+  box-shadow: 0 6px 0 #452d57;
   transform: translateY(-2px);
 }
 
-/* Markdown content styling */
+.summarizeButton:hover::before {
+  left: 100%;
+}
+
+.summarizeButton:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #452d57;
+}
+
+/* Add a character counter */
+.promptContainer::after {
+  content: attr(data-char-count);
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(0, 0, 0, 0.5);
+  padding: 5px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(127, 55, 198, 0.5);
+}
+
+/* Markdown content styling - Arcade Style */
 .summaryContent {
   line-height: 1.8;
-  font-size: 17px;
-  color: #444;
-  background: #ffffff;
+  font-size: 16px;
+  font-family: 'Poppins', sans-serif;
+  color: #fff;
+  background: #000;
   border-radius: 12px;
   padding: 25px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 5px 5px 0px #452d57;
+  border: 3px solid #7f37c6;
   transition: all 0.3s ease-in-out;
 }
 
 .summaryContent:hover {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  box-shadow: 8px 8px 0px #452d57;
+  transform: translateY(-2px);
+}
+
+.summaryContent h2 {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 18px;
+  color: #fff;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 0px #000;
+  text-align: center;
+  padding-bottom: 15px;
+  border-bottom: 2px dashed rgba(127, 55, 198, 0.5);
 }
 
 .summaryContent p {
   margin-bottom: 15px;
+  color: #ddd;
 }
 
 .summaryContent strong {
-  color: #2e7d32;
+  color: #9c34d0;
   font-weight: 600;
 }
 
 .summaryContent em {
-  color: #555;
+  color: #bbb;
   font-style: italic;
 }
 
 .summaryContent ul, .summaryContent ol {
   margin: 20px 0;
   padding-left: 25px;
+  color: #ddd;
 }
 
 .summaryContent li {
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.summaryContent ul li::before {
+  content: "►";
+  color: #9c34d0;
+  position: absolute;
+  left: -20px;
 }
 
 /* Styling for Katex math equations */
 .katex {
   font-size: 1.2rem;
-  color: #2e7d32;
-  background: #f1f1f1;
+  color: #9c34d0;
+  background: #111;
   padding: 5px 10px;
   border-radius: 6px;
   display: inline-block;
   transition: all 0.3s ease-in-out;
+  border: 1px solid rgba(127, 55, 198, 0.5);
 }
 
 .katex:hover {
-  background: #e0e0e0;
+  background: #222;
+  border-color: rgba(127, 55, 198, 0.8);
 }
 
-/* PDF section */
+/* PDF section - Arcade Style */
 .pdfSection {
   margin-top: 40px;
-  background: #f5f5f5;
+  background: #000;
   padding: 30px;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 5px 5px 0px #452d57;
+  border: 3px solid #7f37c6;
   transition: all 0.3s ease-in-out;
 }
 
 .pdfSection:hover {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  box-shadow: 8px 8px 0px #452d57;
+  transform: translateY(-2px);
 }
 
 .pdfSection h2 {
-  font-size: 22px;
-  color: #333;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 18px;
+  color: #fff;
   margin-bottom: 20px;
+  text-shadow: 2px 2px 0px #000;
+  text-align: center;
+  padding-bottom: 15px;
+  border-bottom: 2px dashed rgba(127, 55, 198, 0.5);
 }
 
 .pdfContent {
   white-space: pre-wrap;
   line-height: 1.6;
   font-size: 15px;
-  color: #555;
-  background: #ffffff;
+  font-family: 'Poppins', sans-serif;
+  color: #ddd;
+  background: #111;
   padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   transition: all 0.3s;
+  border: 2px solid rgba(127, 55, 198, 0.5);
 }
 
 .pdfContent:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  border-color: rgba(127, 55, 198, 0.8);
+}
+
+/* Loading spinner - Arcade Style */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  color: #fff;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 14px;
+  text-shadow: 2px 2px 0px #000;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(127, 55, 198, 0.3);
+  border-top: 5px solid #9c34d0;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+  box-shadow: 0 0 15px rgba(156, 52, 208, 0.5);
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error container - Arcade Style */
+.errorContainer {
+  background: #000;
+  border: 3px solid #d32f2f;
+  border-radius: 12px;
+  padding: 30px;
+  margin: 20px auto;
+  max-width: 600px;
+  text-align: center;
+  box-shadow: 5px 5px 0px #452d57;
+}
+
+.errorContainer h2 {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 18px;
+  color: #fff;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 0px #000;
+}
+
+.errorContainer p {
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  color: #ddd;
+  margin-bottom: 20px;
+}
+
+.retryButton {
+  background: linear-gradient(45deg, #d32f2f, #b71c1c);
+  color: white;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Press Start 2P', cursive;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 0 #452d57;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.retryButton:hover {
+  background: linear-gradient(45deg, #e53935, #c62828);
+  box-shadow: 0 6px 0 #452d57;
+  transform: translateY(-2px);
+}
+
+.retryButton:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #452d57;
+}
+
+/* Summary section - Arcade Style */
+.summarySection {
+  margin-bottom: 30px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container h1 {
+    font-size: 24px;
+    padding: 10px 15px;
+  }
+  
+  .promptContainer {
+    width: 95%;
+    padding: 15px;
+  }
+  
+  .summaryContent, .pdfSection {
+    padding: 15px;
+  }
+  
+  .summaryContent h2, .pdfSection h2 {
+    font-size: 16px;
+  }
 }

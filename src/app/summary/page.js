@@ -15,6 +15,7 @@ export default function Summary() {
   const [customPrompt, setCustomPrompt] = useState(
     "You are a helpful assistant that summarizes text content. Provide a concise summary of the following text in 3-5 bullet points."
   );
+  const [charCount, setCharCount] = useState(0);
   const [loading, setLoading] = useState({
     extraction: true,
     summarization: false,
@@ -108,6 +109,7 @@ export default function Summary() {
 
   const handlePromptChange = (e) => {
     setCustomPrompt(e.target.value);
+    setCharCount(e.target.value.length);
   };
 
   const handleSummarizeClick = () => {
@@ -142,7 +144,7 @@ export default function Summary() {
       <div className={styles.container}>
         <h1>PDF Summary</h1>
 
-        <div className={styles.promptContainer}>
+        <div className={styles.promptContainer} data-char-count={`${charCount} characters`}>
           <label htmlFor="prompt">Custom Summary Prompt:</label>
           <textarea
             id="prompt"
@@ -150,6 +152,7 @@ export default function Summary() {
             onChange={handlePromptChange}
             className={styles.promptInput}
             placeholder="Enter your custom prompt..."
+            maxLength={500}
           />
           <button onClick={handleSummarizeClick} className={styles.summarizeButton}>
             Summarize Again
