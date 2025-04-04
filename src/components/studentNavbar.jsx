@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { FaSearch } from "react-icons/fa";
 import styles from "./navbar.module.css";
 
 export default function Navbar() {
@@ -20,6 +21,10 @@ export default function Navbar() {
     }
   };
 
+  const handleSearchClick = () => {
+    router.push("/globalSearch");
+  };
+
   // ✅ Check API Key directly
   const checkApiKey = () => {
     const apiKey = process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY;
@@ -29,6 +34,14 @@ export default function Navbar() {
 
   return (
     <nav className={styles.nav}>
+      {/* Search icon on the left */}
+      <div className={styles.searchContainer}>
+        <button onClick={handleSearchClick} className={styles.searchButton}>
+          <FaSearch className={styles.searchIcon} />
+          <span className={styles.tooltip}>Global Search</span>
+        </button>
+      </div>
+
       {/* Logo placed on the leftmost side */}
       <div className={styles.logoContainer}>
         <div className={styles.logo}>Student</div>
@@ -48,9 +61,6 @@ export default function Navbar() {
           </li>
           <li className={styles.navItem}>
             <Link href="/courseMats" className={styles.navLink}>Course Materials</Link>
-          </li>
-          <li className={styles.navItem}>
-            <Link href="/globalSearch" className={styles.navLink}>Global Search</Link>
           </li>
         </ul>
       </div>
