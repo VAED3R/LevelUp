@@ -98,27 +98,31 @@
     border-radius: 8px;
     padding: 20px;
     transition: transform 0.3s ease;
+    box-shadow: 0 0 10px rgba(127, 55, 198, 0.3);
 }
 
 .statCard:hover {
     transform: translateY(-5px);
+    box-shadow: 0 0 15px rgba(127, 55, 198, 0.5);
 }
 
 .statCard h3 {
     font-family: 'Press Start 2P', cursive;
     font-size: 16px;
     color: #fff;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     text-shadow: 2px 2px 0px #000;
+    letter-spacing: 1px;
 }
 
 .statCard p {
     font-family: 'VT323', monospace;
-    font-size: 24px;
-    color: #7f37c6;
+    font-size: 28px;
+    color: #fff;
     margin: 0;
-    text-shadow: 2px 2px 0px #000;
+    text-shadow: 2px 2px 0px #000, 0 0 10px rgba(127, 55, 198, 0.7);
     letter-spacing: 1px;
+    font-weight: bold;
 }
 
 .attendanceList {
@@ -136,27 +140,61 @@
     justify-content: space-between;
     align-items: center;
     transition: transform 0.3s ease;
+    box-shadow: 0 0 8px rgba(127, 55, 198, 0.2);
 }
 
 .attendanceItem:hover {
     transform: translateY(-3px);
+    box-shadow: 0 0 12px rgba(127, 55, 198, 0.4);
 }
 
 .attendanceItem.present {
     border-color: #4CAF50;
+    box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+}
+
+.attendanceItem.present:hover {
+    box-shadow: 0 0 12px rgba(76, 175, 80, 0.5);
 }
 
 .attendanceItem.absent {
     border-color: #f44336;
+    box-shadow: 0 0 8px rgba(244, 67, 54, 0.3);
+}
+
+.attendanceItem.absent:hover {
+    box-shadow: 0 0 12px rgba(244, 67, 54, 0.5);
 }
 
 .attendanceItem p {
     font-family: 'VT323', monospace;
-    font-size: 18px;
+    font-size: 20px;
     color: #fff;
     margin: 0;
     text-shadow: 1px 1px 0px #000;
     letter-spacing: 1px;
+    font-weight: bold;
+}
+
+.attendanceItem p:first-child {
+    font-size: 18px;
+    color: #e0e0e0;
+}
+
+.attendanceItem p:last-child {
+    font-size: 22px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.attendanceItem.present p:last-child {
+    color: #4CAF50;
+    text-shadow: 0 0 5px rgba(76, 175, 80, 0.7);
+}
+
+.attendanceItem.absent p:last-child {
+    color: #f44336;
+    text-shadow: 0 0 5px rgba(244, 67, 54, 0.7);
 }
 
 .loading {
@@ -167,6 +205,10 @@
     padding: 20px;
     text-shadow: 2px 2px 0px #000;
     letter-spacing: 2px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+    border: 2px solid #7f37c6;
+    box-shadow: 0 0 10px rgba(127, 55, 198, 0.3);
 }
 
 .error {
@@ -180,4 +222,6 @@
     margin: 10px 0;
     text-shadow: 1px 1px 0px #000;
     letter-spacing: 1px;
+    border: 2px solid #ff4444;
+    box-shadow: 0 0 10px rgba(255, 68, 68, 0.3);
 }

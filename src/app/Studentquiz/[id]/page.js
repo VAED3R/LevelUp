@@ -114,7 +114,14 @@ export default function StudentQuiz() {
     
     let correctAnswers = 0;
     quiz.questions.forEach((question, index) => {
-      if (selectedAnswers[index] === question.correctAnswer) {
+      // Debug the comparison
+      console.log(`Question ${index}: Selected answer: "${selectedAnswers[index]}", Correct answer: "${question.correctAnswer}"`);
+      
+      // Make sure we're comparing strings to strings
+      const selectedAnswer = String(selectedAnswers[index] || '');
+      const correctAnswer = String(question.correctAnswer || '');
+      
+      if (selectedAnswer === correctAnswer) {
         correctAnswers++;
       }
     });
