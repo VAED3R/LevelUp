@@ -339,7 +339,35 @@ export default function StudentPerformance() {
         .replace(/\*/g, '')
         .replace(/#/g, '');
       
-      setPerformanceDescription(cleanedDescription);
+      // Format the description into paragraphs and points
+      const formatDescription = (text) => {
+        // Split by double newlines to separate paragraphs
+        const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim());
+        
+        // Process each paragraph
+        return paragraphs.map(paragraph => {
+          // Check if paragraph contains bullet points or numbered lists
+          if (paragraph.includes('•') || paragraph.includes('-') || paragraph.includes('*') || /^\d+\./.test(paragraph)) {
+            // Split by bullet points or numbers
+            const points = paragraph.split(/(?:•|-|\*|\d+\.)\s+/).filter(p => p.trim());
+            
+            // Return as a list
+            return {
+              type: 'list',
+              items: points
+            };
+          } else {
+            // Return as a paragraph
+            return {
+              type: 'paragraph',
+              text: paragraph.trim()
+            };
+          }
+        });
+      };
+
+      const formattedDescription = formatDescription(cleanedDescription);
+      setPerformanceDescription(formattedDescription);
     } catch (error) {
       console.error('Error generating performance description:', error);
       setPerformanceDescription('Failed to generate performance description. Please try again later.');
@@ -501,7 +529,6 @@ export default function StudentPerformance() {
             <div className={styles.studentInfo}>
               <h2>{student.name}</h2>
               <p>Class: {student.class}</p>
-              <p>Email: {student.email}</p>
               <p>Total Points: {student.totalPoints || 0}</p>
             </div>
 
@@ -624,7 +651,24 @@ export default function StudentPerformance() {
               
               {performanceDescription && (
                 <div className={styles.description}>
-                  <p>{performanceDescription}</p>
+                  {Array.isArray(performanceDescription) ? (
+                    performanceDescription.map((item, index) => (
+                      <div key={index}>
+                        {item.type === 'paragraph' && (
+                          <p>{item.text}</p>
+                        )}
+                        {item.type === 'list' && (
+                          <ul>
+                            {item.items.map((point, pointIndex) => (
+                              <li key={pointIndex}>{point}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <p>{performanceDescription}</p>
+                  )}
                 </div>
               )}
             </div>
