@@ -173,8 +173,7 @@ export default function TeacherAttendance() {
     const handleMarkAllPresent = () => {
         const newAttendance = {};
         filteredStudents.forEach((student) => {
-            // 80% chance of being present, 20% chance of being absent
-            newAttendance[student.id] = Math.random() < 0.8;
+            newAttendance[student.id] = true;
         });
         setAttendance(newAttendance);
     };
@@ -195,13 +194,13 @@ export default function TeacherAttendance() {
         }
 
         try {
-            setLoading(true);
+        setLoading(true);
 
             // Create a batch for atomic updates
             const batch = writeBatch(db);
 
             // Process each student's attendance
-            const promises = filteredStudents.map(async (student) => {
+        const promises = filteredStudents.map(async (student) => {
                 const attendanceData = {
                     studentId: student.id,
                     studentName: student.name,
@@ -297,9 +296,9 @@ export default function TeacherAttendance() {
                         }
                     }
                 }
-            });
+        });
 
-            await Promise.all(promises);
+        await Promise.all(promises);
             
             // Commit the batch
             await batch.commit();
@@ -318,7 +317,7 @@ export default function TeacherAttendance() {
             setError("Failed to add attendance");
             setSuccess(false);
         } finally {
-            setLoading(false);
+        setLoading(false);
         }
     };
     
@@ -412,14 +411,14 @@ export default function TeacherAttendance() {
                 </div>
 
                 {selectedClass && selectedSubject && filteredStudents.length > 0 && (
-                    <button
+                <button
                         type="submit"
                         onClick={handleSubmit}
-                        className={styles.saveButton}
-                        disabled={loading}
-                    >
-                        {loading ? "Saving..." : "Save Attendance"}
-                    </button>
+                    className={styles.saveButton}
+                    disabled={loading}
+                >
+                    {loading ? "Saving..." : "Save Attendance"}
+                </button>
                 )}
             </div>
             </div>
