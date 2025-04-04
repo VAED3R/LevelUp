@@ -19,6 +19,7 @@
   max-width: 1200px;
   width: 100%;
   text-align: center;
+  position: relative;
 }
 
 /* Title - Classic Arcade Font */
@@ -80,6 +81,18 @@
   background: #632298;
   transition: background 0.3s;
   text-shadow: 2px 2px 0px #000;
+}
+
+/* Clickable row styling */
+.clickableRow {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.clickableRow:hover {
+  background: #7f37c6 !important;
+  transform: scale(1.01);
+  box-shadow: 0 0 10px rgba(127, 55, 198, 0.7);
 }
 
 /* Rank column */
@@ -150,4 +163,193 @@ tr:hover {
   margin-left: 8px;
   font-size: 1.2rem;
   color: #fff;
+}
+
+/* Modal Overlay */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Modal Content */
+.modalContent {
+  background: rgba(0, 0, 0, 0.9);
+  border: 4px solid #7f37c6;
+  border-radius: 8px;
+  padding: 30px;
+  width: 90%;
+  max-width: 500px;
+  position: relative;
+  box-shadow: 0 0 20px rgba(127, 55, 198, 0.7);
+  animation: slideIn 0.3s ease-in-out;
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Close Button */
+.closeButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.closeButton:hover {
+  color: #7f37c6;
+  transform: scale(1.2);
+}
+
+/* Modal Title */
+.modalTitle {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 20px;
+  color: #fff;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 0px #000;
+}
+
+/* Student Card */
+.studentCard {
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid #7f37c6;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+/* Student Name */
+.studentName {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 18px;
+  color: #fff;
+  margin-bottom: 15px;
+  text-shadow: 2px 2px 0px #000;
+}
+
+/* Student Info */
+.studentInfo {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 12px;
+  color: #fff;
+  margin-bottom: 20px;
+  text-align: left;
+  line-height: 1.8;
+}
+
+.studentInfo p {
+  margin: 10px 0;
+}
+
+.studentInfo strong {
+  color: #7f37c6;
+}
+
+/* Form Group */
+.formGroup {
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+/* Form Label */
+.formLabel {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  color: #fff;
+  display: block;
+  margin-bottom: 5px;
+  text-shadow: 1px 1px 0px #000;
+}
+
+/* Form Input */
+.formInput {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  background: #000;
+  border: 2px solid #7f37c6;
+  border-radius: 4px;
+  color: #fff;
+  outline: none;
+  transition: all 0.3s;
+}
+
+.formInput:focus {
+  border-color: #9c34d0;
+  box-shadow: 0 0 5px rgba(127, 55, 198, 0.7);
+}
+
+/* Form Select */
+.formSelect {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  background: #000;
+  border: 2px solid #7f37c6;
+  border-radius: 4px;
+  color: #fff;
+  outline: none;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.formSelect:focus {
+  border-color: #9c34d0;
+  box-shadow: 0 0 5px rgba(127, 55, 198, 0.7);
+}
+
+/* Request Button */
+.requestButton {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 12px;
+  background: linear-gradient(45deg, #9c34d0, #4b217b);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 12px 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  box-shadow: 0 4px 0 #452d57;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.requestButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #452d57;
+  background: linear-gradient(45deg, #a944e0, #5b318b);
+}
+
+.requestButton:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #452d57;
+}
+
+.requestButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }

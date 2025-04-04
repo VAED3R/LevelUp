@@ -1,0 +1,265 @@
+/* Import Arcade Font */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* Main container - Classic Arcade Style */
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a0033, #7f37c6, #632298);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  padding-top: 100px;
+}
+
+/* Content wrapper */
+.content {
+  max-width: 800px;
+  width: 100%;
+  text-align: center;
+}
+
+/* Title - Classic Arcade Font */
+.title {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 28px;
+  text-transform: uppercase;
+  margin-bottom: 30px;
+  color: #fff;
+  padding: 10px 20px;
+  display: inline-block;
+  border-radius: 8px;
+  text-shadow: 4px 4px 0px #000;
+}
+
+/* Loading text */
+.loading {
+  font-size: 16px;
+  text-align: center;
+  color: #aaa;
+  font-family: 'Press Start 2P', cursive;
+}
+
+/* Error text */
+.error {
+  font-size: 16px;
+  text-align: center;
+  color: #ff6b6b;
+  font-family: 'Press Start 2P', cursive;
+}
+
+/* No requests text */
+.noRequests {
+  font-size: 16px;
+  text-align: center;
+  color: #aaa;
+  font-family: 'Press Start 2P', cursive;
+  margin-top: 30px;
+}
+
+/* Requests container */
+.requestsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+/* Request card */
+.requestCard {
+  background: rgba(0, 0, 0, 0.7);
+  border: 4px solid #7f37c6;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 5px 5px 0px #452d57;
+  text-align: left;
+  transition: all 0.3s ease;
+}
+
+.requestCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 8px 8px 0px #452d57;
+}
+
+/* Request header */
+.requestHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  border-bottom: 1px solid rgba(127, 55, 198, 0.5);
+  padding-bottom: 10px;
+}
+
+/* Request title */
+.requestTitle {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 14px;
+  color: #fff;
+  margin: 0;
+  text-shadow: 2px 2px 0px #000;
+}
+
+/* Status badge */
+.statusBadge {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 8px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+/* Status colors */
+.statusPending {
+  background-color: #ffd700;
+  color: #000;
+}
+
+.statusAccepted {
+  background-color: #4caf50;
+  color: #fff;
+}
+
+.statusRejected {
+  background-color: #f44336;
+  color: #fff;
+}
+
+.statusCompleted {
+  background-color: #2196f3;
+  color: #fff;
+}
+
+/* Request details */
+.requestDetails {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  color: #fff;
+  margin-bottom: 20px;
+  line-height: 1.8;
+}
+
+.requestDetails p {
+  margin: 8px 0;
+}
+
+.requestDetails strong {
+  color: #7f37c6;
+}
+
+/* Request actions */
+.requestActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+/* Accept button */
+.acceptButton {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  background: linear-gradient(45deg, #4caf50, #2e7d32);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  box-shadow: 0 4px 0 #1b5e20;
+  flex: 1;
+}
+
+.acceptButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #1b5e20;
+  background: linear-gradient(45deg, #66bb6a, #388e3c);
+}
+
+.acceptButton:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #1b5e20;
+}
+
+/* Reject button */
+.rejectButton {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  background: linear-gradient(45deg, #f44336, #d32f2f);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  box-shadow: 0 4px 0 #b71c1c;
+  flex: 1;
+}
+
+.rejectButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #b71c1c;
+  background: linear-gradient(45deg, #ef5350, #e53935);
+}
+
+.rejectButton:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #b71c1c;
+}
+
+/* Quiz pending */
+.quizPending {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  color: #ffd700;
+  text-align: center;
+  margin-top: 15px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 5px;
+  border: 1px solid #ffd700;
+}
+
+/* Quiz ready */
+.quizReady {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  color: #4caf50;
+  text-align: center;
+  margin-top: 15px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 5px;
+  border: 1px solid #4caf50;
+}
+
+/* Start quiz button */
+.startQuizButton {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  background: linear-gradient(45deg, #2196f3, #1976d2);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  box-shadow: 0 4px 0 #0d47a1;
+  margin-top: 10px;
+}
+
+.startQuizButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #0d47a1;
+  background: linear-gradient(45deg, #42a5f5, #1e88e5);
+}
+
+.startQuizButton:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #0d47a1;
+}

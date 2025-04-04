@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp } from "firebase/firestore";
 import Navbar from "@/components/studentNavbar";
 import styles from "./page.module.css";  // Import CSS module
 
@@ -14,6 +14,15 @@ export default function Leaderboard() {
   const [loading, setLoading] = useState(true);
   const [classToppers, setClassToppers] = useState({});
   const [overallTopper, setOverallTopper] = useState(null);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const [requestLoading, setRequestLoading] = useState(false);
+  const [quizParams, setQuizParams] = useState({
+    topic: "",
+    difficulty: "medium",
+    timeLimit: 30
+  });
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -57,6 +66,12 @@ export default function Leaderboard() {
         setClassToppers(classTopperMap);
         setOverallTopper(topOverall);
 
+        // Get current user (for now, we'll use the first student as the current user)
+        // In a real app, you would get this from authentication
+        if (studentsList.length > 0) {
+          setCurrentUser(studentsList[0]);
+        }
+
         console.log("Fetched students with total points:", studentsList);
 
       } catch (error) {
@@ -94,11 +109,167 @@ export default function Leaderboard() {
     return badges;
   };
 
+  // Handle student row click
+  const handleStudentClick = async (studentId) => {
+    try {
+      setRequestLoading(true);
+      const studentDoc = await getDoc(doc(db, "students", studentId));
+      
+      if (studentDoc.exists()) {
+        setSelectedStudent({ id: studentDoc.id, ...studentDoc.data() });
+        setShowRequestForm(true);
+      } else {
+        alert("Student not found");
+      }
+    } catch (err) {
+      console.error("Error fetching student:", err);
+      alert("Failed to load student data");
+    } finally {
+      setRequestLoading(false);
+    }
+  };
+
+  // Handle input change for quiz parameters
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setQuizParams(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle sending request
+  const handleSendRequest = async () => {
+    if (!currentUser || !selectedStudent) {
+      alert("Error: User information missing");
+      return;
+    }
+
+    if (!quizParams.topic.trim()) {
+      alert("Please enter a quiz topic");
+      return;
+    }
+
+    try {
+      setRequestLoading(true);
+      
+      // Create the request document
+      const requestData = {
+        fromUserId: currentUser.id,
+        fromUserName: currentUser.name || "Unknown",
+        toUserId: selectedStudent.id,
+        toUserName: selectedStudent.name || "Unknown",
+        topic: quizParams.topic,
+        difficulty: quizParams.difficulty,
+        timeLimit: parseInt(quizParams.timeLimit),
+        status: "pending", // pending, accepted, rejected, completed
+        createdAt: serverTimestamp(),
+        quizGenerated: false
+      };
+
+      // Add the request to Firestore
+      await addDoc(collection(db, "onevsoneRequests"), requestData);
+      
+      alert(`Challenge request sent to ${selectedStudent.name || "student"}`);
+      setShowRequestForm(false);
+      setSelectedStudent(null);
+      setQuizParams({
+        topic: "",
+        difficulty: "medium",
+        timeLimit: 30
+      });
+    } catch (error) {
+      console.error("Error sending request:", error);
+      alert("Failed to send request. Please try again.");
+    } finally {
+      setRequestLoading(false);
+    }
+  };
+
+  // Close request form
+  const handleCloseForm = () => {
+    setShowRequestForm(false);
+    setSelectedStudent(null);
+    setQuizParams({
+      topic: "",
+      difficulty: "medium",
+      timeLimit: 30
+    });
+  };
+
   return (
     <div className={styles.container}>
       <Navbar />
       <div className={styles.content}>
         <h1 className={styles.title}>Leaderboard</h1>
+
+        {/* 1v1 Request Form Modal */}
+        {showRequestForm && selectedStudent && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modalContent}>
+              <button className={styles.closeButton} onClick={handleCloseForm}>×</button>
+              <h2 className={styles.modalTitle}>1v1 Challenge Request</h2>
+              
+              <div className={styles.studentCard}>
+                <h3 className={styles.studentName}>{selectedStudent.name || "Unknown Student"}</h3>
+                <div className={styles.studentInfo}>
+                  <p><strong>Class:</strong> {selectedStudent.class || "N/A"}</p>
+                  <p><strong>Points:</strong> {selectedStudent.totalPoints || 0}</p>
+                </div>
+                
+                <div className={styles.formGroup}>
+                  <label htmlFor="topic" className={styles.formLabel}>Quiz Topic:</label>
+                  <input
+                    type="text"
+                    id="topic"
+                    name="topic"
+                    value={quizParams.topic}
+                    onChange={handleInputChange}
+                    className={styles.formInput}
+                    placeholder="Enter quiz topic (e.g., Math, Science)"
+                  />
+                </div>
+                
+                <div className={styles.formGroup}>
+                  <label htmlFor="difficulty" className={styles.formLabel}>Difficulty:</label>
+                  <select
+                    id="difficulty"
+                    name="difficulty"
+                    value={quizParams.difficulty}
+                    onChange={handleInputChange}
+                    className={styles.formSelect}
+                  >
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                  </select>
+                </div>
+                
+                <div className={styles.formGroup}>
+                  <label htmlFor="timeLimit" className={styles.formLabel}>Time Limit (seconds):</label>
+                  <input
+                    type="number"
+                    id="timeLimit"
+                    name="timeLimit"
+                    value={quizParams.timeLimit}
+                    onChange={handleInputChange}
+                    className={styles.formInput}
+                    min="10"
+                    max="120"
+                  />
+                </div>
+                
+                <button 
+                  className={styles.requestButton}
+                  onClick={handleSendRequest}
+                  disabled={requestLoading || !quizParams.topic.trim()}
+                >
+                  {requestLoading ? "Sending..." : "Send Challenge Request"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Dropdown for filtering */}
         <div className={styles.filterContainer}>
@@ -131,7 +302,11 @@ export default function Leaderboard() {
             </thead>
             <tbody>
               {filteredStudents.map((student, index) => (
-                <tr key={student.id}>
+                <tr 
+                  key={student.id} 
+                  onClick={() => handleStudentClick(student.id)}
+                  className={styles.clickableRow}
+                >
                   <td>{index + 1}</td>
                   <td>
                     {student.name || "Unknown"} 
