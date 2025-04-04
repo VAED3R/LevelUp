@@ -21,6 +21,7 @@ export default function Assignments() {
   const [teacherEmail, setTeacherEmail] = useState("");
   const [assignmentTitle, setAssignmentTitle] = useState("");
   const [assignmentDescription, setAssignmentDescription] = useState("");
+  const [commonTotalMarks, setCommonTotalMarks] = useState("");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -109,7 +110,8 @@ export default function Assignments() {
 
   const handleMarksChange = (studentId, subject, field) => (e) => {
     const value = e.target.value;
-    if (value === "" || (value >= 0 && value <= 100)) {
+    // Allow empty string or numbers between 0 and 100
+    if (value === "" || (/^\d+$/.test(value) && parseInt(value) >= 0 && parseInt(value) <= 100)) {
       setMarks(prev => ({
         ...prev,
         [studentId]: {
@@ -126,6 +128,30 @@ export default function Assignments() {
   const calculatePercentage = (obtained, total) => {
     if (!obtained || !total || total === 0) return 0;
     return ((obtained / total) * 100).toFixed(2);
+  };
+
+  const handleCommonTotalMarksChange = (e) => {
+    const value = e.target.value;
+    // Allow empty string or numbers between 0 and 100
+    if (value === "" || (/^\d+$/.test(value) && parseInt(value) >= 0 && parseInt(value) <= 100)) {
+      setCommonTotalMarks(value);
+      // Update all students' total marks for the selected subject
+      if (selectedSubject) {
+        setMarks(prev => {
+          const newMarks = { ...prev };
+          Object.keys(newMarks).forEach(studentId => {
+            newMarks[studentId] = {
+              ...newMarks[studentId],
+              [selectedSubject]: {
+                ...newMarks[studentId][selectedSubject],
+                total: value
+              }
+            };
+          });
+          return newMarks;
+        });
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -166,18 +192,8 @@ export default function Assignments() {
 
         // Calculate points based on percentage
         let pointsToAdd = 0;
-        if (percentage >= 90 && percentage <= 100) {
-          pointsToAdd = 50;
-        } else if (percentage >= 80 && percentage < 90) {
-          pointsToAdd = 25;
-        } else if (percentage >= 70 && percentage < 80) {
-          pointsToAdd = 15;
-        } else if (percentage >= 60 && percentage < 70) {
+        if (obtainedMarks > 5) {
           pointsToAdd = 10;
-        } else if (percentage >= 50 && percentage < 60) {
-          pointsToAdd = 5;
-        } else if (percentage >= 40 && percentage < 50) {
-          pointsToAdd = 2;
         }
 
         // Only proceed if points are earned
@@ -191,19 +207,6 @@ export default function Assignments() {
             totalQuestions: totalMarks,
             quizId: "assignment_" + new Date().getTime(), // Unique ID for assignment
             topic: assignmentTitle,
-            userId: student.id,
-            type: "assignment" // Ensure type is set as assignment
-          };
-
-          // Create bonus points entry if needed (will be used later if marks > 5)
-          const additionalPointsEntry = {
-            points: 10,
-            date: new Date().toISOString(),
-            subject: selectedSubject,
-            score: percentage,
-            totalQuestions: totalMarks,
-            quizId: "assignment_bonus_" + new Date().getTime(), // Unique ID for bonus
-            topic: assignmentTitle + " (Bonus)",
             userId: student.id,
             type: "assignment" // Ensure type is set as assignment
           };
@@ -228,53 +231,27 @@ export default function Assignments() {
             // Calculate total points
             const totalPoints = calculateTotalPoints(currentPointsArray);
             
-            // If marks are above 5, add 10 additional points
-            if (obtainedMarks > 5) {
-              // Add the additional points entry
-              currentPointsArray.push(additionalPointsEntry);
-              
-              // Update total points with bonus
-              const totalPointsWithBonus = totalPoints + 10;
-              
-              // Update the student document with the new points array and total points
-              batch.update(studentRef, {
-                points: currentPointsArray,
-                totalPoints: totalPointsWithBonus
-              });
-              
-              console.log(`Added ${pointsToAdd} points and 10 bonus points for ${student.name} for assignment in ${selectedSubject}. Total points: ${totalPointsWithBonus}`);
-            } else {
-              // Update the student document with the new points array and total points
-              batch.update(studentRef, {
-                points: currentPointsArray,
-                totalPoints: totalPoints
-              });
-              
-              console.log(`Added ${pointsToAdd} points for ${student.name} for assignment in ${selectedSubject}. Total points: ${totalPoints}`);
-            }
+            // Update the student document with the new points array and total points
+            batch.update(studentRef, {
+              points: currentPointsArray,
+              totalPoints: totalPoints
+            });
+            
+            console.log(`Added ${pointsToAdd} points for ${student.name} for assignment in ${selectedSubject}. Total points: ${totalPoints}`);
           } else {
             // Student doesn't exist, create new document
-            let initialPoints = [newPointsEntry];
-            let initialTotalPoints = pointsToAdd;
-            
-            // If marks are above 5, add 10 additional points
-            if (obtainedMarks > 5) {
-              initialPoints.push(additionalPointsEntry);
-              initialTotalPoints += 10;
-            }
-            
             const newStudentData = {
               id: student.id,
               name: student.name,
               email: student.email || "",
               class: student.class,
               createdAt: new Date().toISOString(),
-              points: initialPoints,
-              totalPoints: initialTotalPoints
+              points: [newPointsEntry],
+              totalPoints: pointsToAdd
             };
             
             batch.set(studentRef, newStudentData);
-            console.log(`Creating new student document for ${student.name} with ${initialTotalPoints} assignment points.`);
+            console.log(`Creating new student document for ${student.name} with ${pointsToAdd} assignment points.`);
           }
         }
       });
@@ -363,6 +340,22 @@ export default function Assignments() {
             </div>
           </div>
 
+          {selectedClass && selectedSubject && (
+            <div className={styles.commonMarks}>
+              <label htmlFor="commonTotalMarks">Common Total Marks:</label>
+              <input
+                type="text"
+                id="commonTotalMarks"
+                value={commonTotalMarks}
+                onChange={handleCommonTotalMarksChange}
+                className={styles.input}
+                placeholder="Enter common total marks"
+                inputMode="numeric"
+                pattern="[0-9]*"
+              />
+            </div>
+          )}
+
           <div className={styles.assignmentDetails}>
             <div className={styles.formGroup}>
               <label htmlFor="assignmentTitle" className={styles.label}>Assignment Title:</label>
@@ -400,14 +393,14 @@ export default function Assignments() {
                         Obtained Marks:
                       </label>
                       <input
-                        type="number"
+                        type="text"
                         id={`${student.id}-${selectedSubject}-obtained`}
-                        value={marks[student.id]?.[selectedSubject]?.obtained || "0"}
+                        value={marks[student.id]?.[selectedSubject]?.obtained || ""}
                         onChange={handleMarksChange(student.id, selectedSubject, "obtained")}
-                        min="0"
-                        max="100"
                         className={styles.input}
-                        placeholder="Enter marks if submitted"
+                        placeholder="Enter marks"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                       />
                     </div>
                     <div className={styles.formGroup}>
@@ -415,14 +408,14 @@ export default function Assignments() {
                         Total Marks:
                       </label>
                       <input
-                        type="number"
+                        type="text"
                         id={`${student.id}-${selectedSubject}-total`}
-                        value={marks[student.id]?.[selectedSubject]?.total || "0"}
+                        value={marks[student.id]?.[selectedSubject]?.total || ""}
                         onChange={handleMarksChange(student.id, selectedSubject, "total")}
-                        min="0"
-                        max="100"
                         className={styles.input}
-                        placeholder="Enter total marks if submitted"
+                        placeholder="Enter total marks"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                       />
                     </div>
                   </div>
