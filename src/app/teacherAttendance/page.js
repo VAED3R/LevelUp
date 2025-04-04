@@ -32,19 +32,19 @@ export default function TeacherAttendance() {
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
+    useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
+            if (user) {
                 setTeacherEmail(user.email);
             } else {
                 setTeacherEmail("");
             }
         });
 
-    return () => unsubscribe();
-  }, []);
+        return () => unsubscribe();
+    }, []);
 
-  useEffect(() => {
+    useEffect(() => {
         if (!teacherEmail) return;
 
         const fetchData = async () => {
@@ -173,7 +173,8 @@ export default function TeacherAttendance() {
     const handleMarkAllPresent = () => {
         const newAttendance = {};
         filteredStudents.forEach((student) => {
-            newAttendance[student.id] = true;
+            // 80% chance of being present, 20% chance of being absent
+            newAttendance[student.id] = Math.random() < 0.8;
         });
         setAttendance(newAttendance);
     };
@@ -195,10 +196,10 @@ export default function TeacherAttendance() {
 
         try {
             setLoading(true);
-            
+
             // Create a batch for atomic updates
             const batch = writeBatch(db);
-            
+
             // Process each student's attendance
             const promises = filteredStudents.map(async (student) => {
                 const attendanceData = {
@@ -208,7 +209,7 @@ export default function TeacherAttendance() {
                     subject: selectedSubject,
                     status: attendance[student.id] ? "present" : "absent",
                     addedBy: auth.currentUser.uid,
-                    addedAt: new Date().toISOString(),
+                    addedAt: selectedDate ? new Date(selectedDate).toISOString() : new Date().toISOString(),
                 };
 
                 // Add attendance to the attendance collection
@@ -243,7 +244,7 @@ export default function TeacherAttendance() {
                         // Create new points entry
                         const newPointsEntry = {
                             points: 10,
-                            date: new Date().toISOString(),
+                            date: selectedDate ? new Date(selectedDate).toISOString() : new Date().toISOString(),
                             subject: selectedSubject,
                             score: 100, // Full score for attendance
                             totalQuestions: 1,
@@ -279,7 +280,7 @@ export default function TeacherAttendance() {
                                 ...userData,
                                 points: [{
                                     points: 10,
-                                    date: new Date().toISOString(),
+                                    date: selectedDate ? new Date(selectedDate).toISOString() : new Date().toISOString(),
                                     subject: selectedSubject,
                                     score: 100,
                                     totalQuestions: 1,
@@ -326,95 +327,102 @@ export default function TeacherAttendance() {
         return pointsArray.reduce((total, entry) => total + (entry.points || 0), 0);
     };
 
-  return (
+    return (
     <div style={{ height: '100vh', overflow: 'auto' }}>
-      <Navbar />
+            <Navbar />
             <div className={styles.background}>
-      <div className={styles.container}>
+            <div className={styles.container}>
                     <h1 className={styles.heading}>Teacher Attendance</h1>
 
-                    <div className={styles.filters}>
-                        <div className={styles.formGroup}>
-                            <label>Date:</label>
-                            <input
-                                type="date"
-                                value={selectedDate}
-                                onChange={(e) => setSelectedDate(e.target.value)}
-                            />
-                  </div>
-                        <div className={styles.formGroup}>
-                            <label>Class:</label>
-                            <select
-                                value={selectedClass}
-                                onChange={(e) => setSelectedClass(e.target.value)}
+                <div className={styles.filters}>
+                    <div className={styles.formGroup}>
+                        <label>Date:</label>
+                        <input
+                            type="date"
+                            value={selectedDate}
+                            onChange={(e) => setSelectedDate(e.target.value)}
+                        />
+                    </div>
+                    <div className={styles.formGroup}>
+                        <label>Class:</label>
+                        <select
+                            value={selectedClass}
+                            onChange={(e) => setSelectedClass(e.target.value)}
+                                required
                             >
-                                <option value="">Select Class</option>
-                                {classes.map((className, index) => (
-                                    <option key={index} value={className}>
-                                        {className}
-                                    </option>
-                                ))}
-                            </select>
+                                <option value="">Choose a class</option>
+                                {classes.map((classItem) => (
+                                    <option key={classItem} value={classItem}>
+                                        {classItem}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label>Subject:</label>
+                        <select
+                            value={selectedSubject}
+                            onChange={(e) => setSelectedSubject(e.target.value)}
+                                required
+                        >
+                                <option value="">Choose a subject</option>
+                            {subjects.map((subject) => (
+                                <option key={subject} value={subject}>
+                                    {subject.replace(/_/g, " ")}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
 
-                        <div className={styles.formGroup}>
-                            <label>Subject:</label>
-                            <select
-                                value={selectedSubject}
-                                onChange={(e) => setSelectedSubject(e.target.value)}
-                            >
-                                <option value="">Select Subject</option>
-                                {subjects.map((subject) => (
-                                    <option key={subject} value={subject}>
-                                        {subject.replace(/_/g, " ")}
-                                    </option>
-                                ))}
-                            </select>
-                </div>
-                </div>
-
-                    <div className={styles.cardContainer}>
-                        {filteredStudents.map((student) => (
-                            <div
-                                key={student.id}
-                                className={`${styles.studentCard} ${
-                                    attendance[student.id] ? styles.present : styles.absent
-                                }`}
-                                onClick={() => handleToggleAttendance(student.id)}
-                            >
-                                <h3>{student.name}</h3>
-                                <p>Class: {student.class}</p>
-                                <p>{attendance[student.id] ? "Present" : "Absent"}</p>
-              </div>
-            ))}
-          </div>
-
-                    <div className={styles.buttonContainer}>
+                {selectedClass && selectedSubject && (
+                    <div className={styles.markAllContainer}>
                         <button
+                            type="button"
                             onClick={handleMarkAllPresent}
                             className={styles.markAllButton}
-                            disabled={loading || filteredStudents.length === 0}
                         >
                             Mark All Present
                         </button>
                         <button
+                            type="button"
                             onClick={handleMarkAllAbsent}
                             className={styles.markAllButton}
-                            disabled={loading || filteredStudents.length === 0}
                         >
                             Mark All Absent
                         </button>
-                        <button
-                            onClick={handleSubmit}
-                            className={styles.saveButton}
-                            disabled={loading}
-                        >
-                            {loading ? "Saving..." : "Save Attendance"}
-                        </button>
                     </div>
-          </div>
-      </div>
-    </div>
-  );
+                )}
+
+                <div className={styles.cardContainer}>
+                    {filteredStudents.map((student) => (
+                        <div
+                            key={student.id}
+                            className={`${styles.studentCard} ${
+                                attendance[student.id] ? styles.present : styles.absent
+                            }`}
+                            onClick={() => handleToggleAttendance(student.id)}
+                        >
+                            <h3>{student.name}</h3>
+                            <p>Class: {student.class}</p>
+                            <p>{attendance[student.id] ? "Present" : "Absent"}</p>
+                        </div>
+                    ))}
+                </div>
+
+                {selectedClass && selectedSubject && filteredStudents.length > 0 && (
+                    <button
+                        type="submit"
+                        onClick={handleSubmit}
+                        className={styles.saveButton}
+                        disabled={loading}
+                    >
+                        {loading ? "Saving..." : "Save Attendance"}
+                    </button>
+                )}
+            </div>
+            </div>
+        </div>
+    );
 }
-    
