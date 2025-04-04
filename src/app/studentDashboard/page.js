@@ -97,20 +97,10 @@ export default function StudentDashboard() {
         <div className={style.cardContainer}>
           <div className={style.userCard}>
             <h2>Your Information</h2>
-            <p><strong>Email:</strong> {userData?.email}</p>
+            <p><strong>Name:</strong> {userData?.name}</p>
             <p><strong>Class:</strong> {userData?.class}</p>
-            <p><strong>Attendance:</strong> {userData?.attendance}</p>
             <div className={style.pointsInfo}>
               <p><strong>Total Points:</strong> {pointsData?.totalPoints || 0}</p>
-              {pointsData?.recentPoints?.length > 0 && (
-                <div className={style.lastPoints}>
-                  <p><strong>Last Earned:</strong> +{pointsData.recentPoints[0].points} points 
-                    <span className={style.pointSource}>
-                      ({pointsData.recentPoints[0].type || pointsData.recentPoints[0].subject})
-                    </span>
-                  </p>
-                </div>
-              )}
             </div>
           </div>
           
