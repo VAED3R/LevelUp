@@ -12,7 +12,8 @@ import {
     query,
     where,
     addDoc,
-    updateDoc
+    updateDoc,
+    writeBatch
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import styles from "./page.module.css";
@@ -60,20 +61,78 @@ export default function TeacherAttendance() {
                 setSubjects(teacherSubjects);
             }
 
-            // Fetch students
-            const studentQuery = await getDocs(collection(db, "users"));
-            const studentList = studentQuery.docs
+            // Fetch students from users collection
+            const usersQuery = await getDocs(collection(db, "users"));
+            const usersList = usersQuery.docs
                 .filter((doc) => doc.data().role === "student")
                 .map((doc) => ({
                     id: doc.id,
                     ...doc.data(),
                 }));
 
-            setStudents(studentList);
+            // Fetch students from students collection
+            const studentsQuery = await getDocs(collection(db, "students"));
+            const studentsList = studentsQuery.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+
+            // Create a map of existing student documents
+            const studentsMap = {};
+            studentsList.forEach(student => {
+                studentsMap[student.id] = student;
+            });
+
+            // Ensure all users are in the students collection
+            let batch = writeBatch(db);
+            let batchCount = 0;
+            const batchPromises = [];
+
+            for (const user of usersList) {
+                if (!studentsMap[user.id]) {
+                    // Student doesn't exist in students collection, create it
+                    const studentRef = doc(db, "students", user.id);
+                    const studentData = {
+                        ...user,
+                        points: [],
+                        totalPoints: 0,
+                        lastUpdated: new Date().toISOString()
+                    };
+                    
+                    batch.set(studentRef, studentData);
+                    batchCount++;
+                    
+                    if (batchCount >= 500) {
+                        // Firestore has a limit of 500 operations per batch
+                        batchPromises.push(batch.commit());
+                        batch = writeBatch(db);
+                        batchCount = 0;
+                    }
+                }
+            }
+            
+            // Commit any remaining operations
+            if (batchCount > 0) {
+                batchPromises.push(batch.commit());
+            }
+            
+            // Wait for all batches to complete
+            if (batchPromises.length > 0) {
+                await Promise.all(batchPromises);
+            }
+
+            // Now fetch the updated students list
+            const updatedStudentsQuery = await getDocs(collection(db, "students"));
+            const updatedStudentsList = updatedStudentsQuery.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+
+            setStudents(updatedStudentsList);
 
             // Extract unique classes
             const uniqueClasses = [
-                ...new Set(studentList.map((student) => student.class)),
+                ...new Set(updatedStudentsList.map((student) => student.class)),
             ];
             setClasses(uniqueClasses.sort());
         };
@@ -111,6 +170,22 @@ export default function TeacherAttendance() {
         }));
     };
 
+    const handleMarkAllPresent = () => {
+        const newAttendance = {};
+        filteredStudents.forEach((student) => {
+            newAttendance[student.id] = true;
+        });
+        setAttendance(newAttendance);
+    };
+
+    const handleMarkAllAbsent = () => {
+        const newAttendance = {};
+        filteredStudents.forEach((student) => {
+            newAttendance[student.id] = false;
+        });
+        setAttendance(newAttendance);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!selectedClass || !selectedSubject) {
@@ -119,6 +194,12 @@ export default function TeacherAttendance() {
         }
 
         try {
+            setLoading(true);
+            
+            // Create a batch for atomic updates
+            const batch = writeBatch(db);
+            
+            // Process each student's attendance
             const promises = filteredStudents.map(async (student) => {
                 const attendanceData = {
                     studentId: student.id,
@@ -135,15 +216,31 @@ export default function TeacherAttendance() {
 
                 // If student is present, award 10 points
                 if (attendance[student.id] === true) {
-                    // Get current student document
-                    const studentRef = doc(db, "users", student.id);
+                    // Check if student document exists in students collection
+                    const studentRef = doc(db, "students", student.id);
                     const studentDoc = await getDoc(studentRef);
                     
                     if (studentDoc.exists()) {
+                        // Student exists, update points array
                         const studentData = studentDoc.data();
-                        // Ensure currentPointsArray is always an array
-                        const currentPointsArray = Array.isArray(studentData.points) ? studentData.points : [];
                         
+                        // Check if points array exists and is valid
+                        let currentPointsArray = [];
+                        if (studentData.points) {
+                            if (Array.isArray(studentData.points)) {
+                                currentPointsArray = [...studentData.points];
+                                console.log(`Using existing points array for ${student.name} with ${currentPointsArray.length} entries`);
+                            } else {
+                                console.warn(`Points field exists for ${student.name} but is not an array. Creating new array.`);
+                                currentPointsArray = [];
+                            }
+                        } else {
+                            // If points array doesn't exist, create an empty one
+                            console.log(`Creating new points array for ${student.name} as it doesn't exist`);
+                            currentPointsArray = [];
+                        }
+                        
+                        // Create new points entry
                         const newPointsEntry = {
                             points: 10,
                             date: new Date().toISOString(),
@@ -154,32 +251,79 @@ export default function TeacherAttendance() {
                             topic: "attendance",
                             userId: student.id
                         };
-
-                        const updatedPointsArray = [...currentPointsArray, newPointsEntry];
-                        console.log(`Updating points for ${student.name}: Adding 10 points for attendance in ${selectedSubject}`);
                         
-                        await updateDoc(studentRef, {
-                            points: updatedPointsArray
+                        // Add the new attendance points entry to the array
+                        currentPointsArray.push(newPointsEntry);
+                        
+                        // Calculate total points
+                        const totalPoints = calculateTotalPoints(currentPointsArray);
+                        
+                        // Update the student document with the new points array and total points
+                        batch.update(studentRef, {
+                            points: currentPointsArray,
+                            totalPoints: totalPoints,
+                            lastUpdated: new Date().toISOString()
                         });
+                        
+                        console.log(`Updating points for ${student.name}: Adding 10 points for attendance in ${selectedSubject}. New total: ${totalPoints}`);
+                    } else {
+                        console.warn(`Student document not found for ID: ${student.id}`);
+                        
+                        // Try to create the student document from users collection
+                        const userRef = doc(db, "users", student.id);
+                        const userDoc = await getDoc(userRef);
+                        
+                        if (userDoc.exists()) {
+                            const userData = userDoc.data();
+                            const newStudentData = {
+                                ...userData,
+                                points: [{
+                                    points: 10,
+                                    date: new Date().toISOString(),
+                                    subject: selectedSubject,
+                                    score: 100,
+                                    totalQuestions: 1,
+                                    quizId: "attendance",
+                                    topic: "attendance",
+                                    userId: student.id
+                                }],
+                                totalPoints: 10,
+                                lastUpdated: new Date().toISOString()
+                            };
+                            
+                            batch.set(studentRef, newStudentData);
+                            console.log(`Created new student document for ${student.name} with initial points`);
+                        }
                     }
                 }
             });
 
             await Promise.all(promises);
+            
+            // Commit the batch
+            await batch.commit();
+            
             setSuccess(true);
             setError(null);
             
             // Reset attendance
             const resetAttendance = {};
             filteredStudents.forEach(student => {
-                resetAttendance[student.id] = "absent";
+                resetAttendance[student.id] = false;
             });
             setAttendance(resetAttendance);
-      } catch (error) {
+        } catch (error) {
             console.error("Error adding attendance:", error);
             setError("Failed to add attendance");
             setSuccess(false);
+        } finally {
+            setLoading(false);
         }
+    };
+    
+    // Helper function to calculate total points from points array
+    const calculateTotalPoints = (pointsArray) => {
+        return pointsArray.reduce((total, entry) => total + (entry.points || 0), 0);
     };
 
   return (
@@ -245,13 +389,29 @@ export default function TeacherAttendance() {
             ))}
           </div>
 
-                    <button
-                        onClick={handleSubmit}
-                        className={styles.saveButton}
-                        disabled={loading}
-                    >
-                        {loading ? "Saving..." : "Save Attendance"}
-                    </button>
+                    <div className={styles.buttonContainer}>
+                        <button
+                            onClick={handleMarkAllPresent}
+                            className={styles.markAllButton}
+                            disabled={loading || filteredStudents.length === 0}
+                        >
+                            Mark All Present
+                        </button>
+                        <button
+                            onClick={handleMarkAllAbsent}
+                            className={styles.markAllButton}
+                            disabled={loading || filteredStudents.length === 0}
+                        >
+                            Mark All Absent
+                        </button>
+                        <button
+                            onClick={handleSubmit}
+                            className={styles.saveButton}
+                            disabled={loading}
+                        >
+                            {loading ? "Saving..." : "Save Attendance"}
+                        </button>
+                    </div>
           </div>
       </div>
     </div>

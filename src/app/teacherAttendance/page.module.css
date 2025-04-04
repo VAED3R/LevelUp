@@ -159,6 +159,41 @@
     cursor: not-allowed;
 }
 
+/* Button Container */
+.buttonContainer {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 30px;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 2;
+}
+
+/* Mark All Button */
+.markAllButton {
+    padding: 12px 20px;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #fff;
+    background: #3498db;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s;
+    position: relative;
+    z-index: 2;
+}
+
+.markAllButton:hover {
+    background: #2980b9;
+}
+
+.markAllButton:disabled {
+    background: #bdc3c7;
+    cursor: not-allowed;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .filters {
