@@ -12,6 +12,7 @@
   justify-content: center;
   padding: 20px;
   padding-top: 100px;
+  overflow: hidden; /* Disable page scrolling */
 }
 
 /* Content wrapper */
@@ -20,6 +21,9 @@
   width: 100%;
   text-align: center;
   position: relative;
+  height: calc(100vh - 140px); /* Adjust height to fit viewport */
+  display: flex;
+  flex-direction: column;
 }
 
 /* Title - Classic Arcade Font */
@@ -150,12 +154,19 @@ tr:hover {
   transition: all 0.3s ease;
 }
 
-/* Filter dropdown styles */
+/* Filter container */
 .filterContainer {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   margin-bottom: 20px;
+  gap: 20px;
+}
+
+/* Filter group */
+.filterGroup {
+  display: flex;
+  align-items: center;
   gap: 12px;
 }
 
@@ -379,8 +390,7 @@ tr:hover {
 /* 1v1 Button Container */
 .onevoneButtonContainer {
   display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
+  align-items: center;
 }
 
 /* 1v1 Button */
@@ -447,13 +457,14 @@ tr:hover {
 
 /* Leaderboard Container */
 .leaderboardContainer {
-  max-height: 70vh;
+  flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
   scrollbar-color: #7f37c6 #1a0033;
   position: relative;
   width: 100%;
+  margin-top: 20px;
 }
 
 .leaderboardContainer::-webkit-scrollbar {

@@ -234,13 +234,6 @@ export default function Leaderboard() {
       <div className={styles.content}>
         <h1 className={styles.title}>Leaderboard</h1>
 
-        {/* 1v1 Button */}
-        <div className={styles.onevoneButtonContainer}>
-          <Link href="/onevsoneRequests" className={styles.onevoneButton}>
-            Go to 1v1 Challenges
-          </Link>
-        </div>
-
         {/* 1v1 Request Form Modal */}
         {showRequestForm && selectedStudent && (
           <div className={styles.modalOverlay}>
@@ -326,19 +319,26 @@ export default function Leaderboard() {
 
         {/* Dropdown for filtering */}
         <div className={styles.filterContainer}>
-          <label htmlFor="classFilter" className={styles.label}>Filter by Class:</label>
-          <select
-            id="classFilter"
-            value={selectedClass}
-            onChange={handleClassChange}
-            className={styles.select}
-          >
-            {classes.map((className, index) => (
-              <option key={index} value={className}>
-                {className}
-              </option>
-            ))}
-          </select>
+          <div className={styles.filterGroup}>
+            <label htmlFor="classFilter" className={styles.label}>Filter by Class:</label>
+            <select
+              id="classFilter"
+              value={selectedClass}
+              onChange={handleClassChange}
+              className={styles.select}
+            >
+              {classes.map((className, index) => (
+                <option key={index} value={className}>
+                  {className}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className={styles.onevoneButtonContainer}>
+            <Link href="/onevsoneRequests" className={styles.onevoneButton}>
+              Go to 1v1 Challenges
+            </Link>
+          </div>
         </div>
 
         {loading ? (
