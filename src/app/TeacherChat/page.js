@@ -25,6 +25,8 @@ export default function TeacherChat() {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [studentPerformance, setStudentPerformance] = useState(null);
   const [viewMode, setViewMode] = useState('classes'); // 'classes', 'students', 'performance'
+  const [waitingForClassSelection, setWaitingForClassSelection] = useState(false);
+  const [waitingForStudentSelection, setWaitingForStudentSelection] = useState(false);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -68,42 +70,64 @@ export default function TeacherChat() {
 
   const loadClasses = async () => {
     try {
+      if (!user || !user.uid) {
+        console.error('User not authenticated');
+        return [];
+      }
+
+      // Fetch all classes from the classes collection
       const classesRef = collection(db, 'classes');
       const querySnapshot = await getDocs(classesRef);
       
-      const classesData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      
+      const classesData = [];
+      querySnapshot.forEach(doc => {
+        classesData.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+
+      console.log('Loaded classes from database:', classesData);
+
+      // If we have classes, fetch students for each class
+      if (classesData.length > 0) {
+        // Fetch all users who are students
+        const usersRef = collection(db, 'users');
+        const studentsSnapshot = await getDocs(query(usersRef, where('role', '==', 'student')));
+        
+        const students = [];
+        studentsSnapshot.forEach(doc => {
+          students.push({
+            id: doc.id,
+            ...doc.data()
+          });
+        });
+
+        // Add students to their respective classes
+        const classesWithStudents = classesData.map(classData => {
+          const classStudents = students.filter(student => student.class === classData.id);
+          return {
+            ...classData,
+            studentCount: classStudents.length,
+            students: classStudents
+          };
+        });
+
+        setClasses(classesWithStudents);
+        console.log('Classes with students:', classesWithStudents);
+        return classesWithStudents;
+      }
+
       setClasses(classesData);
+      return classesData;
     } catch (error) {
       console.error('Error loading classes:', error);
-    }
-  };
-
-  const loadStudents = async (classId) => {
-    try {
-      const studentsRef = collection(db, 'students');
-      const q = query(studentsRef, where('classId', '==', classId));
-      const querySnapshot = await getDocs(q);
-      
-      const studentsData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      
-      setStudents(studentsData);
-      setViewMode('students');
-    } catch (error) {
-      console.error('Error loading students:', error);
+      return [];
     }
   };
 
   const loadStudentPerformance = async (studentId) => {
     try {
-      setIsLoading(true);
-      
       // Get student details
       const studentDoc = await getDoc(doc(db, 'students', studentId));
       const studentData = studentDoc.data();
@@ -113,46 +137,34 @@ export default function TeacherChat() {
       const q = query(performanceRef, where('studentId', '==', studentId));
       const querySnapshot = await getDocs(q);
       
-      const performanceData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const performanceData = [];
+      querySnapshot.forEach(doc => {
+        performanceData.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
       
-      // Get assignments
-      const assignmentsRef = collection(db, 'assignments');
-      const assignmentsQuery = query(assignmentsRef, where('classId', '==', studentData.classId));
-      const assignmentsSnapshot = await getDocs(assignmentsQuery);
-      
-      const assignments = assignmentsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      
-      // Get student's assignment submissions
+      // Get assignment submissions
       const submissionsRef = collection(db, 'submissions');
       const submissionsQuery = query(submissionsRef, where('studentId', '==', studentId));
       const submissionsSnapshot = await getDocs(submissionsQuery);
       
-      const submissions = submissionsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const submissionsData = [];
+      submissionsSnapshot.forEach(doc => {
+        submissionsData.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
       
-      // Combine all data
-      const detailedPerformance = {
-        student: studentData,
+      setStudentPerformance({
+        student: { id: studentId, ...studentData },
         performance: performanceData,
-        assignments: assignments,
-        submissions: submissions
-      };
-      
-      setStudentPerformance(detailedPerformance);
-      setSelectedStudent(studentId);
-      setViewMode('performance');
-      setIsLoading(false);
+        submissions: submissionsData
+      });
     } catch (error) {
       console.error('Error loading student performance:', error);
-      setIsLoading(false);
     }
   };
 
@@ -191,6 +203,14 @@ export default function TeacherChat() {
   };
 
   const processMessage = async (userInput) => {
+    if (!userInput.trim()) return;
+
+    const newMessage = {
+      id: Date.now(),
+      text: userInput,
+      sender: 'user'
+    };
+    
     setIsLoading(true);
     
     // Add user message
@@ -207,13 +227,101 @@ export default function TeacherChat() {
     const lowerInput = userInput.toLowerCase();
     
     if (lowerInput.includes('student') && lowerInput.includes('performance')) {
-      // Reset view mode to show classes
-      setViewMode('classes');
-      response = {
-        type: 'bot',
-        content: "I'll show you the student performance. Please select a class from the sidebar to view students.",
-        timestamp: new Date().toISOString()
-      };
+      // Load classes and show them in chat
+      const classesData = await loadClasses();
+      
+      if (classesData.length === 0) {
+        response = {
+          type: 'bot',
+          content: "I couldn't find any classes assigned to you. This could be because:\n\n" +
+                  "1. Your user profile doesn't have a 'class' field\n" +
+                  "2. The class ID in your profile doesn't match any class in the database\n" +
+                  "3. There might be a temporary issue with the database\n\n" +
+                  "To fix this:\n" +
+                  "- Check your user profile in the database to ensure it has a 'class' field\n" +
+                  "- Verify that the class ID in your profile exists in the classes collection\n" +
+                  "- Contact your administrator if you need help with this setup",
+          timestamp: new Date().toISOString()
+        };
+      } else {
+        // Create a message with class selection options
+        const classOptions = classesData.map((cls, index) => 
+          `${index + 1}. ${cls.name} (${cls.studentCount || 0} students)`
+        ).join('\n');
+        
+        response = {
+          type: 'bot',
+          content: `Here are your classes. Please select a class by clicking on it:\n\n${classOptions}`,
+          timestamp: new Date().toISOString()
+        };
+        
+        // Set a flag to indicate we're waiting for class selection
+        setWaitingForClassSelection(true);
+      }
+    } else if (waitingForClassSelection) {
+      // User has selected a class
+      const selectedClass = classes.find(cls => 
+        cls.name.toLowerCase() === userInput.toLowerCase()
+      );
+      
+      if (selectedClass) {
+        // Get the students for this class
+        const classStudents = selectedClass.students;
+        setStudents(classStudents);
+        
+        // Create a message with student selection options
+        const studentOptions = classStudents.map((student, index) => 
+          `${index + 1}. ${student.name}`
+        ).join('\n');
+        
+        response = {
+          type: 'bot',
+          content: `Here are the students in ${selectedClass.name}. Please select a student by clicking on their name:\n\n${studentOptions}`,
+          timestamp: new Date().toISOString()
+        };
+        
+        // Set flags for selection state
+        setWaitingForClassSelection(false);
+        setWaitingForStudentSelection(true);
+      } else {
+        response = {
+          type: 'bot',
+          content: "I couldn't find that class. Please try again with the exact class name.",
+          timestamp: new Date().toISOString()
+        };
+      }
+    } else if (waitingForStudentSelection) {
+      // User has selected a student
+      const selectedStudent = students.find(student => 
+        student.name === userInput.split(' (')[0] // Remove the average part if present
+      );
+      
+      if (selectedStudent) {
+        // Instead of showing performance data, send a request for a report
+        const response = {
+          type: 'bot',
+          content: `I've sent a request for a performance report for ${selectedStudent.name} in ${selectedStudent.class}.\n\n` +
+                  `The report will be generated and sent to you shortly. It will include:\n` +
+                  `- Academic performance\n` +
+                  `- Attendance records\n` +
+                  `- Assignment completion\n` +
+                  `- Participation metrics\n\n` +
+                  `You'll receive a notification when the report is ready.`,
+          timestamp: new Date().toISOString()
+        };
+        
+        setMessages(prev => [...prev, response]);
+        await saveMessage(response);
+        
+        // Reset selection flags
+        setWaitingForStudentSelection(false);
+      } else {
+        response = {
+          type: 'bot',
+          content: `I couldn't find the student "${userInput}". Please try again.`,
+          timestamp: new Date().toISOString()
+        };
+      }
     } else if (lowerInput.includes('assignment')) {
       response = await getAssignmentInfo();
     } else if (lowerInput.includes('quiz')) {
@@ -229,7 +337,7 @@ export default function TeacherChat() {
     } else {
       response = {
         type: 'bot',
-        content: "I can help you with:\n- Student performance\n- Assignment information\n- Quiz details\n- Class statistics\n- Student information\n- Schedule details\n- Search learning materials\n\nWhat would you like to know?",
+        content: "I can help you with:\n- Student performance reports\n- Assignment information\n- Quiz details\n- Class statistics\n- Student information\n- Schedule details\n- Search learning materials\n\nWhat would you like to know?",
         timestamp: new Date().toISOString()
       };
     }
@@ -464,12 +572,77 @@ export default function TeacherChat() {
     setIsLoading(false);
   };
 
-  const handleClassClick = (classId) => {
-    loadStudents(classId);
+  const handleClassClick = async (className) => {
+    // Find the selected class from the classes array
+    const selectedClass = classes.find(cls => cls.name === className);
+    
+    if (selectedClass) {
+      // Get the students for this class
+      const classStudents = selectedClass.students;
+      setStudents(classStudents);
+      
+      // Create a message with student selection options
+      const studentOptions = classStudents.map((student, index) => 
+        `${index + 1}. ${student.name}`
+      ).join('\n');
+      
+      const response = {
+        type: 'bot',
+        content: `Here are the students in ${className}. Please select a student by clicking on their name:\n\n${studentOptions}`,
+        timestamp: new Date().toISOString()
+      };
+      
+      setMessages(prev => [...prev, response]);
+      await saveMessage(response);
+      
+      // Set flags for selection state
+      setWaitingForClassSelection(false);
+      setWaitingForStudentSelection(true);
+    } else {
+      const response = {
+        type: 'bot',
+        content: `I couldn't find the class "${className}". Please try again.`,
+        timestamp: new Date().toISOString()
+      };
+      setMessages(prev => [...prev, response]);
+      await saveMessage(response);
+    }
   };
 
-  const handleStudentClick = (studentId) => {
-    loadStudentPerformance(studentId);
+  const handleStudentClick = async (studentName) => {
+    // Find the selected student from the students array
+    const selectedStudent = students.find(student => 
+      student.name === studentName.split(' (')[0] // Remove the average part if present
+    );
+    
+    if (selectedStudent) {
+      // Instead of showing performance data, send a request for a report
+      const response = {
+        type: 'bot',
+        content: `I've sent a request for a performance report for ${selectedStudent.name} in ${selectedStudent.class}.\n\n` +
+                `The report will be generated and sent to you shortly. It will include:\n` +
+                `- Academic performance\n` +
+                `- Attendance records\n` +
+                `- Assignment completion\n` +
+                `- Participation metrics\n\n` +
+                `You'll receive a notification when the report is ready.`,
+        timestamp: new Date().toISOString()
+      };
+      
+      setMessages(prev => [...prev, response]);
+      await saveMessage(response);
+      
+      // Reset selection flags
+      setWaitingForStudentSelection(false);
+    } else {
+      const response = {
+        type: 'bot',
+        content: `I couldn't find the student "${studentName}". Please try again.`,
+        timestamp: new Date().toISOString()
+      };
+      setMessages(prev => [...prev, response]);
+      await saveMessage(response);
+    }
   };
 
   const handleBackToClasses = () => {
@@ -495,7 +668,7 @@ export default function TeacherChat() {
                 <div 
                   key={cls.id} 
                   className={styles.classCard}
-                  onClick={() => handleClassClick(cls.id)}
+                  onClick={() => handleClassClick(cls.name)}
                 >
                   <h4>{cls.name}</h4>
                   <p>{cls.description || 'No description available'}</p>
@@ -526,7 +699,7 @@ export default function TeacherChat() {
                 <div 
                   key={student.id} 
                   className={styles.studentCard}
-                  onClick={() => handleStudentClick(student.id)}
+                  onClick={() => handleStudentClick(student.name)}
                 >
                   <div className={styles.studentHeader}>
                     <span className={styles.studentName}>{student.name}</span>
@@ -735,19 +908,40 @@ export default function TeacherChat() {
           <div className={styles.messagesContainer}>
             {messages.map((message, index) => (
               <div
-                key={index}
+                key={message.id || `message-${index}`}
                 className={`${styles.message} ${
-                  message.type === 'user' ? styles.userMessage : styles.botMessage
+                  (message.sender === 'user' || message.type === 'user') ? styles.userMessage : styles.botMessage
                 }`}
               >
-                <div className={styles.messageContent}>
-                  {message.content.split('\n').map((line, i) => (
-                    <p key={i}>{line}</p>
-                  ))}
-                </div>
-                <div className={styles.messageTimestamp}>
-                  {new Date(message.timestamp).toLocaleTimeString()}
-                </div>
+                {(message.text || message.content || '').split('\n').map((line, lineIndex) => {
+                  // Check if this line is a class option
+                  if (waitingForClassSelection && line.match(/^\d+\.\s+.+$/)) {
+                    const className = line.split('. ')[1];
+                    return (
+                      <button
+                        key={`class-${lineIndex}`}
+                        className={styles.optionButton}
+                        onClick={() => handleClassClick(className)}
+                      >
+                        {line}
+                      </button>
+                    );
+                  }
+                  // Check if this line is a student option
+                  if (waitingForStudentSelection && line.match(/^\d+\.\s+.+$/)) {
+                    const studentName = line.split('. ')[1];
+                    return (
+                      <button
+                        key={`student-${lineIndex}`}
+                        className={styles.optionButton}
+                        onClick={() => handleStudentClick(studentName)}
+                      >
+                        {line}
+                      </button>
+                    );
+                  }
+                  return <p key={`line-${lineIndex}`}>{line}</p>;
+                })}
               </div>
             ))}
             <div ref={messagesEndRef} />
@@ -786,13 +980,19 @@ export default function TeacherChat() {
               className={styles.input}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message..."
-              disabled={isLoading}
+              placeholder={
+                waitingForClassSelection 
+                  ? "Select a class from the list above..." 
+                  : waitingForStudentSelection 
+                    ? "Select a student from the list above..." 
+                    : "Type your message..."
+              }
+              disabled={isLoading || waitingForClassSelection || waitingForStudentSelection}
             />
             <button
               type="submit"
               className={styles.sendButton}
-              disabled={isLoading || !input.trim()}
+              disabled={isLoading || !input.trim() || waitingForClassSelection || waitingForStudentSelection}
             >
               Send
             </button>

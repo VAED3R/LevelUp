@@ -632,6 +632,27 @@
   gap: 8px;
 }
 
+.clickableOption {
+  background: none;
+  border: none;
+  color: #5a35ab;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+  text-align: left;
+  padding: 5px 10px;
+  margin: 0;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.clickableOption:hover {
+  background-color: rgba(90, 53, 171, 0.1);
+  transform: translateX(5px);
+}
+
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
   .chatbotContainer {
@@ -823,6 +844,14 @@
   
   .detailValue {
     color: #e0e0e0;
+  }
+  
+  .clickableOption {
+    color: #7f37c6;
+  }
+  
+  .clickableOption:hover {
+    background-color: rgba(127, 55, 198, 0.2);
   }
 }
 
