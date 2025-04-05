@@ -38,7 +38,7 @@ export default function Navbar() {
             <Link href="/classC" className={styles.navLink}>Class Communities</Link>
           </li>
           <li className={styles.navItem}>
-            <Link href="/TeacherChat"className={styles.navLink}>Assistant</Link>
+            <Link href="/TeacherChat"className={styles.navLink}>Parent Chat Requests</Link>
           </li>
         </ul>
       </div>
