@@ -465,38 +465,41 @@ export default function StudentQuizChallenge() {
         const winnerPoints = winnerDoc.data().totalPoints || 0;
         const loserPoints = loserDoc.data().totalPoints || 0;
         
-        // Transfer points
+        // Create fallPoints entries for both users
+        const winnerFallPoint = {
+          date: new Date().toISOString(),
+          points: pointsWagered,
+          quizId: challenge.requestId,
+          score: fromUserWins ? updatedChallenge.fromUserScore : updatedChallenge.toUserScore,
+          subject: quiz.subject,
+          topic: quiz.topic,
+          totalQuestions: quiz.questions.length,
+          userId: winnerId
+        };
+        
+        const loserFallPoint = {
+          date: new Date().toISOString(),
+          points: -pointsWagered,
+          quizId: challenge.requestId,
+          score: fromUserWins ? updatedChallenge.toUserScore : updatedChallenge.fromUserScore,
+          subject: quiz.subject,
+          topic: quiz.topic,
+          totalQuestions: quiz.questions.length,
+          userId: loserId
+        };
+        
+        // Transfer points by adding to fallPoints array
         await Promise.all([
           updateDoc(doc(db, "students", winnerId), {
-            totalPoints: winnerPoints + pointsWagered,
-            pointsHistory: arrayUnion({
-              amount: pointsWagered,
-              type: "challenge_win",
-              timestamp: new Date().toISOString(),
-              challengeId: challenge.requestId
-            })
+            fallPoints: arrayUnion(winnerFallPoint)
           }),
           updateDoc(doc(db, "students", loserId), {
-            totalPoints: Math.max(0, loserPoints - pointsWagered),
-            pointsHistory: arrayUnion({
-              amount: -pointsWagered,
-              type: "challenge_loss",
-              timestamp: new Date().toISOString(),
-              challengeId: challenge.requestId
-            })
+            fallPoints: arrayUnion(loserFallPoint)
           })
         ]);
-        console.log("[saveQuizResults] Transferred points between users");
-        console.log("[saveQuizResults] Winner points updated:", {
-          userId: winnerId,
-          oldPoints: winnerPoints,
-          newPoints: winnerPoints + pointsWagered
-        });
-        console.log("[saveQuizResults] Loser points updated:", {
-          userId: loserId,
-          oldPoints: loserPoints,
-          newPoints: Math.max(0, loserPoints - pointsWagered)
-        });
+        console.log("[saveQuizResults] Added fallPoints entries for both users");
+        console.log("[saveQuizResults] Winner fallPoint:", winnerFallPoint);
+        console.log("[saveQuizResults] Loser fallPoint:", loserFallPoint);
         
         // Get final challenge state
         const finalChallengeDoc = await getDoc(challengeRef);

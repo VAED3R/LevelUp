@@ -250,4 +250,44 @@
   font-size: 14px;
   text-align: center;
   margin-top: 20px;
+}
+
+.claimPointsContainer {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.claimPointsButton {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-weight: 600;
+}
+
+.claimPointsButton:hover {
+  background-color: #218838;
+}
+
+.claimPointsButton:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.pointsClaimedMessage {
+  color: #28a745;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.waitingMessage {
+  color: #6c757d;
+  font-style: italic;
 } 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { db, auth } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/studentNavbar";
@@ -18,6 +18,8 @@ export default function ChallengeResults() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [pointsClaimed, setPointsClaimed] = useState(false);
+  const [claimingPoints, setClaimingPoints] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -45,6 +47,7 @@ export default function ChallengeResults() {
       if (!challengeId) return;
 
       try {
+        setLoading(true);
         console.log("Fetching challenge with ID:", challengeId);
         
         // Fetch the request document
@@ -118,6 +121,9 @@ export default function ChallengeResults() {
         
         console.log("Combined challenge data:", combinedChallenge);
         setChallenge(combinedChallenge);
+
+        // Check if points have been claimed
+        setPointsClaimed(combinedChallenge.pointsClaimed || false);
       } catch (err) {
         console.error("Error fetching challenge:", err);
         setError("Failed to load challenge data");
@@ -190,6 +196,98 @@ export default function ChallengeResults() {
       return fromUserWins 
         ? (isSender ? "You" : challenge.fromUserName)
         : (isSender ? challenge.toUserName : "You");
+    }
+  };
+
+  // Add a function to claim points
+  const claimPoints = async () => {
+    try {
+      setClaimingPoints(true);
+      
+      // Get the latest challenge data
+      const challengeRef = doc(db, "challenges", challengeId);
+      const challengeDoc = await getDoc(challengeRef);
+      
+      if (!challengeDoc.exists()) {
+        throw new Error("Challenge not found");
+      }
+      
+      const updatedChallenge = challengeDoc.data();
+      
+      // Determine winner and loser
+      const isFromUser = updatedChallenge.fromUserId === currentUser.id;
+      const fromUserWins = 
+        updatedChallenge.fromUserScore > updatedChallenge.toUserScore || 
+        (updatedChallenge.fromUserScore === updatedChallenge.toUserScore && 
+         updatedChallenge.fromUserTime < updatedChallenge.toUserTime);
+      
+      const winnerId = fromUserWins ? updatedChallenge.fromUserId : updatedChallenge.toUserId;
+      const loserId = fromUserWins ? updatedChallenge.toUserId : updatedChallenge.fromUserId;
+      const pointsWagered = updatedChallenge.pointsWagered || 10;
+      
+      // Check if current user is the winner
+      if (currentUser.id !== winnerId) {
+        throw new Error("Only the winner can claim points");
+      }
+      
+      // Get quiz data for fallPoints
+      const quizRef = doc(db, "quizzes", updatedChallenge.quizId);
+      const quizDoc = await getDoc(quizRef);
+      const quizData = quizDoc.exists() ? quizDoc.data() : { subject: "unknown", topic: "unknown" };
+      
+      // Create fallPoints entries for both users
+      const winnerFallPoint = {
+        date: new Date().toISOString(),
+        points: pointsWagered,
+        quizId: challengeId,
+        score: fromUserWins ? updatedChallenge.fromUserScore : updatedChallenge.toUserScore,
+        subject: quizData.subject || "challenge",
+        topic: quizData.topic || "challenge",
+        totalQuestions: updatedChallenge.questions?.length || 0,
+        userId: winnerId
+      };
+      
+      const loserFallPoint = {
+        date: new Date().toISOString(),
+        points: -pointsWagered,
+        quizId: challengeId,
+        score: fromUserWins ? updatedChallenge.toUserScore : updatedChallenge.fromUserScore,
+        subject: quizData.subject || "challenge",
+        topic: quizData.topic || "challenge",
+        totalQuestions: updatedChallenge.questions?.length || 0,
+        userId: loserId
+      };
+      
+      // Transfer points by adding to fallPoints array
+      await Promise.all([
+        updateDoc(doc(db, "students", winnerId), {
+          fallPoints: arrayUnion(winnerFallPoint)
+        }),
+        updateDoc(doc(db, "students", loserId), {
+          fallPoints: arrayUnion(loserFallPoint)
+        })
+      ]);
+      
+      // Update challenge to mark points as claimed
+      await updateDoc(challengeRef, {
+        pointsClaimed: true,
+        pointsClaimedAt: new Date().toISOString()
+      });
+      
+      // Update local state
+      setPointsClaimed(true);
+      setChallenge({
+        ...updatedChallenge,
+        pointsClaimed: true,
+        pointsClaimedAt: new Date().toISOString()
+      });
+      
+      alert("Points claimed successfully!");
+    } catch (err) {
+      console.error("Error claiming points:", err);
+      alert(`Failed to claim points: ${err.message}`);
+    } finally {
+      setClaimingPoints(false);
     }
   };
 
@@ -277,6 +375,30 @@ export default function ChallengeResults() {
               <p className={styles.winnerScore}>
                 Score: {challenge.fromUserScore} - {challenge.toUserScore}
               </p>
+            )}
+          </div>
+
+          <div className={styles.claimPointsContainer}>
+            {isSender && !pointsClaimed && (
+              <button 
+                className={styles.claimPointsButton}
+                onClick={claimPoints}
+                disabled={claimingPoints}
+              >
+                {claimingPoints ? "Claiming Points..." : "Claim Points"}
+              </button>
+            )}
+            
+            {pointsClaimed && (
+              <div className={styles.pointsClaimedMessage}>
+                Points have been claimed for this challenge.
+              </div>
+            )}
+            
+            {!isSender && !pointsClaimed && (
+              <div className={styles.waitingMessage}>
+                Waiting for winner to claim points...
+              </div>
             )}
           </div>
 
