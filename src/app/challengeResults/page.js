@@ -45,20 +45,29 @@ export default function ChallengeResults() {
       if (!challengeId) return;
 
       try {
+        console.log("Fetching challenge with ID:", challengeId);
+        
         // Fetch the request document
         const requestRef = doc(db, "onevsoneRequests", challengeId);
         const requestDoc = await getDoc(requestRef);
         
         if (!requestDoc.exists()) {
+          console.error("Request document not found for ID:", challengeId);
           setError("Challenge not found");
           return;
         }
 
         const requestData = requestDoc.data();
+        console.log("Request data:", requestData);
         
         // Fetch both users' challenge documents
         const fromUserChallengeId = `${challengeId}_${requestData.fromUserId}`;
         const toUserChallengeId = `${challengeId}_${requestData.toUserId}`;
+        
+        console.log("Fetching challenge documents:", {
+          fromUserChallengeId,
+          toUserChallengeId
+        });
         
         const [fromUserChallengeDoc, toUserChallengeDoc] = await Promise.all([
           getDoc(doc(db, "challenges", fromUserChallengeId)),
@@ -66,26 +75,30 @@ export default function ChallengeResults() {
         ]);
 
         if (!fromUserChallengeDoc.exists() || !toUserChallengeDoc.exists()) {
+          console.error("Challenge documents not found:", {
+            fromUserExists: fromUserChallengeDoc.exists(),
+            toUserExists: toUserChallengeDoc.exists()
+          });
           setError("Challenge results not found");
           return;
         }
 
         const fromUserChallenge = fromUserChallengeDoc.data();
         const toUserChallenge = toUserChallengeDoc.data();
+        
+        console.log("Challenge documents data:", {
+          fromUser: fromUserChallenge,
+          toUser: toUserChallenge
+        });
 
-        // Calculate scores and times from answers
-        const fromUserScore = fromUserChallenge.answers?.reduce((score, answer) => 
-          score + (answer.isCorrect ? 1 : 0), 0) || 0;
-        const toUserScore = toUserChallenge.answers?.reduce((score, answer) => 
-          score + (answer.isCorrect ? 1 : 0), 0) || 0;
-
-        const fromUserTime = fromUserChallenge.answers?.reduce((total, answer) => 
-          total + (answer.timeTaken || 0), 0) || 0;
-        const toUserTime = toUserChallenge.answers?.reduce((total, answer) => 
-          total + (answer.timeTaken || 0), 0) || 0;
+        // Use the stored scores and times directly from the challenge documents
+        const fromUserScore = fromUserChallenge.fromUserScore || 0;
+        const toUserScore = toUserChallenge.toUserScore || 0;
+        const fromUserTime = fromUserChallenge.fromUserTime || 0;
+        const toUserTime = toUserChallenge.toUserTime || 0;
 
         // Combine the data
-        setChallenge({
+        const combinedChallenge = {
           ...requestData,
           fromUserScore,
           toUserScore,
@@ -94,8 +107,17 @@ export default function ChallengeResults() {
           fromUserAnswers: fromUserChallenge.answers || [],
           toUserAnswers: toUserChallenge.answers || [],
           fromUserQuestions: fromUserChallenge.questions || [],
-          toUserQuestions: toUserChallenge.questions || []
-        });
+          toUserQuestions: toUserChallenge.questions || [],
+          fromUserCompleted: fromUserChallenge.fromUserCompleted || false,
+          toUserCompleted: toUserChallenge.toUserCompleted || false,
+          fromUserCompletedAt: fromUserChallenge.fromUserCompletedAt,
+          toUserCompletedAt: toUserChallenge.toUserCompletedAt,
+          winner: requestData.winner || null,
+          resultsCompared: requestData.resultsCompared || false
+        };
+        
+        console.log("Combined challenge data:", combinedChallenge);
+        setChallenge(combinedChallenge);
       } catch (err) {
         console.error("Error fetching challenge:", err);
         setError("Failed to load challenge data");
@@ -150,10 +172,26 @@ export default function ChallengeResults() {
   }
 
   const isSender = challenge.fromUserId === currentUser?.id;
-  const fromUserWins = 
-    challenge.fromUserScore > challenge.toUserScore || 
-    (challenge.fromUserScore === challenge.toUserScore && 
-     challenge.fromUserTime < challenge.toUserTime);
+  
+  // Determine winner based on stored data or calculate if needed
+  const fromUserWins = challenge.winner === "fromUser" || 
+    (challenge.fromUserScore > challenge.toUserScore || 
+     (challenge.fromUserScore === challenge.toUserScore && 
+      challenge.fromUserTime < challenge.toUserTime));
+  
+  // Get winner name
+  const getWinnerName = () => {
+    if (challenge.winner === "fromUser") {
+      return isSender ? "You" : challenge.fromUserName;
+    } else if (challenge.winner === "toUser") {
+      return isSender ? challenge.toUserName : "You";
+    } else {
+      // If no winner is set but we can determine it
+      return fromUserWins 
+        ? (isSender ? "You" : challenge.fromUserName)
+        : (isSender ? challenge.toUserName : "You");
+    }
+  };
 
   return (
     <div className={styles.container}>
@@ -233,10 +271,13 @@ export default function ChallengeResults() {
           <div className={styles.winnerSection}>
             <h3 className={styles.winnerTitle}>Winner</h3>
             <p className={styles.winnerName}>
-              {fromUserWins 
-                ? (isSender ? "You" : challenge.fromUserName)
-                : (isSender ? challenge.toUserName : "You")}
+              {getWinnerName()}
             </p>
+            {challenge.winner && (
+              <p className={styles.winnerScore}>
+                Score: {challenge.fromUserScore} - {challenge.toUserScore}
+              </p>
+            )}
           </div>
 
           <div className={styles.actions}>
