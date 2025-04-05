@@ -1,0 +1,862 @@
+.chatbotContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  height: 600px;
+  border-left: 4px solid #5a35ab;
+}
+
+.chatbotHeader {
+  background: linear-gradient(135deg, #5a35ab, #7f37c6);
+  color: white;
+  padding: 15px 20px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chatbotHeader h2 {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 1.5rem;
+  letter-spacing: 0.5px;
+}
+
+.toggleButton {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 5px 10px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.toggleButton:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.chatbotContent {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 300px;
+  background-color: #f5f5f5;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.tabButton {
+  flex: 1;
+  padding: 12px;
+  background-color: transparent;
+  border: none;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tabButton:hover {
+  background-color: #e9e9e9;
+}
+
+.activeTab {
+  background-color: #5a35ab;
+  color: white;
+}
+
+.performancePanel, .materialsPanel {
+  padding: 15px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.performancePanel h3, .materialsPanel h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.filterGroup {
+  margin-bottom: 15px;
+}
+
+.filterGroup label {
+  display: block;
+  margin-bottom: 5px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+  background-color: white;
+}
+
+.performanceData h4 {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 1rem;
+  color: #333;
+}
+
+.studentList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.studentCard {
+  background-color: white;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  border-left: 3px solid #5a35ab;
+}
+
+.studentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.studentName {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.studentAverage {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #5a35ab;
+}
+
+.assignmentList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.assignmentItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.assignmentTitle {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.85rem;
+  color: #555;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 10px;
+}
+
+.assignmentScore {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #5a35ab;
+  min-width: 40px;
+  text-align: right;
+}
+
+.searchForm {
+  display: flex;
+  margin-bottom: 15px;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px 0 0 4px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+}
+
+.searchButton {
+  background-color: #5a35ab;
+  color: white;
+  border: none;
+  border-radius: 0 4px 4px 0;
+  padding: 0 15px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.searchButton:hover {
+  background-color: #7f37c6;
+}
+
+.searchResults h4 {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 1rem;
+  color: #333;
+}
+
+.materialList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.materialCard {
+  background-color: white;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  border-left: 3px solid #5a35ab;
+}
+
+.materialCard h5 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.materialSubject {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.85rem;
+  color: #5a35ab;
+  margin-bottom: 8px;
+}
+
+.materialDescription {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.85rem;
+  color: #555;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.materialLink {
+  display: inline-block;
+  background-color: #5a35ab;
+  color: white;
+  text-decoration: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.8rem;
+  transition: background-color 0.2s ease;
+}
+
+.materialLink:hover {
+  background-color: #7f37c6;
+}
+
+.noData {
+  padding: 20px;
+  text-align: center;
+  color: #777;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+}
+
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.messagesContainer {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  background-color: #f9f9f9;
+}
+
+.message {
+  max-width: 80%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  position: relative;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.userMessage {
+  align-self: flex-end;
+  background-color: #5a35ab;
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.botMessage {
+  align-self: flex-start;
+  background-color: white;
+  color: #333;
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.messageContent {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.messageContent p {
+  margin: 0 0 8px 0;
+}
+
+.messageContent p:last-child {
+  margin-bottom: 0;
+}
+
+.messageTimestamp {
+  font-size: 0.7rem;
+  opacity: 0.7;
+  margin-top: 5px;
+  text-align: right;
+}
+
+.suggestionsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 15px;
+  background-color: #f0f0f0;
+  border-top: 1px solid #e0e0e0;
+}
+
+.suggestionButton {
+  background-color: white;
+  border: 1px solid #5a35ab;
+  color: #5a35ab;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.suggestionButton:hover {
+  background-color: #5a35ab;
+  color: white;
+}
+
+.inputForm {
+  display: flex;
+  padding: 15px;
+  background-color: white;
+  border-top: 1px solid #e0e0e0;
+}
+
+.input {
+  flex: 1;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 25px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.input:focus {
+  border-color: #5a35ab;
+}
+
+.sendButton {
+  background-color: #5a35ab;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 0 20px;
+  margin-left: 10px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.sendButton:hover {
+  background-color: #7f37c6;
+}
+
+.sendButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.backButton {
+  background-color: #f0f0f0;
+  color: #5a35ab;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.backButton:hover {
+  background-color: #e0e0e0;
+}
+
+.classList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.classCard {
+  background-color: white;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  border-left: 3px solid #5a35ab;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.classCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.classCard h4 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 1rem;
+  color: #333;
+}
+
+.classCard p {
+  margin: 0 0 10px 0;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.classStats {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.8rem;
+  color: #777;
+}
+
+.studentInfo {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.8rem;
+  color: #777;
+  margin-top: 5px;
+}
+
+.studentProfile {
+  background-color: white;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  border-left: 3px solid #5a35ab;
+}
+
+.studentProfile h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.profileInfo {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.infoLabel {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.8rem;
+  color: #777;
+}
+
+.infoValue {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.performanceDetails, .assignmentDetails {
+  margin-top: 20px;
+}
+
+.subjectList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.subjectCard {
+  background-color: white;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  border-left: 3px solid #5a35ab;
+}
+
+.subjectHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.subjectName {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.subjectScore {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #5a35ab;
+}
+
+.subjectDetails {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.detailItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.detailLabel {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.75rem;
+  color: #777;
+}
+
+.detailValue {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.85rem;
+  color: #333;
+}
+
+.assignmentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.assignmentDetails {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .chatbotContainer {
+    background-color: #1e1e1e;
+    border-left: 4px solid #7f37c6;
+  }
+  
+  .sidebar {
+    background-color: #2a2a2a;
+    border-right: 1px solid #333;
+  }
+  
+  .tabButton {
+    color: #e0e0e0;
+  }
+  
+  .tabButton:hover {
+    background-color: #333;
+  }
+  
+  .activeTab {
+    background-color: #7f37c6;
+  }
+  
+  .performancePanel h3, .materialsPanel h3 {
+    color: #e0e0e0;
+  }
+  
+  .filterGroup label {
+    color: #ccc;
+  }
+  
+  .select {
+    background-color: #333;
+    border: 1px solid #444;
+    color: #e0e0e0;
+  }
+  
+  .performanceData h4, .searchResults h4 {
+    color: #e0e0e0;
+  }
+  
+  .studentCard, .materialCard {
+    background-color: #333;
+    border-left: 3px solid #7f37c6;
+  }
+  
+  .studentName, .materialCard h5 {
+    color: #e0e0e0;
+  }
+  
+  .studentAverage, .materialSubject {
+    color: #7f37c6;
+  }
+  
+  .assignmentTitle {
+    color: #ccc;
+  }
+  
+  .assignmentScore {
+    color: #7f37c6;
+  }
+  
+  .assignmentItem {
+    border-bottom: 1px solid #444;
+  }
+  
+  .searchInput {
+    background-color: #333;
+    border: 1px solid #444;
+    color: #e0e0e0;
+  }
+  
+  .materialDescription {
+    color: #ccc;
+  }
+  
+  .noData {
+    color: #aaa;
+  }
+  
+  .botMessage {
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+  }
+  
+  .messagesContainer {
+    background-color: #1a1a1a;
+  }
+  
+  .suggestionsContainer {
+    background-color: #2a2a2a;
+    border-top: 1px solid #333;
+  }
+  
+  .suggestionButton {
+    background-color: #333;
+    border: 1px solid #7f37c6;
+    color: #e0e0e0;
+  }
+  
+  .suggestionButton:hover {
+    background-color: #7f37c6;
+    color: white;
+  }
+  
+  .inputForm {
+    background-color: #1e1e1e;
+    border-top: 1px solid #333;
+  }
+  
+  .input {
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+    color: #e0e0e0;
+  }
+  
+  .input:focus {
+    border-color: #7f37c6;
+  }
+  
+  .input::placeholder {
+    color: #888;
+  }
+  
+  .backButton {
+    background-color: #333;
+    color: #7f37c6;
+  }
+  
+  .backButton:hover {
+    background-color: #444;
+  }
+  
+  .classCard {
+    background-color: #333;
+    border-left: 3px solid #7f37c6;
+  }
+  
+  .classCard h4 {
+    color: #e0e0e0;
+  }
+  
+  .classCard p {
+    color: #ccc;
+  }
+  
+  .classStats {
+    color: #aaa;
+  }
+  
+  .studentInfo {
+    color: #aaa;
+  }
+  
+  .studentProfile {
+    background-color: #333;
+    border-left: 3px solid #7f37c6;
+  }
+  
+  .studentProfile h4 {
+    color: #e0e0e0;
+  }
+  
+  .infoLabel {
+    color: #aaa;
+  }
+  
+  .infoValue {
+    color: #e0e0e0;
+  }
+  
+  .subjectCard {
+    background-color: #333;
+    border-left: 3px solid #7f37c6;
+  }
+  
+  .subjectName {
+    color: #e0e0e0;
+  }
+  
+  .subjectScore {
+    color: #7f37c6;
+  }
+  
+  .detailLabel {
+    color: #aaa;
+  }
+  
+  .detailValue {
+    color: #e0e0e0;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .chatbotContainer {
+    height: 500px;
+  }
+  
+  .chatbotContent {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    max-height: 200px;
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .message {
+    max-width: 90%;
+  }
+  
+  .suggestionsContainer {
+    flex-direction: column;
+  }
+  
+  .suggestionButton {
+    width: 100%;
+    text-align: left;
+  }
+  
+  .profileInfo, .subjectDetails, .assignmentDetails {
+    grid-template-columns: 1fr;
+  }
+}
