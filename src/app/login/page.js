@@ -76,7 +76,7 @@ export default function Login() {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.6, ease: "easeOut" }}
         >
-          {role ? `${role.charAt(0).toUpperCase() + role.slice(1)} Login` : "Login"}
+          {role ? `${role.charAt(0).toUpperCase() + role.slice(1)} Login` : "LevelUp"}
         </motion.h1>
 
         <motion.form
