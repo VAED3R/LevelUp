@@ -408,51 +408,6 @@ export default function ChallengeResults() {
             </div>
           </div>
 
-          <div className={styles.detailedResults}>
-            <h3>Detailed Results</h3>
-            <div className={styles.questionsContainer}>
-              {challenge.fromUserQuestions.map((question, index) => {
-                const fromUserAnswer = challenge.fromUserAnswers[index];
-                const toUserAnswer = challenge.toUserAnswers[index];
-                const isFromUserCorrect = fromUserAnswer?.isCorrect;
-                const isToUserCorrect = toUserAnswer?.isCorrect;
-
-                return (
-                  <div key={index} className={styles.questionResult}>
-                    <h4>Question {index + 1}</h4>
-                    <p className={styles.questionText}>{question.question}</p>
-                    
-                    <div className={styles.answersContainer}>
-                      <div className={styles.answerCard}>
-                        <h5>{isSender ? "Your Answer" : "Opponent's Answer"}</h5>
-                        <p className={isFromUserCorrect ? styles.correct : styles.incorrect}>
-                          {fromUserAnswer?.selectedAnswer || "Not answered"}
-                        </p>
-                        <p className={styles.timeTaken}>
-                          Time: {formatTime(fromUserAnswer?.timeTaken)}
-                        </p>
-                      </div>
-
-                      <div className={styles.answerCard}>
-                        <h5>{isSender ? "Opponent's Answer" : "Your Answer"}</h5>
-                        <p className={isToUserCorrect ? styles.correct : styles.incorrect}>
-                          {toUserAnswer?.selectedAnswer || "Not answered"}
-                        </p>
-                        <p className={styles.timeTaken}>
-                          Time: {formatTime(toUserAnswer?.timeTaken)}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className={styles.correctAnswer}>
-                      <p>Correct Answer: {question.correctAnswer}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
           <div className={styles.winnerSection}>
             <h3 className={styles.winnerTitle}>Winner</h3>
             <p className={styles.winnerName}>
