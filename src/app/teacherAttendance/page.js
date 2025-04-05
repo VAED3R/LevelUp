@@ -327,11 +327,10 @@ export default function TeacherAttendance() {
     };
 
     return (
-    <div style={{ height: '100vh', overflow: 'auto' }}>
+        <div className={styles.body}>
             <Navbar />
-            <div className={styles.background}>
             <div className={styles.container}>
-                    <h1 className={styles.heading}>Teacher Attendance</h1>
+                <h1 className={styles.heading}>Teacher Attendance</h1>
 
                 <div className={styles.filters}>
                     <div className={styles.formGroup}>
@@ -420,7 +419,6 @@ export default function TeacherAttendance() {
                     {loading ? "Saving..." : "Save Attendance"}
                 </button>
                 )}
-            </div>
             </div>
         </div>
     );

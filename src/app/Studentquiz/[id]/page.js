@@ -204,7 +204,7 @@ export default function StudentQuiz() {
   if (loading) {
     return (
       <div className={styles.container}>
-        <Navbar />
+        <Navbar className={styles.nav} />
         <div className={styles.content}>
           <div className={styles.loading}>Loading quiz...</div>
         </div>
@@ -215,7 +215,7 @@ export default function StudentQuiz() {
   if (error) {
     return (
       <div className={styles.container}>
-        <Navbar />
+        <Navbar className={styles.nav} />
         <div className={styles.content}>
           <div className={styles.error}>{error}</div>
           <button 
@@ -232,7 +232,7 @@ export default function StudentQuiz() {
   if (quizCompleted) {
     return (
       <div className={styles.container}>
-        <Navbar />
+        <Navbar className={styles.nav} />
         <div className={styles.content}>
           <div className={styles.resultsCard}>
             <h2 className={styles.resultsTitle}>Quiz Completed!</h2>
@@ -276,7 +276,7 @@ export default function StudentQuiz() {
 
   return (
     <div className={styles.container}>
-      <Navbar />
+      <Navbar className={styles.nav} />
       <div className={styles.content}>
         <div className={styles.header}>
           <h1 className={styles.title}>{quiz.title}</h1>

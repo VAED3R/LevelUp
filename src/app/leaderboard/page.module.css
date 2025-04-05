@@ -109,6 +109,17 @@
   text-shadow: 2px 2px 0px #000;
 }
 
+/* Fix for tr:hover selector */
+.tableRow {
+  transition: all 0.3s ease;
+}
+
+.tableRow:hover {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: rgba(127, 55, 198, 0.2);
+}
+
 /* Clickable row styling */
 .clickableRow {
   cursor: pointer;
@@ -146,12 +157,6 @@
 
 .table tbody tr:nth-child(3) .rank {
   color: #cd7f32; /* Bronze */
-}
-
-/* Hover effect */
-tr:hover {
-  cursor: pointer;
-  transition: all 0.3s ease;
 }
 
 /* Filter container */

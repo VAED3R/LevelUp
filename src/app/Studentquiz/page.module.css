@@ -11,8 +11,8 @@
   overflow: hidden;
 }
 
-/* Keep navbar styling unchanged */
-:global(nav) {
+/* Fix for global nav selector */
+.nav {
   font-family: 'Poppins', sans-serif;
 }
 

@@ -11,9 +11,16 @@
   overflow: hidden;
 }
 
-/* Keep navbar styling unchanged */
-:global(nav) {
+/* Fix for global nav selector */
+.nav {
   font-family: 'Poppins', sans-serif;
+}
+
+/* Fix for global body selector */
+.body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .content {
@@ -502,4 +509,13 @@
     padding: 10px 20px;
     font-size: 10px;
   }
+}
+
+/* Fix for tr:hover selector */
+.tableRow {
+  transition: background-color 0.2s;
+}
+
+.tableRow:hover {
+  background-color: rgba(127, 55, 198, 0.2);
 } 

@@ -426,7 +426,7 @@ export default function Leaderboard() {
                             <tr 
                               key={student.id} 
                               onClick={() => handleStudentClick(student.id)}
-                              className={`${styles.clickableRow} ${isCurrentUser ? styles.currentUserRow : ''}`}
+                              className={`${styles.tableRow} ${styles.clickableRow} ${isCurrentUser ? styles.currentUserRow : ''}`}
                               data-rank={rank}
                               data-position={position}
                             >
