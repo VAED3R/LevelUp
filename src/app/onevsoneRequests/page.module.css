@@ -109,20 +109,13 @@
   padding: 5px 10px;
   border-radius: 4px;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  text-shadow: 2px 2px 0px #000;
-  box-shadow: 2px 2px 0px #000;
-  border: 2px solid #7f37c6;
-  display: inline-block;
-  min-width: 80px;
-  text-align: center;
+  font-weight: bold;
 }
 
 /* Status colors */
 .statusPending {
   background-color: #ffd700;
   color: #000;
-  text-shadow: none;
 }
 
 .statusAccepted {
@@ -435,126 +428,55 @@
 }
 
 .compareButton {
-  background: linear-gradient(45deg, #4caf50, #2e7d32);
-  color: #fff;
+  background: linear-gradient(135deg, #6B46C1, #805AD5);
+  color: white;
   border: none;
-  border-radius: 5px;
-  padding: 10px 15px;
-  font-family: 'Press Start 2P', cursive;
-  font-size: 10px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
-  text-transform: uppercase;
-  box-shadow: 0 4px 0 #1b5e20;
-  width: 100%;
-  margin-top: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .compareButton:hover {
+  background: linear-gradient(135deg, #805AD5, #6B46C1);
   transform: translateY(-2px);
-  box-shadow: 0 6px 0 #1b5e20;
-  background: linear-gradient(45deg, #66bb6a, #388e3c);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
 
 .compareButton:active {
-  transform: translateY(2px);
-  box-shadow: 0 2px 0 #1b5e20;
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .resultsSection {
-  margin-top: 20px;
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.7);
-  border: 4px solid #7f37c6;
+  margin-top: 15px;
+  padding: 15px;
+  background: #F7FAFC;
   border-radius: 8px;
-  box-shadow: 5px 5px 0px #452d57;
-  font-family: 'Press Start 2P', cursive;
+  border: 1px solid #E2E8F0;
 }
 
 .resultsSection h4 {
-  color: #fff;
-  font-size: 14px;
-  margin-bottom: 15px;
-  font-weight: normal;
-  text-align: center;
-  text-shadow: 2px 2px 0px #000;
+  color: #4A5568;
+  font-size: 16px;
+  margin-bottom: 10px;
+  font-weight: 500;
 }
 
 .resultsSection p {
-  margin: 8px 0;
-  color: #fff;
-  font-size: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  text-shadow: 2px 2px 0px #000;
-}
-
-.resultsSection p strong {
-  color: #7f37c6;
-  font-weight: normal;
+  margin: 5px 0;
+  color: #4A5568;
+  font-size: 14px;
 }
 
 .winnerText {
-  color: #4caf50;
-  font-weight: normal;
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 2px solid rgba(127, 55, 198, 0.5);
-  text-align: center;
-  font-size: 12px;
-  text-shadow: 2px 2px 0px #000;
-}
-
-.completionStatus {
-  background: rgba(0, 0, 0, 0.5);
-  border: 2px solid #7f37c6;
-  border-radius: 8px;
-  padding: 15px;
-  margin: 15px 0;
-  box-shadow: 3px 3px 0px #452d57;
-}
-
-.completionStatus p {
-  margin: 5px 0;
-  color: #fff;
-  font-size: 10px;
-  display: flex;
-  justify-content: space-between;
-  text-shadow: 2px 2px 0px #000;
-  letter-spacing: 1px;
-  font-family: 'Press Start 2P', cursive;
-}
-
-.completionStatus p strong {
-  color: #7f37c6;
-  font-weight: normal;
-  text-transform: uppercase;
-  font-size: 12px;
-  text-shadow: 2px 2px 0px #000;
-  font-family: 'Press Start 2P', cursive;
-}
-
-.statusInProgress {
-  background: #ffd700;
-  color: #000;
-  text-shadow: none;
-}
-
-.statusCompleted {
-  background: #4caf50;
-  color: #fff;
-  text-shadow: 2px 2px 0px #000;
-}
-
-.statusPending {
-  background: #2196f3;
-  color: #fff;
-  text-shadow: 2px 2px 0px #000;
-}
-
-.statusRejected {
-  background: #f44336;
-  color: #fff;
-  text-shadow: 2px 2px 0px #000;
+  color: #2F855A;
+  font-weight: 500;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #E2E8F0;
 }

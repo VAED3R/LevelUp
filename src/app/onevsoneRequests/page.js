@@ -667,80 +667,51 @@ export default function OneVsOneRequests() {
   }, [currentUser]);
 
   // Update the renderRequestCard function to show completion status
-  const renderRequestCard = (request) => {
-    const isSender = request.fromUserId === currentUser.id;
-    const isReceiver = request.toUserId === currentUser.id;
-    const isPending = request.status === "pending";
-    const isAccepted = request.status === "accepted";
-    const isCompleted = request.status === "completed";
-    const bothCompleted = request.fromUserCompleted && request.toUserCompleted;
-
-    const getStatusText = () => {
-      if (isCompleted) return "Completed";
-      if (bothCompleted) return "Both Completed";
-      if (isAccepted) {
-        if (isSender) {
-          return request.fromUserCompleted ? "You Completed" : "In Progress";
-        } else {
-          return request.toUserCompleted ? "You Completed" : "In Progress";
-        }
-      }
-      return isPending ? "Pending" : "Rejected";
-    };
-
-    const getStatusBadgeClass = () => {
-      if (isCompleted) return styles.statusCompleted;
-      if (bothCompleted) return styles.statusCompleted;
-      if (isAccepted) {
-        if (isSender) {
-          return request.fromUserCompleted ? styles.statusCompleted : styles.statusInProgress;
-        } else {
-          return request.toUserCompleted ? styles.statusCompleted : styles.statusInProgress;
-        }
-      }
-      return isPending ? styles.statusPending : styles.statusRejected;
-    };
+  const renderRequestCard = (request, isReceived) => {
+    const isCompleted = request.bothCompleted;
+    const userCompleted = isReceived ? request.toUserCompleted : request.fromUserCompleted;
+    const opponentCompleted = isReceived ? request.fromUserCompleted : request.toUserCompleted;
 
     return (
-      <div className={styles.requestCard}>
+      <div key={request.id} className={styles.requestCard}>
         <div className={styles.requestHeader}>
-          <h3>{request.topic}</h3>
-          <span className={`${styles.statusBadge} ${getStatusBadgeClass()}`}>
-            {getStatusText()}
+          <h3 className={styles.requestTitle}>
+            {isReceived ? `Challenge from ${request.fromUserName || request.fromUsername}` : `Challenge to ${request.toUserName || request.toUsername}`}
+          </h3>
+          <span className={`${styles.statusBadge} ${getStatusBadgeClass(request.status, request)}`}>
+            {getStatusText(request.status, request)}
           </span>
         </div>
         
         <div className={styles.requestDetails}>
+          <p><strong>Topic:</strong> {request.topic}</p>
           <p><strong>Difficulty:</strong> {request.difficulty}</p>
-          <p><strong>Time Limit:</strong> {request.timeLimit || 30} seconds per question</p>
           <p><strong>Points Wagered:</strong> {request.pointsWagered || 10}</p>
-          <p><strong>Opponent:</strong> {isSender ? request.toUserName : request.fromUserName}</p>
-        </div>
-
-        {isAccepted && (
-          <div className={styles.completionStatus}>
-            <p>Your Status: {isSender ? (request.fromUserCompleted ? "Completed" : "Not Completed") : (request.toUserCompleted ? "Completed" : "Not Completed")}</p>
-            <p>Opponent's Status: {isSender ? (request.toUserCompleted ? "Completed" : "Not Completed") : (request.fromUserCompleted ? "Completed" : "Not Completed")}</p>
-          </div>
-        )}
-
-        {bothCompleted && (
-          <div className={styles.resultsSection}>
-            <h4>Results</h4>
-            <p>Your Score: {isSender ? request.fromUserScore : request.toUserScore}</p>
-            <p>Opponent's Score: {isSender ? request.toUserScore : request.fromUserScore}</p>
-            <p>Time Taken: {isSender ? formatTime(request.fromUserTime) : formatTime(request.toUserTime)}</p>
-            <p>Opponent's Time: {isSender ? formatTime(request.toUserTime) : formatTime(request.fromUserTime)}</p>
-            {request.winner && (
-              <p className={styles.winnerText}>
-                Winner: {request.winner === (isSender ? "fromUser" : "toUser") ? "You" : "Opponent"}
+          <p><strong>Sent:</strong> {formatDate(request.createdAt)}</p>
+          {request.acceptedAt && <p><strong>Accepted:</strong> {formatDate(request.acceptedAt)}</p>}
+          {request.rejectedAt && <p><strong>Rejected:</strong> {formatDate(request.rejectedAt)}</p>}
+          {request.cancelledAt && <p><strong>Cancelled:</strong> {formatDate(request.cancelledAt)}</p>}
+          
+          {request.status === "accepted" && (
+            <div className={styles.completionStatus}>
+              <p>
+                <strong>Your Status:</strong> 
+                <span className={userCompleted ? styles.completed : styles.pending}>
+                  {userCompleted ? "Completed ✓" : "Not Completed"}
+                </span>
               </p>
-            )}
-          </div>
-        )}
-
+              <p>
+                <strong>Opponent Status:</strong> 
+                <span className={opponentCompleted ? styles.completed : styles.pending}>
+                  {opponentCompleted ? "Completed ✓" : "Not Completed"}
+                </span>
+              </p>
+            </div>
+          )}
+        </div>
+        
         <div className={styles.requestActions}>
-          {isPending && isReceiver && (
+          {request.status === "pending" && isReceived && (
             <>
               <button 
                 className={styles.acceptButton}
@@ -757,25 +728,7 @@ export default function OneVsOneRequests() {
             </>
           )}
           
-          {isAccepted && !bothCompleted && (
-            <button 
-              className={styles.takeQuizButton}
-              onClick={() => router.push(`/studentQuizChallenge?challengeId=${request.id}`)}
-            >
-              Take Quiz
-            </button>
-          )}
-
-          {bothCompleted && !isCompleted && (
-            <button 
-              className={styles.compareButton}
-              onClick={() => handleCompareResults(request.id)}
-            >
-              Compare Results
-            </button>
-          )}
-
-          {isPending && isSender && (
+          {request.status === "pending" && !isReceived && (
             <button 
               className={styles.cancelButton}
               onClick={() => handleCancelRequest(request.id)}
@@ -783,13 +736,32 @@ export default function OneVsOneRequests() {
               Cancel
             </button>
           )}
+          
+          {request.status === "accepted" && !userCompleted && (
+            <button 
+              className={styles.startButton}
+              onClick={() => handleStartQuiz(request.id, isReceived)}
+            >
+              Take Quiz
+            </button>
+          )}
 
-          {(isCompleted || request.status === "rejected" || request.status === "cancelled") && (
+          {request.status === "accepted" && isCompleted && !request.resultsCompared && (
+            <button 
+              className={styles.compareButton}
+              onClick={() => handleCompareResults(request.id)}
+            >
+              Compare Results
+            </button>
+          )}
+          
+          {/* Show delete button only for completed or rejected requests */}
+          {(request.status === "completed" || request.status === "rejected" || request.status === "cancelled") && (
             <button 
               className={styles.deleteButton}
               onClick={() => {
                 if (window.confirm("Are you sure you want to delete this request?")) {
-                  handleDeleteRequest(request.id, isReceiver);
+                  handleDeleteRequest(request.id, isReceived);
                 }
               }}
             >
@@ -797,6 +769,23 @@ export default function OneVsOneRequests() {
             </button>
           )}
         </div>
+
+        {request.resultsCompared && (
+          <div className={styles.resultsSection}>
+            <h4>Challenge Results</h4>
+            <div className={styles.scoreComparison}>
+              <p>Your Score: <strong>{isReceived ? request.toUserScore : request.fromUserScore}</strong></p>
+              <p>Opponent's Score: <strong>{isReceived ? request.fromUserScore : request.toUserScore}</strong></p>
+              <p className={styles.winner}>
+                {request.winner === auth.currentUser?.uid 
+                  ? "🏆 You won!" 
+                  : request.winner 
+                    ? `🏆 ${isReceived ? request.fromUserName : request.toUserName} won!`
+                    : "It's a tie!"}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -892,36 +881,26 @@ export default function OneVsOneRequests() {
         getDoc(loserRef)
       ]);
 
-      if (!winnerDoc.exists() || !loserDoc.exists()) {
-        throw new Error("User documents not found");
-      }
-
       const winnerPoints = winnerDoc.data().totalPoints || 0;
       const loserPoints = loserDoc.data().totalPoints || 0;
 
-      // Winner gets double the wagered points
-      const pointsToAdd = pointsWagered * 2;
-      const pointsToSubtract = pointsWagered;
-
       await Promise.all([
         updateDoc(winnerRef, {
-          totalPoints: winnerPoints + pointsToAdd,
+          totalPoints: winnerPoints + pointsWagered,
           pointsHistory: arrayUnion({
-            amount: pointsToAdd,
+            amount: pointsWagered,
             type: "challenge_win",
             timestamp: new Date().toISOString(),
-            challengeId: requestId,
-            description: "Won 1v1 challenge"
+            challengeId: requestId
           })
         }),
         updateDoc(loserRef, {
-          totalPoints: Math.max(0, loserPoints - pointsToSubtract),
+          totalPoints: Math.max(0, loserPoints - pointsWagered),
           pointsHistory: arrayUnion({
-            amount: -pointsToSubtract,
+            amount: -pointsWagered,
             type: "challenge_loss",
             timestamp: new Date().toISOString(),
-            challengeId: requestId,
-            description: "Lost 1v1 challenge"
+            challengeId: requestId
           })
         })
       ]);
@@ -935,26 +914,11 @@ export default function OneVsOneRequests() {
         )
       );
 
-      setSentRequests(prevRequests => 
-        prevRequests.map(req => 
-          req.id === requestId 
-            ? { ...req, winner, status: "completed" }
-            : req
-        )
-      );
-
-      alert(`Challenge completed! ${isSender ? (fromUserWins ? "You" : "Opponent") : (fromUserWins ? "Opponent" : "You")} won! Points have been updated.`);
+      alert(`Challenge completed! ${isSender ? (fromUserWins ? "You" : "Opponent") : (fromUserWins ? "Opponent" : "You")} won!`);
     } catch (error) {
       console.error("Error comparing results:", error);
       alert("Failed to compare results. Please try again.");
     }
-  };
-
-  const formatTime = (seconds) => {
-    if (!seconds) return "0:00";
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
     return (
@@ -991,16 +955,8 @@ export default function OneVsOneRequests() {
           ) : (
             <div className={styles.requestsContainer}>
               {activeTab === "received" 
-                ? receivedRequests.map(request => (
-                    <div key={request.id}>
-                      {renderRequestCard(request)}
-                    </div>
-                  ))
-                : sentRequests.map(request => (
-                    <div key={request.id}>
-                      {renderRequestCard(request)}
-                    </div>
-                  ))
+                ? receivedRequests.map(request => renderRequestCard(request, true))
+                : sentRequests.map(request => renderRequestCard(request, false))
               }
             </div>
           )}
