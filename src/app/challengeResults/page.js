@@ -208,8 +208,17 @@ export default function ChallengeResults() {
       console.log("[claimPoints] Current user:", currentUser);
       console.log("[claimPoints] Challenge data:", challenge);
       
+      // Check if currentUser exists
+      if (!currentUser) {
+        throw new Error("User not authenticated");
+      }
+
+      // Check if challenge data exists
+      if (!challenge || !challenge.fromUserId || !challenge.toUserId) {
+        throw new Error("Invalid challenge data");
+      }
+      
       // Get the latest challenge data
-      // We need to use the correct challenge ID format: requestId_userId
       const isFromUser = challenge.fromUserId === currentUser.id;
       const fromUserChallengeId = `${challengeId}_${challenge.fromUserId}`;
       const toUserChallengeId = `${challengeId}_${challenge.toUserId}`;
@@ -244,7 +253,7 @@ export default function ChallengeResults() {
       
       // Get quiz data for fallPoints
       console.log("[claimPoints] Fetching quiz data for quizId:", challenge.quizId);
-      const quizRef = doc(db, "quizzes", challenge.quizId);
+      const quizRef = doc(db, "quizzes", challenge.quizId || "unknown");
       const quizDoc = await getDoc(quizRef);
       const quizData = quizDoc.exists() ? quizDoc.data() : { subject: "unknown", topic: "unknown" };
       
