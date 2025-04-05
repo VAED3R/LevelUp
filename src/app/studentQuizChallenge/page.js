@@ -350,6 +350,7 @@ export default function StudentQuizChallenge() {
     try {
       const isFromUser = challenge.fromUserId === currentUser.id;
       const challengeRef = doc(db, "challenges", challengeId);
+      const requestRef = doc(db, "onevsoneRequests", challenge.requestId);
       
       console.log("[saveQuizResults] Starting to save results");
       console.log("[saveQuizResults] isFromUser:", isFromUser);
@@ -378,9 +379,12 @@ export default function StudentQuizChallenge() {
       
       console.log("[saveQuizResults] Update data to be saved:", updateData);
       
-      // First update the user's score and time
-      await updateDoc(challengeRef, updateData);
-      console.log("[saveQuizResults] Updated user's score and time");
+      // Update both collections
+      await Promise.all([
+        updateDoc(challengeRef, updateData),
+        updateDoc(requestRef, updateData)
+      ]);
+      console.log("[saveQuizResults] Updated user's score and time in both collections");
       
       // Get the latest challenge data
       const challengeDoc = await getDoc(challengeRef);
@@ -408,22 +412,21 @@ export default function StudentQuizChallenge() {
         const loserId = fromUserWins ? updatedChallenge.toUserId : updatedChallenge.fromUserId;
         const pointsWagered = updatedChallenge.pointsWagered || 10;
         
-        // Update challenge with winner
-        await updateDoc(challengeRef, {
-          winner,
-          status: "completed",
-          completedAt: new Date().toISOString()
-        });
-        console.log("[saveQuizResults] Updated challenge with winner");
-        
-        // Update request status
-        const requestRef = doc(db, "onevsoneRequests", challenge.requestId);
-        await updateDoc(requestRef, {
-          status: "completed",
-          completedAt: new Date().toISOString(),
-          winner: winnerId
-        });
-        console.log("[saveQuizResults] Updated request status");
+        // Update both collections with winner
+        await Promise.all([
+          updateDoc(challengeRef, {
+            winner,
+            status: "completed",
+            completedAt: new Date().toISOString()
+          }),
+          updateDoc(requestRef, {
+            winner,
+            status: "completed",
+            completedAt: new Date().toISOString(),
+            winner: winnerId
+          })
+        ]);
+        console.log("[saveQuizResults] Updated both collections with winner");
         
         // Get current points for both users
         const [winnerDoc, loserDoc] = await Promise.all([
