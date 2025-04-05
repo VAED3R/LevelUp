@@ -21,6 +21,7 @@ export default function Leaderboard() {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showRequestForm, setShowRequestForm] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [quizParams, setQuizParams] = useState({
     topic: "",
     difficulty: "medium",
@@ -108,13 +109,35 @@ export default function Leaderboard() {
   const handleClassChange = (event) => {
     const selected = event.target.value;
     setSelectedClass(selected);
+    applyFilters(selected, searchQuery);
+  };
 
-    if (selected === "All") {
-      setFilteredStudents(students);
-    } else {
-      const filtered = students.filter(student => student.class === selected);
-      setFilteredStudents(filtered);
+  // Handle search input change
+  const handleSearchChange = (event) => {
+    const query = event.target.value;
+    setSearchQuery(query);
+    applyFilters(selectedClass, query);
+  };
+
+  // Apply both class and search filters
+  const applyFilters = (classFilter, searchText) => {
+    let filtered = [...students];
+    
+    // Apply class filter
+    if (classFilter !== "All") {
+      filtered = filtered.filter(student => student.class === classFilter);
     }
+    
+    // Apply search filter
+    if (searchText.trim()) {
+      const query = searchText.toLowerCase().trim();
+      filtered = filtered.filter(student => 
+        student.name.toLowerCase().includes(query) || 
+        (student.class && student.class.toLowerCase().includes(query))
+      );
+    }
+    
+    setFilteredStudents(filtered);
   };
 
   // 🏅 Function to display badges with overall topper persistence
@@ -353,6 +376,21 @@ export default function Leaderboard() {
                     ))}
                   </select>
                 </div>
+                
+                <div className={styles.searchGroup}>
+                  <div className={styles.searchContainer}>
+                    <input
+                      type="text"
+                      id="searchInput"
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                      placeholder="Search students..."
+                      className={styles.searchInput}
+                    />
+                    <span className={styles.searchIcon}>🔍</span>
+                  </div>
+                </div>
+                
                 <div className={styles.onevoneButtonContainer}>
                   <Link href="/onevsoneRequests" className={styles.onevoneButton}>
                     Go to 1v1 Challenges
@@ -375,11 +413,12 @@ export default function Leaderboard() {
                     </thead>
                     <tbody>
                       {filteredStudents
-                        .sort((a, b) => b.totalPoints - a.totalPoints)
                         .map((student, index) => {
+                          // Find the original index in the main students array to maintain original rank
+                          const originalIndex = students.findIndex(s => s.id === student.id);
+                          const rank = originalIndex + 1;
                           const isCurrentUser = currentUser && student.id === currentUser.id;
-                          const rank = index + 1;
-                          const totalStudents = filteredStudents.length;
+                          const totalStudents = students.length;
                           const isTopHalf = rank <= Math.ceil(totalStudents / 2);
                           const position = isCurrentUser ? (isTopHalf ? "top" : "bottom") : null;
                           

@@ -55,6 +55,9 @@
     padding: 30px;
     box-shadow: 5px 5px 0px #452d57;
     transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .card:hover {
