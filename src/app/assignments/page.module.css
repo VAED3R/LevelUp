@@ -1,229 +1,291 @@
 .container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
-  padding-bottom: 2rem;
+  width: 100%;
+  background: radial-gradient(circle at bottom, #5a35ab, #181e39, #0a0a1a);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  position: relative;
+  overflow-x: hidden;
 }
 
 .content {
+  flex: 1;
   max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
   padding: 2rem;
+  padding-top: 6rem;
+  position: relative;
+  z-index: 1;
 }
 
 .title {
-  font-size: 2.5rem;
-  color: #2c3e50;
+  font-family: 'Poppins', sans-serif;
+  font-size: 2rem;
+  font-weight: 600;
+  color: #fff;
   margin-bottom: 2rem;
-  text-align: center;
-  font-weight: 700;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  position: relative;
+  padding-left: 1rem;
+}
+
+.title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 80%;
+  background: #5a35ab;
+  border-radius: 2px;
 }
 
 .form {
-  background-color: white;
-  padding: 2.5rem;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.form:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+  background: #ffffff;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 2px solid #5a35ab;
 }
 
 .filters {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-  margin-bottom: 2.5rem;
-  background-color: #f8f9fa;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  background: rgba(255, 255, 255, 0.03);
   padding: 1.5rem;
-  border-radius: 12px;
-  border: 1px solid #e9ecef;
+  border-radius: 0.75rem;
+  border: 2px solid #5a35ab;
 }
 
 .formGroup {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
+  text-align: left;
 }
 
 .label {
   display: block;
-  margin-bottom: 0.75rem;
-  color: #495057;
-  font-weight: 600;
-  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  color: #1a1f3c;
+  font-weight: 500;
+  font-size: 0.9rem;
+  font-family: 'Poppins', sans-serif;
+  letter-spacing: 0.5px;
 }
 
 .select {
   width: 100%;
-  padding: 0.875rem;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  font-size: 1rem;
-  color: #495057;
-  background-color: white;
-  transition: all 0.3s ease;
+  padding: 0.75rem 1rem;
+  border: 2px solid #5a35ab;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  color: #1a1f3c;
+  background: #ffffff;
+  transition: all 0.2s ease;
   cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%235a35ab' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
 }
 
 .select:hover {
-  border-color: #ced4da;
+  border-color: #5a35ab;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 8px rgba(90, 53, 171, 0.15);
 }
 
 .select:focus {
   outline: none;
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  border-color: #5a35ab;
+  box-shadow: 0 0 0 3px rgba(90, 53, 171, 0.2);
+}
+
+.select option {
+  background-color: #ffffff;
+  color: #1a1f3c;
+  padding: 0.75rem;
 }
 
 .input {
   width: 100%;
-  padding: 0.875rem;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  font-size: 1rem;
-  color: #495057;
-  transition: all 0.3s ease;
+  padding: 0.75rem 1rem;
+  border: 2px solid #5a35ab;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  color: #1a1f3c;
+  background: #ffffff;
+  transition: all 0.2s ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.input::placeholder {
+  color: rgba(26, 31, 60, 0.5);
 }
 
 .input:hover {
-  border-color: #ced4da;
+  border-color: #5a35ab;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 8px rgba(90, 53, 171, 0.15);
 }
 
 .input:focus {
   outline: none;
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  border-color: #5a35ab;
+  box-shadow: 0 0 0 3px rgba(90, 53, 171, 0.2);
+}
+
+.commonMarks {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  margin: 1.5rem 0;
+  border: 2px solid #5a35ab;
+}
+
+.assignmentDetails {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  margin: 1.5rem 0;
+  border: 2px solid #5a35ab;
 }
 
 .textarea {
   width: 100%;
-  padding: 0.875rem;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  font-size: 1rem;
-  color: #495057;
+  padding: 0.75rem 1rem;
+  border: 2px solid #5a35ab;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  color: #1a1f3c;
+  background: #ffffff;
+  transition: all 0.2s ease;
   resize: vertical;
   min-height: 100px;
-  transition: all 0.3s ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.textarea::placeholder {
+  color: rgba(26, 31, 60, 0.5);
 }
 
 .textarea:hover {
-  border-color: #ced4da;
+  border-color: #5a35ab;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 8px rgba(90, 53, 171, 0.15);
 }
 
 .textarea:focus {
   outline: none;
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-}
-
-.assignmentDetails {
-  margin-bottom: 2.5rem;
-  padding: 1.5rem;
-  background-color: #f8f9fa;
-  border-radius: 12px;
-  border: 1px solid #e9ecef;
-  transition: transform 0.3s ease;
-}
-
-.assignmentDetails:hover {
-  transform: translateY(-2px);
+  border-color: #5a35ab;
+  box-shadow: 0 0 0 3px rgba(90, 53, 171, 0.2);
 }
 
 .marksContainer {
-  margin-top: 2.5rem;
-  background-color: #f8f9fa;
+  background: rgba(255, 255, 255, 0.03);
   padding: 1.5rem;
-  border-radius: 12px;
-  border: 1px solid #e9ecef;
+  border-radius: 0.75rem;
+  margin: 1.5rem 0;
+  border: 2px solid #5a35ab;
 }
 
 .subtitle {
-  font-size: 1.75rem;
-  color: #2c3e50;
-  margin-bottom: 1.5rem;
+  color: #1a1f3c;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #e9ecef;
+  text-align: left;
+  position: relative;
+  padding-left: 0.75rem;
+}
+
+.subtitle::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 70%;
+  background: #5a35ab;
+  border-radius: 1.5px;
 }
 
 .instruction {
-  background-color: #e3f2fd;
-  color: #1976d2;
-  padding: 1rem;
-  border-radius: 8px;
+  color: #1a1f3c;
+  font-size: 0.9rem;
   margin-bottom: 1.5rem;
-  font-size: 1rem;
-  line-height: 1.5;
-  border-left: 4px solid #1976d2;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.instruction::before {
-  content: "ℹ️";
-  font-size: 1.2rem;
+  font-family: 'Poppins', sans-serif;
+  text-align: left;
+  padding: 1rem;
+  background: rgba(90, 53, 171, 0.05);
+  border-radius: 0.5rem;
+  border-left: 4px solid #5a35ab;
 }
 
 .studentMarks {
-  background-color: white;
-  padding: 1.5rem;
-  border-radius: 12px;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  margin-bottom: 1rem;
+  border: 2px solid #5a35ab;
+  transition: all 0.2s ease;
 }
 
 .studentMarks:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(90, 53, 171, 0.3);
+  border-color: #5a35ab;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .studentName {
-  font-size: 1.3rem;
-  color: #2c3e50;
-  margin-bottom: 1.25rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.studentName::before {
-  content: "👤";
-  font-size: 1.2rem;
+  color: #1a1f3c;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  text-align: left;
 }
 
 .marksInputs {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  align-items: center;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  align-items: start;
 }
 
 .submitButton {
   width: 100%;
-  padding: 1rem;
-  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-  color: white;
+  padding: 0.875rem 1.5rem;
+  background: linear-gradient(45deg, #5a35ab, #4a2a8f);
+  color: #fff;
   border: none;
-  border-radius: 8px;
-  font-size: 1.1rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 2rem;
+  transition: all 0.2s ease;
+  margin-top: 1.5rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 4px 12px rgba(90, 53, 171, 0.2);
 }
 
 .submitButton:hover {
-  background: linear-gradient(135deg, #357abd 0%, #2c6aa3 100%);
+  background: linear-gradient(45deg, #4a2a8f, #5a35ab);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+  box-shadow: 0 6px 16px rgba(90, 53, 171, 0.3);
 }
 
 .submitButton:active {
@@ -231,25 +293,29 @@
 }
 
 .error {
-  color: #dc3545;
+  color: #ef4444;
   margin-top: 1rem;
   padding: 1rem;
-  background-color: #fff5f5;
-  border-radius: 8px;
-  border: 1px solid #ffcdd2;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 0.5rem;
+  border: 2px solid #ef4444;
   font-weight: 500;
+  font-family: 'Poppins', sans-serif;
   animation: slideIn 0.3s ease;
+  text-align: left;
 }
 
 .success {
-  color: #28a745;
+  color: #10b981;
   margin-top: 1rem;
   padding: 1rem;
-  background-color: #f0fff4;
-  border-radius: 8px;
-  border: 1px solid #c8e6c9;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 0.5rem;
+  border: 2px solid #10b981;
   font-weight: 500;
+  font-family: 'Poppins', sans-serif;
   animation: slideIn 0.3s ease;
+  text-align: left;
 }
 
 @keyframes slideIn {
@@ -263,20 +329,21 @@
   }
 }
 
-/* Loading state */
 .loading {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 200px;
+  min-height: 100px;
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
 }
 
 .loading::after {
   content: "";
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #4a90e2;
+  width: 30px;
+  height: 30px;
+  border: 3px solid rgba(90, 53, 171, 0.2);
+  border-top: 3px solid #5a35ab;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -286,23 +353,25 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .content {
     padding: 1rem;
+    padding-top: 5rem;
   }
 
   .form {
-    padding: 1.5rem;
+    padding: 1.25rem;
   }
 
   .title {
-    font-size: 2rem;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
   }
 
   .filters {
     grid-template-columns: 1fr;
     gap: 1rem;
+    padding: 1rem;
   }
 
   .marksInputs {
@@ -313,108 +382,9 @@
     padding: 1rem;
   }
 
-  .submitButton {
-    padding: 0.875rem;
-    font-size: 1rem;
+  .assignmentDetails,
+  .commonMarks,
+  .marksContainer {
+    padding: 1rem;
   }
-}
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .container {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d3436 100%);
-  }
-
-  .form {
-    background-color: #2d3436;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  }
-
-  .title {
-    color: #f5f6fa;
-  }
-
-  .label {
-    color: #dfe6e9;
-  }
-
-  .select, .input, .textarea {
-    background-color: #2d3436;
-    border-color: #636e72;
-    color: #f5f6fa;
-  }
-
-  .select:hover, .input:hover, .textarea:hover {
-    border-color: #b2bec3;
-  }
-
-  .select:focus, .input:focus, .textarea:focus {
-    border-color: #74b9ff;
-    box-shadow: 0 0 0 3px rgba(116, 185, 255, 0.2);
-  }
-
-  .studentMarks {
-    background-color: #2d3436;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-  }
-
-  .studentName {
-    color: #f5f6fa;
-  }
-
-  .filters, .assignmentDetails, .marksContainer {
-    background-color: #2d3436;
-    border-color: #636e72;
-  }
-
-  .subtitle {
-    color: #f5f6fa;
-    border-bottom-color: #636e72;
-  }
-
-  .error {
-    background-color: #2d3436;
-    border-color: #d63031;
-  }
-
-  .success {
-    background-color: #2d3436;
-    border-color: #00b894;
-  }
-
-  .instruction {
-    background-color: #1a237e;
-    color: #90caf9;
-    border-left-color: #90caf9;
-  }
-}
-
-.commonMarks {
-  margin: 20px 0;
-  padding: 15px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.commonMarks label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: #333;
-}
-
-.commonMarks input {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 16px;
-  transition: border-color 0.3s ease;
-}
-
-.commonMarks input:focus {
-  outline: none;
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
 }

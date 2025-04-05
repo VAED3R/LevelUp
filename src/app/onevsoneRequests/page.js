@@ -156,8 +156,12 @@ export default function OneVsOneRequests() {
         toUserTime: null,
         fromUserCompleted: false,
         toUserCompleted: false,
+        fromUserCompletedAt: null,
+        toUserCompletedAt: null,
         winner: null,
         resultsCompared: false,
+        fromUser: null,
+        toUser: null,
         completionTime: {
           fromUser: null,
           toUser: null
@@ -179,20 +183,20 @@ export default function OneVsOneRequests() {
         isSender: false,
         isOpponentCompleted: false
       });
-      
-      // Update the local state
-      setReceivedRequests(prevRequests => 
-        prevRequests.map(request => 
-          request.id === requestId 
-            ? { ...request, status: "accepted" } 
-            : request
+
+      // Update local state
+      setReceivedRequests(prevRequests =>
+        prevRequests.map(req =>
+          req.id === requestId
+            ? { ...req, status: "accepted", acceptedAt: new Date().toISOString() }
+            : req
         )
       );
-      
-      alert("Request accepted! You can now take the quiz when you're ready.");
-    } catch (err) {
-      console.error("Error accepting request:", err);
-      alert("Failed to accept request. Please try again.");
+
+      alert("Challenge accepted successfully!");
+    } catch (error) {
+      console.error("Error accepting request:", error);
+      alert("Failed to accept challenge. Please try again.");
     }
   };
 
