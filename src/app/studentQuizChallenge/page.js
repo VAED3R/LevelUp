@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { db, auth } from "@/lib/firebase";
-import { doc, getDoc, updateDoc, collection, getDocs, query, where, onSnapshot } from "firebase/firestore";
+import { doc, getDoc, updateDoc, collection, getDocs, query, where, onSnapshot, arrayUnion } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import Navbar from "@/components/studentNavbar";
 import styles from "./page.module.css";
@@ -363,12 +363,26 @@ export default function StudentQuizChallenge() {
           fromUserScore: score,
           fromUserTime: totalTimeTaken,
           fromUserCompletedAt: new Date().toISOString(),
-          fromUserCompleted: true
+          fromUserCompleted: true,
+          fromUser: {
+            id: currentUser.id,
+            name: currentUser.displayName || "Anonymous",
+            score: score,
+            time: totalTimeTaken,
+            completedAt: new Date().toISOString()
+          }
         } : {
           toUserScore: score,
           toUserTime: totalTimeTaken,
           toUserCompletedAt: new Date().toISOString(),
-          toUserCompleted: true
+          toUserCompleted: true,
+          toUser: {
+            id: currentUser.id,
+            name: currentUser.displayName || "Anonymous",
+            score: score,
+            time: totalTimeTaken,
+            completedAt: new Date().toISOString()
+          }
         })
       };
 
@@ -406,23 +420,22 @@ export default function StudentQuizChallenge() {
            updatedChallenge.fromUserTime < updatedChallenge.toUserTime);
         
         const winner = fromUserWins ? "fromUser" : "toUser";
-        console.log("[saveQuizResults] Winner determined:", winner);
-        
         const winnerId = fromUserWins ? updatedChallenge.fromUserId : updatedChallenge.toUserId;
         const loserId = fromUserWins ? updatedChallenge.toUserId : updatedChallenge.fromUserId;
         const pointsWagered = updatedChallenge.pointsWagered || 10;
         
         // Update both collections with winner
+        const winnerUpdate = {
+          winner,
+          status: "completed",
+          completedAt: new Date().toISOString(),
+          resultsCompared: true
+        };
+        
         await Promise.all([
-          updateDoc(challengeRef, {
-            winner,
-            status: "completed",
-            completedAt: new Date().toISOString()
-          }),
+          updateDoc(challengeRef, winnerUpdate),
           updateDoc(requestRef, {
-            winner,
-            status: "completed",
-            completedAt: new Date().toISOString(),
+            ...winnerUpdate,
             winner: winnerId
           })
         ]);
@@ -440,10 +453,22 @@ export default function StudentQuizChallenge() {
         // Transfer points
         await Promise.all([
           updateDoc(doc(db, "students", winnerId), {
-            totalPoints: winnerPoints + pointsWagered
+            totalPoints: winnerPoints + pointsWagered,
+            pointsHistory: arrayUnion({
+              amount: pointsWagered,
+              type: "challenge_win",
+              timestamp: new Date().toISOString(),
+              challengeId: challenge.requestId
+            })
           }),
           updateDoc(doc(db, "students", loserId), {
-            totalPoints: Math.max(0, loserPoints - pointsWagered)
+            totalPoints: Math.max(0, loserPoints - pointsWagered),
+            pointsHistory: arrayUnion({
+              amount: -pointsWagered,
+              type: "challenge_loss",
+              timestamp: new Date().toISOString(),
+              challengeId: challenge.requestId
+            })
           })
         ]);
         console.log("[saveQuizResults] Transferred points between users");
