@@ -3,6 +3,7 @@ import styles from './ParentChatbot.module.css';
 import { FaRobot, FaTimes, FaGraduationCap, FaHandHoldingHeart, FaQuestion } from 'react-icons/fa';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where, getDoc, doc } from 'firebase/firestore';
+import { auth } from '@/lib/firebase';
 
 const ParentChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,6 +13,7 @@ const ParentChatbot = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [studentPerformance, setStudentPerformance] = useState(null);
   const [showWelcomePopup, setShowWelcomePopup] = useState(true);
+  const [parentName, setParentName] = useState('');
 
   useEffect(() => {
     // Show welcome popup for 5 seconds
@@ -19,8 +21,51 @@ const ParentChatbot = () => {
       setShowWelcomePopup(false);
     }, 5000);
 
+    // Fetch parent name
+    fetchParentName();
+
     return () => clearTimeout(timer);
   }, []);
+
+  const fetchParentName = async () => {
+    try {
+      // Get parent's email from Firebase auth or localStorage
+      let parentEmail = localStorage.getItem('userEmail');
+      
+      // If not in localStorage, try to get from Firebase auth
+      if (!parentEmail) {
+        const currentUser = auth.currentUser;
+        if (currentUser && currentUser.email) {
+          parentEmail = currentUser.email;
+          // Store in localStorage for future use
+          localStorage.setItem('userEmail', parentEmail);
+        }
+      }
+      
+      if (!parentEmail) {
+        console.log('No parent email found');
+        return;
+      }
+
+      // Find parent document
+      const parentQuery = query(
+        collection(db, "users"),
+        where("email", "==", parentEmail),
+        where("role", "==", "parent")
+      );
+      const parentSnapshot = await getDocs(parentQuery);
+      
+      if (parentSnapshot.empty) {
+        console.log('No parent document found');
+        return;
+      }
+      
+      const parentData = parentSnapshot.docs[0].data();
+      setParentName(parentData.name || 'Parent');
+    } catch (error) {
+      console.error('Error fetching parent name:', error);
+    }
+  };
 
   const formatMessage = (text) => {
     // Remove markdown symbols and format the text
@@ -38,8 +83,19 @@ const ParentChatbot = () => {
 
   const fetchStudentPerformance = async () => {
     try {
-      // Get parent's email from localStorage or auth context
-      const parentEmail = localStorage.getItem('userEmail');
+      // Get parent's email from Firebase auth or localStorage
+      let parentEmail = localStorage.getItem('userEmail');
+      
+      // If not in localStorage, try to get from Firebase auth
+      if (!parentEmail) {
+        const currentUser = auth.currentUser;
+        if (currentUser && currentUser.email) {
+          parentEmail = currentUser.email;
+          // Store in localStorage for future use
+          localStorage.setItem('userEmail', parentEmail);
+        }
+      }
+      
       console.log('Parent email:', parentEmail);
       
       if (!parentEmail) {
@@ -102,14 +158,16 @@ const ParentChatbot = () => {
       };
       console.log('Student info:', studentInfo);
 
-      // Fetch performance data from both marks and quizzes collections
-      const [quizzesSnapshot, marksSnapshot] = await Promise.all([
+      // Fetch performance data from quizzes, marks, and attendance collections
+      const [quizzesSnapshot, marksSnapshot, attendanceSnapshot] = await Promise.all([
         getDocs(query(collection(db, "quizzes"), where("studentId", "==", studentId))),
-        getDocs(query(collection(db, "marks"), where("studentId", "==", studentId)))
+        getDocs(query(collection(db, "marks"), where("studentId", "==", studentId))),
+        getDocs(query(collection(db, "attendance"), where("studentId", "==", studentId)))
       ]);
 
       console.log('Quizzes found:', quizzesSnapshot.size);
       console.log('Marks found:', marksSnapshot.size);
+      console.log('Attendance records found:', attendanceSnapshot.size);
 
       const quizzes = quizzesSnapshot.docs.map(doc => {
         const data = doc.data();
@@ -136,6 +194,14 @@ const ParentChatbot = () => {
         };
       });
 
+      const attendance = attendanceSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          ...data,
+          id: doc.id
+        };
+      });
+
       // Calculate performance metrics
       const quizScores = quizzes.map(q => q.score || 0);
       const avgQuizScore = quizScores.length > 0 
@@ -147,15 +213,56 @@ const ParentChatbot = () => {
         ? (testScores.reduce((a, b) => a + b, 0) / testScores.length).toFixed(2)
         : 0;
 
+      // Calculate attendance rate
+      const totalAttendance = attendance.length;
+      const presentDays = attendance.filter(a => a.status === "present").length;
+      const attendanceRate = totalAttendance > 0
+        ? ((presentDays / totalAttendance) * 100).toFixed(2)
+        : 0;
+
+      // Calculate subject-wise performance
+      const subjectPerformance = quizzes.reduce((acc, quiz) => {
+        if (!acc[quiz.subject]) {
+          acc[quiz.subject] = { total: 0, count: 0 };
+        }
+        acc[quiz.subject].total += quiz.score || 0;
+        acc[quiz.subject].count += 1;
+        return acc;
+      }, {});
+
+      // Add test scores to subject performance
+      tests.forEach(test => {
+        if (!subjectPerformance[test.subject]) {
+          subjectPerformance[test.subject] = { total: 0, count: 0 };
+        }
+        subjectPerformance[test.subject].total += parseFloat(test.percentage) || 0;
+        subjectPerformance[test.subject].count += 1;
+      });
+
+      // Calculate average for each subject
+      const subjectAverages = Object.entries(subjectPerformance).map(([subject, data]) => ({
+        subject,
+        average: (data.total / data.count).toFixed(2),
+        count: data.count
+      }));
+
+      // Sort subjects by performance (highest first)
+      const sortedSubjects = subjectAverages.sort((a, b) => parseFloat(b.average) - parseFloat(a.average));
+
       const performance = {
         student: studentInfo,
         quizzes,
         tests,
+        attendance,
         metrics: {
           avgQuizScore,
           avgTestScore,
           totalQuizzes: quizzes.length,
-          totalTests: tests.length
+          totalTests: tests.length,
+          attendanceRate,
+          totalAttendance,
+          presentDays,
+          subjectPerformance: sortedSubjects
         }
       };
 
@@ -184,7 +291,9 @@ const ParentChatbot = () => {
     const initialMessage = option === 'counseling' 
       ? "Hello! I'm here to help with counseling. Could you please tell me what specific concerns you have about your child?"
       : option === 'career'
-      ? "Hello! I'm here to help with career guidance. I'll analyze your child's performance to suggest suitable career paths. What specific career-related questions do you have?"
+      ? studentPerformance 
+        ? "Hello! I'm here to help with career guidance. I've analyzed your child's performance and can suggest suitable career paths. What specific career-related questions do you have?"
+        : "Hello! I'm here to help with career guidance. I'm currently analyzing your child's performance data. What specific career-related questions do you have?"
       : "Hello! I'm here to help. What would you like to know?";
     
     setMessages([{
@@ -223,12 +332,31 @@ const ParentChatbot = () => {
           - Tests: ${studentPerformance.tests.length} completed
           ${studentPerformance.quizzes.length > 0 ? `- Average Quiz Score: ${studentPerformance.metrics.avgQuizScore}%` : ''}
           ${studentPerformance.tests.length > 0 ? `- Average Test Score: ${studentPerformance.metrics.avgTestScore}%` : ''}
-          ${studentPerformance.quizzes.length === 0 && studentPerformance.tests.length === 0 ? 'No performance data available yet.' : 'Average scores and subject strengths will be analyzed for career recommendations.'}
+          - Attendance Rate: ${studentPerformance.metrics.attendanceRate}% (${studentPerformance.metrics.presentDays} out of ${studentPerformance.metrics.totalAttendance} days)
+          
+          Subject-wise Performance (sorted by performance):
+          ${studentPerformance.metrics.subjectPerformance.map(subject => 
+            `- ${subject.subject}: ${subject.average}% (${subject.count} assessments)`
+          ).join('\n')}
+          
+          Favorite Subjects (based on performance):
+          ${studentPerformance.metrics.subjectPerformance.slice(0, 3).map(subject => 
+            `- ${subject.subject}: ${subject.average}%`
+          ).join('\n')}
         ` : "No performance data available yet.";
         
         context = `You are a career guidance assistant helping parents understand career options for their children. 
         Based on the student's performance data: ${performanceSummary}
-        Provide relevant information about educational paths and career opportunities based on the child's academic strengths and interests.
+        
+        Please provide personalized career guidance by:
+        1. Analyzing the student's academic strengths based on their performance in different subjects
+        2. Suggesting specific career paths that align with their strong subjects
+        3. Recommending educational paths (college majors, courses) that would best suit their academic profile
+        4. Providing insights on how their current performance might translate to future career success
+        5. Suggesting areas for improvement if needed for their desired career path
+        
+        Keep responses focused on the student's actual performance data and provide specific, actionable recommendations.
+        Avoid generic advice and ensure all suggestions are directly tied to the student's academic profile.
         Keep responses concise and avoid using markdown formatting.`;
       } else {
         context = "You are a helpful assistant. Provide clear, concise answers to the user's questions. Avoid using markdown formatting.";
@@ -286,7 +414,7 @@ const ParentChatbot = () => {
         <div className={styles.welcomePopup}>
           <div className={styles.welcomeContent}>
             <FaRobot className={styles.welcomeIcon} />
-            <p>Hi! I'm your AI assistant. I can help you with:</p>
+            <p>Hi {parentName ? parentName : 'there'}! I'm your AI assistant. I can help you with:</p>
             <ul>
               <li>Career guidance for your child</li>
               <li>Academic counseling</li>
