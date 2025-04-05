@@ -668,9 +668,12 @@ export default function OneVsOneRequests() {
 
   // Update the renderRequestCard function to show completion status
   const renderRequestCard = (request, isReceived) => {
-    const isCompleted = request.bothCompleted;
-    const userCompleted = isReceived ? request.toUserCompleted : request.fromUserCompleted;
-    const opponentCompleted = isReceived ? request.fromUserCompleted : request.toUserCompleted;
+    const isSender = request.fromUserId === currentUser.id;
+    const isReceiver = request.toUserId === currentUser.id;
+    const isPending = request.status === "pending";
+    const isAccepted = request.status === "accepted";
+    const isCompleted = request.status === "completed";
+    const bothCompleted = request.fromUserCompleted && request.toUserCompleted;
 
     return (
       <div key={request.id} className={styles.requestCard}>
@@ -686,32 +689,24 @@ export default function OneVsOneRequests() {
         <div className={styles.requestDetails}>
           <p><strong>Topic:</strong> {request.topic}</p>
           <p><strong>Difficulty:</strong> {request.difficulty}</p>
+          <p><strong>Time Limit:</strong> {request.timeLimit || 30} seconds per question</p>
           <p><strong>Points Wagered:</strong> {request.pointsWagered || 10}</p>
+          <p><strong>Opponent:</strong> {isSender ? request.toUserName : request.fromUserName}</p>
           <p><strong>Sent:</strong> {formatDate(request.createdAt)}</p>
           {request.acceptedAt && <p><strong>Accepted:</strong> {formatDate(request.acceptedAt)}</p>}
           {request.rejectedAt && <p><strong>Rejected:</strong> {formatDate(request.rejectedAt)}</p>}
           {request.cancelledAt && <p><strong>Cancelled:</strong> {formatDate(request.cancelledAt)}</p>}
           
-          {request.status === "accepted" && (
+          {isAccepted && (
             <div className={styles.completionStatus}>
-              <p>
-                <strong>Your Status:</strong> 
-                <span className={userCompleted ? styles.completed : styles.pending}>
-                  {userCompleted ? "Completed ✓" : "Not Completed"}
-                </span>
-              </p>
-              <p>
-                <strong>Opponent Status:</strong> 
-                <span className={opponentCompleted ? styles.completed : styles.pending}>
-                  {opponentCompleted ? "Completed ✓" : "Not Completed"}
-                </span>
-              </p>
+              <p>Your Status: {isSender ? (request.fromUserCompleted ? "Completed" : "Not Completed") : (request.toUserCompleted ? "Completed" : "Not Completed")}</p>
+              <p>Opponent's Status: {isSender ? (request.toUserCompleted ? "Completed" : "Not Completed") : (request.fromUserCompleted ? "Completed" : "Not Completed")}</p>
             </div>
           )}
         </div>
         
         <div className={styles.requestActions}>
-          {request.status === "pending" && isReceived && (
+          {isPending && isReceiver && (
             <>
               <button 
                 className={styles.acceptButton}
@@ -728,7 +723,25 @@ export default function OneVsOneRequests() {
             </>
           )}
           
-          {request.status === "pending" && !isReceived && (
+          {isAccepted && !bothCompleted && (
+            <button 
+              className={styles.takeQuizButton}
+              onClick={() => handleStartQuiz(request.id, isReceived)}
+            >
+              Take Quiz
+            </button>
+          )}
+
+          {bothCompleted && (
+            <button 
+              className={styles.viewResultsButton}
+              onClick={() => router.push(`/challengeResults?challengeId=${request.id}`)}
+            >
+              View Results
+            </button>
+          )}
+
+          {isPending && isSender && (
             <button 
               className={styles.cancelButton}
               onClick={() => handleCancelRequest(request.id)}
@@ -737,26 +750,7 @@ export default function OneVsOneRequests() {
             </button>
           )}
           
-          {request.status === "accepted" && !userCompleted && (
-            <button 
-              className={styles.startButton}
-              onClick={() => handleStartQuiz(request.id, isReceived)}
-            >
-              Take Quiz
-            </button>
-          )}
-
-          {request.status === "accepted" && isCompleted && !request.resultsCompared && (
-            <button 
-              className={styles.compareButton}
-              onClick={() => handleCompareResults(request.id)}
-            >
-              Compare Results
-            </button>
-          )}
-          
-          {/* Show delete button only for completed or rejected requests */}
-          {(request.status === "completed" || request.status === "rejected" || request.status === "cancelled") && (
+          {(isCompleted || request.status === "rejected") && (
             <button 
               className={styles.deleteButton}
               onClick={() => {
@@ -923,45 +917,45 @@ export default function OneVsOneRequests() {
 
     return (
     <IntroAnimation loadingText="Loading Challenge Requests...">
-      <div className={styles.container}>
+    <div className={styles.container}>
         <Navbar />
-        <div className={styles.content}>
-          <h1 className={styles.title}>1v1 Challenge Requests</h1>
-          
-          {/* Tab navigation */}
-          <div className={styles.tabNavigation}>
-            <button 
-              className={`${styles.tabButton} ${activeTab === "received" ? styles.activeTab : ""}`}
-              onClick={() => setActiveTab("received")}
-            >
-              Received Challenges
-            </button>
-            <button 
-              className={`${styles.tabButton} ${activeTab === "sent" ? styles.activeTab : ""}`}
-              onClick={() => setActiveTab("sent")}
-            >
-              Sent Challenges
-            </button>
-          </div>
-          
-          {loading ? (
-            <p className={styles.loading}>Loading requests...</p>
-          ) : error ? (
-            <p className={styles.error}>{error}</p>
-          ) : activeTab === "received" && receivedRequests.length === 0 ? (
-            <p className={styles.noRequests}>No received challenge requests found.</p>
-          ) : activeTab === "sent" && sentRequests.length === 0 ? (
-            <p className={styles.noRequests}>No sent challenge requests found.</p>
-          ) : (
-            <div className={styles.requestsContainer}>
-              {activeTab === "received" 
-                ? receivedRequests.map(request => renderRequestCard(request, true))
-                : sentRequests.map(request => renderRequestCard(request, false))
-              }
-            </div>
-          )}
+      <div className={styles.content}>
+        <h1 className={styles.title}>1v1 Challenge Requests</h1>
+        
+        {/* Tab navigation */}
+        <div className={styles.tabNavigation}>
+          <button 
+            className={`${styles.tabButton} ${activeTab === "received" ? styles.activeTab : ""}`}
+            onClick={() => setActiveTab("received")}
+          >
+            Received Challenges
+          </button>
+          <button 
+            className={`${styles.tabButton} ${activeTab === "sent" ? styles.activeTab : ""}`}
+            onClick={() => setActiveTab("sent")}
+          >
+            Sent Challenges
+          </button>
         </div>
+        
+        {loading ? (
+          <p className={styles.loading}>Loading requests...</p>
+        ) : error ? (
+          <p className={styles.error}>{error}</p>
+        ) : activeTab === "received" && receivedRequests.length === 0 ? (
+          <p className={styles.noRequests}>No received challenge requests found.</p>
+        ) : activeTab === "sent" && sentRequests.length === 0 ? (
+          <p className={styles.noRequests}>No sent challenge requests found.</p>
+        ) : (
+          <div className={styles.requestsContainer}>
+            {activeTab === "received" 
+              ? receivedRequests.map(request => renderRequestCard(request, true))
+              : sentRequests.map(request => renderRequestCard(request, false))
+            }
+          </div>
+        )}
+      </div>
       </div>
     </IntroAnimation>
-  );
-}
+    );
+  }

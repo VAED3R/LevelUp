@@ -480,3 +480,30 @@
   padding-top: 10px;
   border-top: 1px solid #E2E8F0;
 }
+
+.viewResultsButton {
+  background: linear-gradient(135deg, #6B46C1, #805AD5);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  margin-top: 10px;
+}
+
+.viewResultsButton:hover {
+  background: linear-gradient(135deg, #805AD5, #6B46C1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+.viewResultsButton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
