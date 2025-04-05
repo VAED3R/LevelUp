@@ -204,26 +204,38 @@ export default function ChallengeResults() {
     try {
       setClaimingPoints(true);
       
+      console.log("[claimPoints] Starting claim process");
+      console.log("[claimPoints] Current user:", currentUser);
+      console.log("[claimPoints] Challenge data:", challenge);
+      
       // Get the latest challenge data
-      const challengeRef = doc(db, "challenges", challengeId);
-      const challengeDoc = await getDoc(challengeRef);
+      // We need to use the correct challenge ID format: requestId_userId
+      const isFromUser = challenge.fromUserId === currentUser.id;
+      const fromUserChallengeId = `${challengeId}_${challenge.fromUserId}`;
+      const toUserChallengeId = `${challengeId}_${challenge.toUserId}`;
       
-      if (!challengeDoc.exists()) {
-        throw new Error("Challenge not found");
-      }
-      
-      const updatedChallenge = challengeDoc.data();
+      console.log("[claimPoints] Using challenge IDs:", {
+        fromUserChallengeId,
+        toUserChallengeId,
+        isFromUser
+      });
       
       // Determine winner and loser
-      const isFromUser = updatedChallenge.fromUserId === currentUser.id;
       const fromUserWins = 
-        updatedChallenge.fromUserScore > updatedChallenge.toUserScore || 
-        (updatedChallenge.fromUserScore === updatedChallenge.toUserScore && 
-         updatedChallenge.fromUserTime < updatedChallenge.toUserTime);
+        challenge.fromUserScore > challenge.toUserScore || 
+        (challenge.fromUserScore === challenge.toUserScore && 
+         challenge.fromUserTime < challenge.toUserTime);
       
-      const winnerId = fromUserWins ? updatedChallenge.fromUserId : updatedChallenge.toUserId;
-      const loserId = fromUserWins ? updatedChallenge.toUserId : updatedChallenge.fromUserId;
-      const pointsWagered = updatedChallenge.pointsWagered || 10;
+      const winnerId = fromUserWins ? challenge.fromUserId : challenge.toUserId;
+      const loserId = fromUserWins ? challenge.toUserId : challenge.fromUserId;
+      const pointsWagered = challenge.pointsWagered || 10;
+      
+      console.log("[claimPoints] Winner determination:", {
+        fromUserWins,
+        winnerId,
+        loserId,
+        pointsWagered
+      });
       
       // Check if current user is the winner
       if (currentUser.id !== winnerId) {
@@ -231,19 +243,22 @@ export default function ChallengeResults() {
       }
       
       // Get quiz data for fallPoints
-      const quizRef = doc(db, "quizzes", updatedChallenge.quizId);
+      console.log("[claimPoints] Fetching quiz data for quizId:", challenge.quizId);
+      const quizRef = doc(db, "quizzes", challenge.quizId);
       const quizDoc = await getDoc(quizRef);
       const quizData = quizDoc.exists() ? quizDoc.data() : { subject: "unknown", topic: "unknown" };
+      
+      console.log("[claimPoints] Quiz data:", quizData);
       
       // Create fallPoints entries for both users
       const winnerFallPoint = {
         date: new Date().toISOString(),
         points: pointsWagered,
         quizId: challengeId,
-        score: fromUserWins ? updatedChallenge.fromUserScore : updatedChallenge.toUserScore,
+        score: fromUserWins ? challenge.fromUserScore : challenge.toUserScore,
         subject: quizData.subject || "challenge",
         topic: quizData.topic || "challenge",
-        totalQuestions: updatedChallenge.questions?.length || 0,
+        totalQuestions: challenge.fromUserQuestions?.length || 0,
         userId: winnerId
       };
       
@@ -251,25 +266,87 @@ export default function ChallengeResults() {
         date: new Date().toISOString(),
         points: -pointsWagered,
         quizId: challengeId,
-        score: fromUserWins ? updatedChallenge.toUserScore : updatedChallenge.fromUserScore,
+        score: fromUserWins ? challenge.toUserScore : challenge.fromUserScore,
         subject: quizData.subject || "challenge",
         topic: quizData.topic || "challenge",
-        totalQuestions: updatedChallenge.questions?.length || 0,
+        totalQuestions: challenge.fromUserQuestions?.length || 0,
         userId: loserId
       };
       
+      console.log("[claimPoints] Creating fallPoints entries:", {
+        winnerFallPoint,
+        loserFallPoint
+      });
+      
+      // Check if fallPoints array exists for both users
+      console.log("[claimPoints] Checking if fallPoints array exists");
+      const [winnerDoc, loserDoc] = await Promise.all([
+        getDoc(doc(db, "students", winnerId)),
+        getDoc(doc(db, "students", loserId))
+      ]);
+      
+      console.log("[claimPoints] Winner document exists:", winnerDoc.exists());
+      console.log("[claimPoints] Loser document exists:", loserDoc.exists());
+      
+      if (!winnerDoc.exists() || !loserDoc.exists()) {
+        throw new Error("User document not found");
+      }
+      
+      const winnerData = winnerDoc.data();
+      const loserData = loserDoc.data();
+      
+      console.log("[claimPoints] Winner data:", winnerData);
+      console.log("[claimPoints] Loser data:", loserData);
+      
+      // Initialize fallPoints array if it doesn't exist
+      const winnerUpdate = {};
+      const loserUpdate = {};
+      
+      // Check if fallPoints array exists and initialize it if needed
+      if (!winnerData.fallPoints) {
+        console.log("[claimPoints] Initializing fallPoints array for winner");
+        winnerUpdate.fallPoints = [winnerFallPoint];
+      } else {
+        console.log("[claimPoints] Adding to existing fallPoints array for winner");
+        winnerUpdate.fallPoints = arrayUnion(winnerFallPoint);
+      }
+      
+      if (!loserData.fallPoints) {
+        console.log("[claimPoints] Initializing fallPoints array for loser");
+        loserUpdate.fallPoints = [loserFallPoint];
+      } else {
+        console.log("[claimPoints] Adding to existing fallPoints array for loser");
+        loserUpdate.fallPoints = arrayUnion(loserFallPoint);
+      }
+      
+      console.log("[claimPoints] Update objects:", {
+        winnerUpdate,
+        loserUpdate
+      });
+      
       // Transfer points by adding to fallPoints array
+      console.log("[claimPoints] Updating student documents");
       await Promise.all([
-        updateDoc(doc(db, "students", winnerId), {
-          fallPoints: arrayUnion(winnerFallPoint)
+        updateDoc(doc(db, "students", winnerId), winnerUpdate),
+        updateDoc(doc(db, "students", loserId), loserUpdate)
+      ]);
+      
+      // Update both challenge documents to mark points as claimed
+      console.log("[claimPoints] Updating challenge documents");
+      await Promise.all([
+        updateDoc(doc(db, "challenges", fromUserChallengeId), {
+          pointsClaimed: true,
+          pointsClaimedAt: new Date().toISOString()
         }),
-        updateDoc(doc(db, "students", loserId), {
-          fallPoints: arrayUnion(loserFallPoint)
+        updateDoc(doc(db, "challenges", toUserChallengeId), {
+          pointsClaimed: true,
+          pointsClaimedAt: new Date().toISOString()
         })
       ]);
       
-      // Update challenge to mark points as claimed
-      await updateDoc(challengeRef, {
+      // Also update the request document
+      console.log("[claimPoints] Updating request document");
+      await updateDoc(doc(db, "onevsoneRequests", challengeId), {
         pointsClaimed: true,
         pointsClaimedAt: new Date().toISOString()
       });
@@ -277,7 +354,7 @@ export default function ChallengeResults() {
       // Update local state
       setPointsClaimed(true);
       setChallenge({
-        ...updatedChallenge,
+        ...challenge,
         pointsClaimed: true,
         pointsClaimedAt: new Date().toISOString()
       });
@@ -285,6 +362,7 @@ export default function ChallengeResults() {
       alert("Points claimed successfully!");
     } catch (err) {
       console.error("Error claiming points:", err);
+      console.error("Error stack:", err.stack);
       alert(`Failed to claim points: ${err.message}`);
     } finally {
       setClaimingPoints(false);
@@ -379,7 +457,7 @@ export default function ChallengeResults() {
           </div>
 
           <div className={styles.claimPointsContainer}>
-            {isSender && !pointsClaimed && (
+            {getWinnerName() === "You" && !pointsClaimed && (
               <button 
                 className={styles.claimPointsButton}
                 onClick={claimPoints}
@@ -395,7 +473,7 @@ export default function ChallengeResults() {
               </div>
             )}
             
-            {!isSender && !pointsClaimed && (
+            {getWinnerName() !== "You" && !pointsClaimed && (
               <div className={styles.waitingMessage}>
                 Waiting for winner to claim points...
               </div>
