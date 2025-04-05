@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { db, auth } from "@/lib/firebase";
-import { collection, getDocs, query, where, getDoc, doc } from "firebase/firestore";
+import { collection, getDocs, query, where, getDoc, doc, addDoc, onSnapshot } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import Navbar from "@/components/parentNavbar";
@@ -45,6 +45,8 @@ export default function StudentPerformance() {
   const [error, setError] = useState(null);
   const [performanceDescription, setPerformanceDescription] = useState("");
   const [generatingDescription, setGeneratingDescription] = useState(false);
+  const [sendingRequest, setSendingRequest] = useState(false);
+  const [requestStatus, setRequestStatus] = useState(null);
   const router = useRouter();
 
   // Format date from ISO string to local date string
@@ -376,6 +378,42 @@ export default function StudentPerformance() {
     }
   };
 
+  const sendPerformanceRequest = async () => {
+    if (!student) return;
+    
+    setSendingRequest(true);
+    try {
+      const metrics = calculateMetrics();
+      if (!metrics) {
+        throw new Error("No performance metrics available");
+      }
+
+      const requestData = {
+        studentId: student.id,
+        studentName: student.name,
+        studentEmail: student.email,
+        timestamp: new Date().toISOString(),
+        status: 'pending',
+        metrics: {
+          quizPerformance: metrics.avgQuizScore,
+          assignmentPerformance: metrics.avgAssignmentScore,
+          testPerformance: metrics.avgTestScore,
+          attendanceRate: metrics.attendanceRate
+        }
+      };
+
+      // Add the request to the performance_requests collection
+      await addDoc(collection(db, "performance_requests"), requestData);
+      
+      alert("Performance analysis request sent to teacher successfully!");
+    } catch (error) {
+      console.error("Error sending performance request:", error);
+      alert("Failed to send performance request. Please try again.");
+    } finally {
+      setSendingRequest(false);
+    }
+  };
+
   // Prepare chart data
   const prepareChartData = () => {
     if (!metrics) return null;
@@ -503,6 +541,39 @@ export default function StudentPerformance() {
 
   const metrics = calculateMetrics();
   const chartData = prepareChartData();
+
+  // Add this new useEffect to listen for performance requests
+  useEffect(() => {
+    if (!student) return;
+
+    const requestsRef = collection(db, "performance_requests");
+    const q = query(requestsRef, where("studentId", "==", student.id));
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const requests = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      // Get the most recent request
+      const latestRequest = requests.sort((a, b) => 
+        new Date(b.timestamp) - new Date(a.timestamp)
+      )[0];
+
+      if (latestRequest) {
+        setRequestStatus(latestRequest.status);
+        if (latestRequest.status === 'submitted') {
+          setPerformanceDescription(latestRequest.summary);
+        }
+      } else {
+        // No requests found, reset status
+        setRequestStatus(null);
+        setPerformanceDescription("");
+      }
+    });
+
+    return () => unsubscribe();
+  }, [student]);
 
   return (
     <div className={styles.container}>
@@ -638,38 +709,47 @@ export default function StudentPerformance() {
               </div>
             </div>
 
-            {/* Performance Description */}
-            <div className={styles.performanceDescription}>
-              <h2>Performance Analysis</h2>
-              <button 
-                className={styles.generateButton}
-                onClick={generatePerformanceDescription}
-                disabled={generatingDescription}
-              >
-                {generatingDescription ? 'Generating...' : 'Generate Performance Analysis'}
-              </button>
+            {/* Performance Analysis */}
+            <div className={styles.performanceAnalysis}>
+              {!requestStatus && (
+                
+                <button 
+                  className={styles.sendRequestButton}
+                  onClick={sendPerformanceRequest}
+                  disabled={sendingRequest}
+                >
+                  {sendingRequest ? "Sending Request..." : "Send Request to Teacher"}
+                </button>
+              )}
               
-              {performanceDescription && (
-                <div className={styles.description}>
-                  {Array.isArray(performanceDescription) ? (
-                    performanceDescription.map((item, index) => (
-                      <div key={index}>
-                        {item.type === 'paragraph' && (
-                          <p>{item.text}</p>
-                        )}
-                        {item.type === 'list' && (
-                          <ul>
-                            {item.items.map((point, pointIndex) => (
-                              <li key={pointIndex}>{point}</li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <p>{performanceDescription}</p>
-                  )}
+              {requestStatus === 'pending' && (
+                <div className={styles.requestStatus}>
+                  <p>Request sent to teacher. Waiting for response...</p>
                 </div>
+              )}
+              
+              {requestStatus === 'generated' && (
+                <div className={styles.requestStatus}>
+                  <p>Teacher has generated the summary. Waiting for submission...</p>
+                </div>
+              )}
+              
+              {requestStatus === 'submitted' && performanceDescription && (
+                <>
+                  <div className={styles.description}>
+                  <h2>Performance Analysis</h2>
+                    <h3>Teacher's Analysis</h3>
+                    <pre>{performanceDescription}</pre>
+                    <button 
+                    className={styles.sendRequestButton}
+                    onClick={sendPerformanceRequest}
+                    disabled={sendingRequest}
+                  >
+                    {sendingRequest ? "Sending Request..." : "Request New Analysis"}
+                  </button>
+                  </div>
+
+                </>
               )}
             </div>
 
