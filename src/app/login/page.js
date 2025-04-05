@@ -27,7 +27,7 @@ export default function Login() {
     if (roleParam) {
       setRole(roleParam);
     } else {
-      router.push("/");
+      router.push("/login");
     }
 
     if (!loading && user) {
@@ -51,12 +51,10 @@ export default function Login() {
         if (userData.role === role) {
           console.log(`${role} login successful`);
           router.push(`/${role}Dashboard`);
-        } else {
-          setError(`You are not authorized to log in as ${role}.`);
         }
-      } else {
+      } /*else {
         setError("No user data found.");
-      }
+      }*/
     } catch (error) {
       setError("Invalid email or password. Please try again.");
     }
