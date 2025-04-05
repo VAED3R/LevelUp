@@ -17,6 +17,7 @@ export default function OneVsOneRequests() {
   const [error, setError] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [activeTab, setActiveTab] = useState("received"); // "received" or "sent"
+  const [generatingQuizId, setGeneratingQuizId] = useState(null); // Track which quiz is being generated
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -370,6 +371,9 @@ export default function OneVsOneRequests() {
       if (!challengeData.quizId) {
         console.log("Generating new quiz for topic:", challengeData.topic);
         try {
+          // Set generating state
+          setGeneratingQuizId(requestId);
+          
           // Generate a new quiz
           const quizData = await generateQuiz(challengeData.topic, challengeData.difficulty);
           console.log("Generated quiz with ID:", quizData.id);
@@ -387,21 +391,26 @@ export default function OneVsOneRequests() {
             quizId: quizData.id,
             quizGeneratedAt: new Date().toISOString()
           });
+          
+          // Reset generating state
+          setGeneratingQuizId(null);
+          
+          // Navigate to the quiz challenge page
+          router.push(`/studentQuizChallenge?challengeId=${challengeId}`);
         } catch (quizError) {
           console.error("Error generating quiz:", quizError);
+          setGeneratingQuizId(null);
           alert(`Failed to generate quiz: ${quizError.message}`);
           return;
         }
       } else {
         console.log("Using existing quiz with ID:", challengeData.quizId);
+        // Navigate to the quiz challenge page using Next.js router
+        router.push(`/studentQuizChallenge?challengeId=${challengeId}`);
       }
-      
-      // Navigate to the quiz challenge page using Next.js router
-      console.log("Navigating to quiz challenge page with ID:", challengeId);
-      router.push(`/studentQuizChallenge?challengeId=${challengeId}`);
-      
     } catch (err) {
       console.error("Error starting quiz:", err);
+      setGeneratingQuizId(null);
       alert("Failed to start quiz. Please try again.");
     }
   };
@@ -678,6 +687,11 @@ export default function OneVsOneRequests() {
     const isAccepted = request.status === "accepted";
     const isCompleted = request.status === "completed";
     const bothCompleted = request.fromUserCompleted && request.toUserCompleted;
+    const isGenerating = generatingQuizId === request.id;
+    const hasQuiz = request.quizId || request.quizGenerated;
+    
+    // Check if the current user has completed the quiz
+    const userCompleted = isSender ? request.fromUserCompleted : request.toUserCompleted;
 
     return (
       <div key={request.id} className={styles.requestCard}>
@@ -707,6 +721,12 @@ export default function OneVsOneRequests() {
               <p>Opponent's Status: {isSender ? (request.toUserCompleted ? "Completed" : "Not Completed") : (request.fromUserCompleted ? "Completed" : "Not Completed")}</p>
             </div>
           )}
+          
+          {isAccepted && hasQuiz && (
+            <div className={styles.quizStatus}>
+              <p><strong>Quiz Status:</strong> Quiz has been generated and is ready to take</p>
+            </div>
+          )}
         </div>
         
         <div className={styles.requestActions}>
@@ -727,7 +747,24 @@ export default function OneVsOneRequests() {
             </>
           )}
           
-          {isAccepted && !bothCompleted && (
+          {isAccepted && !isCompleted && !userCompleted && !hasQuiz && (
+            <button 
+              className={styles.generateQuizButton}
+              onClick={() => handleStartQuiz(request.id, isReceived)}
+              disabled={isGenerating}
+            >
+              {isGenerating ? (
+                <>
+                  <span className={styles.spinner}></span>
+                  <span className={styles.generatingText}>Generating Quiz...</span>
+                </>
+              ) : (
+                "Generate Quiz"
+              )}
+            </button>
+          )}
+          
+          {isAccepted && !isCompleted && !userCompleted && hasQuiz && (
             <button 
               className={styles.takeQuizButton}
               onClick={() => handleStartQuiz(request.id, isReceived)}
