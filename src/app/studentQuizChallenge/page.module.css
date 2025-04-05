@@ -199,78 +199,95 @@
 
 /* Results Container */
 .resultsContainer {
+  background: white;
+  border: 2px solid #6B46C1;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px auto;
   max-width: 600px;
-  margin: 0 auto;
-}
-
-.resultsTitle {
-  text-align: center;
-  margin-bottom: 2rem;
-  color: #2c3e50;
-}
-
-.resultCard {
-  background-color: white;
-  border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
 }
 
-.resultHeader {
-  padding: 1.5rem;
-  background-color: #3498db;
-  color: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.resultsContainer h2 {
+  color: #6B46C1;
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-align: center;
 }
 
-.resultHeader h3 {
-  margin: 0;
-  font-size: 1.5rem;
+.resultMessage {
+  font-size: 18px;
+  font-weight: 500;
+  text-align: center;
+  margin-bottom: 20px;
+  color: #4A5568;
 }
 
-.resultBadge {
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  font-weight: bold;
+.scoreContainer {
+  background: #F7FAFC;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 10px 0;
 }
 
-.winner {
-  background-color: #2ecc71;
-}
-
-.loser {
-  background-color: #e74c3c;
-}
-
-.resultDetails {
-  padding: 2rem;
-}
-
-.resultDetails p {
-  margin: 0.8rem 0;
-  font-size: 1.1rem;
+.scoreContainer p {
+  margin: 5px 0;
+  color: #4A5568;
 }
 
 .resultActions {
-  padding: 1.5rem;
-  border-top: 1px solid #dee2e6;
+  margin-top: 20px;
   display: flex;
   justify-content: center;
 }
 
 .returnButton {
-  padding: 0.8rem 2rem;
-  font-size: 1.1rem;
-  background-color: #3498db;
+  background: linear-gradient(135deg, #6B46C1, #805AD5);
   color: white;
   border: none;
-  border-radius: 4px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .returnButton:hover {
-  background-color: #2980b9;
+  background: linear-gradient(135deg, #805AD5, #6B46C1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+.returnButton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.questionTimes {
+  margin-top: 15px;
+  padding: 10px;
+  background: #EDF2F7;
+  border-radius: 8px;
+}
+
+.questionTimes h3 {
+  color: #4A5568;
+  font-size: 16px;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.questionTimes p {
+  margin: 5px 0;
+  color: #4A5568;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.questionTimes p:last-child {
+  margin-bottom: 0;
 }

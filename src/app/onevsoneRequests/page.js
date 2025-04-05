@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { db, auth } from "@/lib/firebase";
-import { collection, getDocs, query, where, updateDoc, doc, deleteDoc, getDoc, setDoc, addDoc } from "firebase/firestore";
+import { collection, getDocs, query, where, updateDoc, doc, deleteDoc, getDoc, setDoc, addDoc, onSnapshot, arrayUnion } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/studentNavbar";
@@ -154,21 +154,30 @@ export default function OneVsOneRequests() {
         toUserScore: null,
         fromUserTime: null,
         toUserTime: null,
-        winner: null
+        fromUserCompleted: false,
+        toUserCompleted: false,
+        winner: null,
+        resultsCompared: false,
+        completionTime: {
+          fromUser: null,
+          toUser: null
+        }
       };
 
       // Create challenge document for the sender
       const senderChallengeRef = doc(collection(db, "challenges"), `${requestId}_${requestData.fromUserId}`);
       await setDoc(senderChallengeRef, {
         ...challengeData,
-        isSender: true
+        isSender: true,
+        isOpponentCompleted: false
       });
 
       // Create challenge document for the receiver
       const receiverChallengeRef = doc(collection(db, "challenges"), `${requestId}_${requestData.toUserId}`);
       await setDoc(receiverChallengeRef, {
         ...challengeData,
-        isSender: false
+        isSender: false,
+        isOpponentCompleted: false
       });
       
       // Update the local state
@@ -445,7 +454,16 @@ export default function OneVsOneRequests() {
       try {
           const content = data.choices[0].message.content.trim();
           console.log("Raw content from API:", content);
-          generatedQuestions = JSON.parse(content);
+          
+          // Clean the content by removing any markdown formatting
+          const cleanedContent = content
+              .replace(/```json\n?/g, '') // Remove ```json
+              .replace(/```\n?/g, '')     // Remove ```
+              .trim();
+              
+          console.log("Cleaned content:", cleanedContent);
+          
+          generatedQuestions = JSON.parse(cleanedContent);
           
           if (!Array.isArray(generatedQuestions) || generatedQuestions.length === 0) {
               throw new Error("Invalid question format: not an array or empty");
@@ -494,20 +512,16 @@ export default function OneVsOneRequests() {
     }
   };
 
-  // Get status badge color
-  const getStatusBadgeClass = (status) => {
-    switch (status) {
-      case "pending": return styles.statusPending;
-      case "accepted": return styles.statusAccepted;
-      case "rejected": return styles.statusRejected;
-      case "cancelled": return styles.statusCancelled;
-      case "completed": return styles.statusCompleted;
-      default: return "";
-    }
-  };
-
   // Get status text
-  const getStatusText = (status) => {
+  const getStatusText = (status, request) => {
+    if (status === "accepted") {
+      if (request.fromUserCompleted && request.toUserCompleted) {
+        return "COMPLETED";
+      }
+      if (request.fromUserCompleted || request.toUserCompleted) {
+        return "IN PROGRESS";
+      }
+    }
     switch (status) {
       case "pending": return "PENDING";
       case "accepted": return "ACCEPTED";
@@ -518,31 +532,215 @@ export default function OneVsOneRequests() {
     }
   };
 
-  // Render the request card based on user role
-  const renderRequestCard = (request, isReceived) => {
+  // Get status badge color
+  const getStatusBadgeClass = (status, request) => {
+    if (status === "accepted") {
+      if (request.fromUserCompleted && request.toUserCompleted) {
+        return styles.statusCompleted;
+      }
+      if (request.fromUserCompleted || request.toUserCompleted) {
+        return styles.statusInProgress;
+      }
+    }
+    switch (status) {
+      case "pending": return styles.statusPending;
+      case "accepted": return styles.statusAccepted;
+      case "rejected": return styles.statusRejected;
+      case "cancelled": return styles.statusCancelled;
+      case "completed": return styles.statusCompleted;
+      default: return "";
+    }
+  };
+
+  // Add real-time listener for challenge updates
+  useEffect(() => {
+    if (!currentUser) return;
+
+    // Create queries for both received and sent requests
+    const receivedQuery = query(
+      collection(db, "onevsoneRequests"),
+      where("toUserId", "==", currentUser.id)
+    );
+    
+    const sentQuery = query(
+      collection(db, "onevsoneRequests"),
+      where("fromUserId", "==", currentUser.id)
+    );
+
+    // Set up real-time listeners
+    const unsubscribeReceived = onSnapshot(receivedQuery, async (snapshot) => {
+      const updatedRequests = [];
+      for (const docSnapshot of snapshot.docs) {
+        const data = docSnapshot.data();
+        if (!data.fromUserId || !data.toUserId || !data.topic) {
+          console.log("Skipping invalid request:", docSnapshot.id);
+          continue;
+        }
+
+        // Get the latest challenge data for both users
+        const userChallengeId = `${docSnapshot.id}_${currentUser.id}`;
+        const opponentChallengeId = `${docSnapshot.id}_${data.fromUserId}`;
+        
+        const [userChallengeDoc, opponentChallengeDoc] = await Promise.all([
+          getDoc(doc(db, "challenges", userChallengeId)),
+          getDoc(doc(db, "challenges", opponentChallengeId))
+        ]);
+
+        const userChallengeData = userChallengeDoc.exists() ? userChallengeDoc.data() : null;
+        const opponentChallengeData = opponentChallengeDoc.exists() ? opponentChallengeDoc.data() : null;
+
+        // Determine completion status
+        const fromUserCompleted = opponentChallengeData?.fromUserCompleted || false;
+        const toUserCompleted = userChallengeData?.toUserCompleted || false;
+        const bothCompleted = fromUserCompleted && toUserCompleted;
+
+        // Update request data with latest challenge status
+        updatedRequests.push({
+          id: docSnapshot.id,
+          ...data,
+          createdAt: data.createdAt?.toDate() || new Date(),
+          isReceiver: true,
+          fromUserCompleted,
+          toUserCompleted,
+          bothCompleted,
+          fromUserScore: opponentChallengeData?.fromUserScore || null,
+          toUserScore: userChallengeData?.toUserScore || null,
+          fromUserTime: opponentChallengeData?.fromUserTime || null,
+          toUserTime: userChallengeData?.toUserTime || null,
+          status: bothCompleted ? "completed" : data.status
+        });
+      }
+      updatedRequests.sort((a, b) => b.createdAt - a.createdAt);
+      setReceivedRequests(updatedRequests);
+    });
+
+    const unsubscribeSent = onSnapshot(sentQuery, async (snapshot) => {
+      const updatedRequests = [];
+      for (const docSnapshot of snapshot.docs) {
+        const data = docSnapshot.data();
+        if (!data.fromUserId || !data.toUserId || !data.topic) {
+          console.log("Skipping invalid request:", docSnapshot.id);
+          continue;
+        }
+
+        // Get the latest challenge data for both users
+        const userChallengeId = `${docSnapshot.id}_${currentUser.id}`;
+        const opponentChallengeId = `${docSnapshot.id}_${data.toUserId}`;
+        
+        const [userChallengeDoc, opponentChallengeDoc] = await Promise.all([
+          getDoc(doc(db, "challenges", userChallengeId)),
+          getDoc(doc(db, "challenges", opponentChallengeId))
+        ]);
+
+        const userChallengeData = userChallengeDoc.exists() ? userChallengeDoc.data() : null;
+        const opponentChallengeData = opponentChallengeDoc.exists() ? opponentChallengeDoc.data() : null;
+
+        // Determine completion status
+        const fromUserCompleted = userChallengeData?.fromUserCompleted || false;
+        const toUserCompleted = opponentChallengeData?.toUserCompleted || false;
+        const bothCompleted = fromUserCompleted && toUserCompleted;
+
+        // Update request data with latest challenge status
+        updatedRequests.push({
+          id: docSnapshot.id,
+          ...data,
+          createdAt: data.createdAt?.toDate() || new Date(),
+          isReceiver: false,
+          fromUserCompleted,
+          toUserCompleted,
+          bothCompleted,
+          fromUserScore: userChallengeData?.fromUserScore || null,
+          toUserScore: opponentChallengeData?.toUserScore || null,
+          fromUserTime: userChallengeData?.fromUserTime || null,
+          toUserTime: opponentChallengeData?.toUserTime || null,
+          status: bothCompleted ? "completed" : data.status
+        });
+      }
+      updatedRequests.sort((a, b) => b.createdAt - a.createdAt);
+      setSentRequests(updatedRequests);
+    });
+
+    return () => {
+      unsubscribeReceived();
+      unsubscribeSent();
+    };
+  }, [currentUser]);
+
+  // Update the renderRequestCard function to show completion status
+  const renderRequestCard = (request) => {
+    const isSender = request.fromUserId === currentUser.id;
+    const isReceiver = request.toUserId === currentUser.id;
+    const isPending = request.status === "pending";
+    const isAccepted = request.status === "accepted";
+    const isCompleted = request.status === "completed";
+    const bothCompleted = request.fromUserCompleted && request.toUserCompleted;
+
+    const getStatusText = () => {
+      if (isCompleted) return "Completed";
+      if (bothCompleted) return "Both Completed";
+      if (isAccepted) {
+        if (isSender) {
+          return request.fromUserCompleted ? "You Completed" : "In Progress";
+        } else {
+          return request.toUserCompleted ? "You Completed" : "In Progress";
+        }
+      }
+      return isPending ? "Pending" : "Rejected";
+    };
+
+    const getStatusBadgeClass = () => {
+      if (isCompleted) return styles.statusCompleted;
+      if (bothCompleted) return styles.statusCompleted;
+      if (isAccepted) {
+        if (isSender) {
+          return request.fromUserCompleted ? styles.statusCompleted : styles.statusInProgress;
+        } else {
+          return request.toUserCompleted ? styles.statusCompleted : styles.statusInProgress;
+        }
+      }
+      return isPending ? styles.statusPending : styles.statusRejected;
+    };
+
     return (
-      <div key={request.id} className={styles.requestCard}>
+      <div className={styles.requestCard}>
         <div className={styles.requestHeader}>
-          <h3 className={styles.requestTitle}>
-            {isReceived ? `Challenge from ${request.fromUserName || request.fromUsername}` : `Challenge to ${request.toUserName || request.toUsername}`}
-          </h3>
-          <span className={`${styles.statusBadge} ${getStatusBadgeClass(request.status)}`}>
-            {getStatusText(request.status)}
+          <h3>{request.topic}</h3>
+          <span className={`${styles.statusBadge} ${getStatusBadgeClass()}`}>
+            {getStatusText()}
           </span>
         </div>
         
         <div className={styles.requestDetails}>
-          <p><strong>Topic:</strong> {request.topic}</p>
           <p><strong>Difficulty:</strong> {request.difficulty}</p>
+          <p><strong>Time Limit:</strong> {request.timeLimit || 30} seconds per question</p>
           <p><strong>Points Wagered:</strong> {request.pointsWagered || 10}</p>
-          <p><strong>Sent:</strong> {formatDate(request.createdAt)}</p>
-          {request.acceptedAt && <p><strong>Accepted:</strong> {formatDate(request.acceptedAt)}</p>}
-          {request.rejectedAt && <p><strong>Rejected:</strong> {formatDate(request.rejectedAt)}</p>}
-          {request.cancelledAt && <p><strong>Cancelled:</strong> {formatDate(request.cancelledAt)}</p>}
+          <p><strong>Opponent:</strong> {isSender ? request.toUserName : request.fromUserName}</p>
         </div>
-        
+
+        {isAccepted && (
+          <div className={styles.completionStatus}>
+            <p>Your Status: {isSender ? (request.fromUserCompleted ? "Completed" : "Not Completed") : (request.toUserCompleted ? "Completed" : "Not Completed")}</p>
+            <p>Opponent's Status: {isSender ? (request.toUserCompleted ? "Completed" : "Not Completed") : (request.fromUserCompleted ? "Completed" : "Not Completed")}</p>
+          </div>
+        )}
+
+        {bothCompleted && (
+          <div className={styles.resultsSection}>
+            <h4>Results</h4>
+            <p>Your Score: {isSender ? request.fromUserScore : request.toUserScore}</p>
+            <p>Opponent's Score: {isSender ? request.toUserScore : request.fromUserScore}</p>
+            <p>Time Taken: {isSender ? formatTime(request.fromUserTime) : formatTime(request.toUserTime)}</p>
+            <p>Opponent's Time: {isSender ? formatTime(request.toUserTime) : formatTime(request.fromUserTime)}</p>
+            {request.winner && (
+              <p className={styles.winnerText}>
+                Winner: {request.winner === (isSender ? "fromUser" : "toUser") ? "You" : "Opponent"}
+              </p>
+            )}
+          </div>
+        )}
+
         <div className={styles.requestActions}>
-          {request.status === "pending" && isReceived && (
+          {isPending && isReceiver && (
             <>
               <button 
                 className={styles.acceptButton}
@@ -559,7 +757,25 @@ export default function OneVsOneRequests() {
             </>
           )}
           
-          {request.status === "pending" && !isReceived && (
+          {isAccepted && !bothCompleted && (
+            <button 
+              className={styles.takeQuizButton}
+              onClick={() => router.push(`/studentQuizChallenge?challengeId=${request.id}`)}
+            >
+              Take Quiz
+            </button>
+          )}
+
+          {bothCompleted && !isCompleted && (
+            <button 
+              className={styles.compareButton}
+              onClick={() => handleCompareResults(request.id)}
+            >
+              Compare Results
+            </button>
+          )}
+
+          {isPending && isSender && (
             <button 
               className={styles.cancelButton}
               onClick={() => handleCancelRequest(request.id)}
@@ -567,23 +783,13 @@ export default function OneVsOneRequests() {
               Cancel
             </button>
           )}
-          
-          {request.status === "accepted" && (
-            <button 
-              className={styles.startButton}
-              onClick={() => handleStartQuiz(request.id, isReceived)}
-            >
-              Take Quiz
-            </button>
-          )}
-          
-          {/* Show delete button only for completed or rejected requests */}
-          {(request.status === "completed" || request.status === "rejected" || request.status === "cancelled") && (
+
+          {(isCompleted || request.status === "rejected" || request.status === "cancelled") && (
             <button 
               className={styles.deleteButton}
               onClick={() => {
                 if (window.confirm("Are you sure you want to delete this request?")) {
-                  handleDeleteRequest(request.id, isReceived);
+                  handleDeleteRequest(request.id, isReceiver);
                 }
               }}
             >
@@ -593,6 +799,162 @@ export default function OneVsOneRequests() {
         </div>
       </div>
     );
+  };
+
+  const ChallengeStatus = ({ challenge }) => {
+    const getStatusMessage = () => {
+      if (challenge.resultsCompared) {
+        if (challenge.winner) {
+          return challenge.winner === auth.currentUser?.uid
+            ? "You won the challenge! 🏆"
+            : `${challenge.winnerName} won the challenge`;
+        }
+        return "The challenge ended in a tie!";
+      }
+
+      if (challenge.isOpponentCompleted) {
+        return "Your opponent has completed the challenge. Complete yours to see the results!";
+      }
+
+      const userCompleted = challenge.isSender 
+        ? challenge.fromUserCompleted 
+        : challenge.toUserCompleted;
+
+      if (userCompleted) {
+        return "Waiting for your opponent to complete the challenge...";
+      }
+
+      return "Challenge is active. Take the quiz when you're ready!";
+    };
+
+    return (
+      <div className={styles.challengeStatus}>
+        <div className={styles.statusMessage}>{getStatusMessage()}</div>
+        {challenge.resultsCompared && challenge.winner && (
+          <div className={styles.scoreComparison}>
+            <div className={styles.score}>
+              <span>Your Score: </span>
+              <strong>
+                {challenge.isSender ? challenge.fromUserScore : challenge.toUserScore}
+              </strong>
+              <span> ({challenge.isSender ? challenge.fromUserTime : challenge.toUserTime}s)</span>
+            </div>
+            <div className={styles.score}>
+              <span>Opponent's Score: </span>
+              <strong>
+                {challenge.isSender ? challenge.toUserScore : challenge.fromUserScore}
+              </strong>
+              <span> ({challenge.isSender ? challenge.toUserTime : challenge.fromUserTime}s)</span>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const handleCompareResults = async (requestId) => {
+    try {
+      const requestRef = doc(db, "onevsoneRequests", requestId);
+      const requestDoc = await getDoc(requestRef);
+      
+      if (!requestDoc.exists()) {
+        console.error("Request not found");
+        return;
+      }
+
+      const request = requestDoc.data();
+      const isSender = request.fromUserId === currentUser.id;
+
+      // Determine winner based on scores and time
+      const fromUserWins = 
+        request.fromUserScore > request.toUserScore || 
+        (request.fromUserScore === request.toUserScore && 
+         request.fromUserTime < request.toUserTime);
+
+      const winner = fromUserWins ? "fromUser" : "toUser";
+      const winnerId = fromUserWins ? request.fromUserId : request.toUserId;
+      const loserId = fromUserWins ? request.toUserId : request.fromUserId;
+      const pointsWagered = request.pointsWagered || 10;
+
+      // Update request with winner and status
+      await updateDoc(requestRef, {
+        winner,
+        status: "completed",
+        completedAt: new Date().toISOString()
+      });
+
+      // Update points for winner and loser
+      const winnerRef = doc(db, "students", winnerId);
+      const loserRef = doc(db, "students", loserId);
+
+      const [winnerDoc, loserDoc] = await Promise.all([
+        getDoc(winnerRef),
+        getDoc(loserRef)
+      ]);
+
+      if (!winnerDoc.exists() || !loserDoc.exists()) {
+        throw new Error("User documents not found");
+      }
+
+      const winnerPoints = winnerDoc.data().totalPoints || 0;
+      const loserPoints = loserDoc.data().totalPoints || 0;
+
+      // Winner gets double the wagered points
+      const pointsToAdd = pointsWagered * 2;
+      const pointsToSubtract = pointsWagered;
+
+      await Promise.all([
+        updateDoc(winnerRef, {
+          totalPoints: winnerPoints + pointsToAdd,
+          pointsHistory: arrayUnion({
+            amount: pointsToAdd,
+            type: "challenge_win",
+            timestamp: new Date().toISOString(),
+            challengeId: requestId,
+            description: "Won 1v1 challenge"
+          })
+        }),
+        updateDoc(loserRef, {
+          totalPoints: Math.max(0, loserPoints - pointsToSubtract),
+          pointsHistory: arrayUnion({
+            amount: -pointsToSubtract,
+            type: "challenge_loss",
+            timestamp: new Date().toISOString(),
+            challengeId: requestId,
+            description: "Lost 1v1 challenge"
+          })
+        })
+      ]);
+
+      // Update local state
+      setReceivedRequests(prevRequests => 
+        prevRequests.map(req => 
+          req.id === requestId 
+            ? { ...req, winner, status: "completed" }
+            : req
+        )
+      );
+
+      setSentRequests(prevRequests => 
+        prevRequests.map(req => 
+          req.id === requestId 
+            ? { ...req, winner, status: "completed" }
+            : req
+        )
+      );
+
+      alert(`Challenge completed! ${isSender ? (fromUserWins ? "You" : "Opponent") : (fromUserWins ? "Opponent" : "You")} won! Points have been updated.`);
+    } catch (error) {
+      console.error("Error comparing results:", error);
+      alert("Failed to compare results. Please try again.");
+    }
+  };
+
+  const formatTime = (seconds) => {
+    if (!seconds) return "0:00";
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
     return (
@@ -629,8 +991,16 @@ export default function OneVsOneRequests() {
           ) : (
             <div className={styles.requestsContainer}>
               {activeTab === "received" 
-                ? receivedRequests.map(request => renderRequestCard(request, true))
-                : sentRequests.map(request => renderRequestCard(request, false))
+                ? receivedRequests.map(request => (
+                    <div key={request.id}>
+                      {renderRequestCard(request)}
+                    </div>
+                  ))
+                : sentRequests.map(request => (
+                    <div key={request.id}>
+                      {renderRequestCard(request)}
+                    </div>
+                  ))
               }
             </div>
           )}

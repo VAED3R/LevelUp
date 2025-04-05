@@ -26,6 +26,7 @@ export default function StudentQuizChallenge() {
   const [score, setScore] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
   const [questionStartTime, setQuestionStartTime] = useState(null);
+  const [totalTimeTaken, setTotalTimeTaken] = useState(0);
   const [questionTimes, setQuestionTimes] = useState([]);
   const [timeRemaining, setTimeRemaining] = useState(null);
   const [timerInterval, setTimerInterval] = useState(null);
@@ -34,11 +35,11 @@ export default function StudentQuizChallenge() {
   useEffect(() => {
     if (challenge) {
       console.log("[useEffect] Challenge state changed:", challenge);
-      console.log("[useEffect] senderCompleted:", challenge.senderCompleted);
-      console.log("[useEffect] receiverCompleted:", challenge.receiverCompleted);
+      console.log("[useEffect] fromUserCompleted:", challenge.fromUserCompleted);
+      console.log("[useEffect] toUserCompleted:", challenge.toUserCompleted);
       
       // Check if both players have completed the quiz
-      if (challenge.senderCompleted && challenge.receiverCompleted) {
+      if (challenge.fromUserCompleted && challenge.toUserCompleted) {
         console.log("[useEffect] Both players have completed");
         
         // If there's no winner set but both have completed, determine the winner
@@ -112,8 +113,8 @@ export default function StudentQuizChallenge() {
         
         // Update the score and time if the user has already completed the quiz
         const isFromUser = challenge.fromUserId === currentUser?.id;
-        if ((isFromUser && challenge.senderCompleted) || 
-            (!isFromUser && challenge.receiverCompleted)) {
+        if ((isFromUser && challenge.fromUserCompleted) || 
+            (!isFromUser && challenge.toUserCompleted)) {
           setScore(isFromUser ? challenge.fromUserScore : challenge.toUserScore);
           setTotalTime(isFromUser ? challenge.fromUserTime : challenge.toUserTime);
         }
@@ -257,6 +258,8 @@ export default function StudentQuizChallenge() {
   const startQuiz = () => {
     setQuizStarted(true);
     setQuestionStartTime(Date.now());
+    setTotalTimeTaken(0);
+    setQuestionTimes([]);
     
     // Set up timer for the current question
     const timeLimit = challenge.timeLimit || 30; // Default to 30 seconds if not specified
@@ -291,13 +294,15 @@ export default function StudentQuizChallenge() {
     // Calculate time taken for this question
     const timeTaken = (Date.now() - questionStartTime) / 1000; // in seconds
     setQuestionTimes(prev => [...prev, timeTaken]);
+    setTotalTimeTaken(prev => prev + timeTaken);
     
     // Check if answer is correct
     const isCorrect = selectedAnswer === quiz.questions[currentQuestionIndex].correctAnswer;
     setAnswers(prev => [...prev, { 
       questionIndex: currentQuestionIndex, 
       selectedAnswer, 
-      isCorrect 
+      isCorrect,
+      timeTaken 
     }]);
     
     // Update score if correct
@@ -331,17 +336,17 @@ export default function StudentQuizChallenge() {
       // Quiz completed
       setQuizCompleted(true);
       
-      // Calculate total time
-      const totalTimeTaken = questionTimes.reduce((sum, time) => sum + time, 0) + timeTaken;
-      setTotalTime(totalTimeTaken);
+      // Calculate final total time
+      const finalTotalTime = totalTimeTaken + timeTaken;
+      setTotalTime(finalTotalTime);
       
-      // Save the results
-      saveQuizResults(totalTimeTaken);
+      // Save the results with total time taken
+      saveQuizResults(finalTotalTime);
     }
   };
   
   // Save quiz results
-  const saveQuizResults = async () => {
+  const saveQuizResults = async (totalTimeTaken) => {
     try {
       const isFromUser = challenge.fromUserId === currentUser.id;
       const challengeRef = doc(db, "challenges", challengeId);
@@ -349,25 +354,26 @@ export default function StudentQuizChallenge() {
       console.log("[saveQuizResults] Starting to save results");
       console.log("[saveQuizResults] isFromUser:", isFromUser);
       console.log("[saveQuizResults] Current challenge state:", challenge);
+      console.log("[saveQuizResults] Total time taken:", totalTimeTaken);
       
       // Update the challenge document with the user's score, time, and completion status
       const updateData = {
         ...(isFromUser ? {
           fromUserScore: score,
-          fromUserTime: totalTime,
+          fromUserTime: totalTimeTaken,
           fromUserCompletedAt: new Date().toISOString(),
-          senderCompleted: true
+          fromUserCompleted: true
         } : {
           toUserScore: score,
-          toUserTime: totalTime,
+          toUserTime: totalTimeTaken,
           toUserCompletedAt: new Date().toISOString(),
-          receiverCompleted: true
+          toUserCompleted: true
         })
       };
 
       // If this is the first time saving, initialize the other completion status to false
-      if (!challenge.senderCompleted && !challenge.receiverCompleted) {
-        updateData[isFromUser ? 'receiverCompleted' : 'senderCompleted'] = false;
+      if (!challenge.fromUserCompleted && !challenge.toUserCompleted) {
+        updateData[isFromUser ? 'toUserCompleted' : 'fromUserCompleted'] = false;
       }
       
       console.log("[saveQuizResults] Update data to be saved:", updateData);
@@ -382,7 +388,7 @@ export default function StudentQuizChallenge() {
       console.log("[saveQuizResults] Latest challenge data:", updatedChallenge);
       
       // Check if both users have completed
-      const bothCompleted = updatedChallenge.senderCompleted && updatedChallenge.receiverCompleted;
+      const bothCompleted = updatedChallenge.fromUserCompleted && updatedChallenge.toUserCompleted;
       console.log("[saveQuizResults] Both completed:", bothCompleted);
       
       // If both users have completed, determine and set the winner immediately
@@ -469,9 +475,10 @@ export default function StudentQuizChallenge() {
   
   // Format time in seconds to MM:SS
   const formatTime = (seconds) => {
+    if (!seconds) return "0:00";
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
   
   // Render the quiz
@@ -520,120 +527,84 @@ export default function StudentQuizChallenge() {
     );
   };
   
+  // Add a function to determine if the current user is the sender
+  const isSender = () => {
+    if (!challenge || !currentUser) return false;
+    return challenge.fromUserId === currentUser.id;
+  };
+
+  // Add a function to determine if the current user is the receiver
+  const isReceiver = () => {
+    if (!challenge || !currentUser) return false;
+    return challenge.toUserId === currentUser.id;
+  };
+
   // Render the quiz results
   const renderResults = () => {
-    const isFromUser = challenge.fromUserId === currentUser.id;
-    const bothCompleted = challenge.senderCompleted && challenge.receiverCompleted;
-    
-    console.log("[renderResults] Current challenge state:", challenge);
+    if (!challenge || !currentUser) return null;
+
+    const isFromUser = isSender();
+    const bothCompleted = challenge.fromUserCompleted && challenge.toUserCompleted;
+    const userCompleted = isFromUser ? challenge.fromUserCompleted : challenge.toUserCompleted;
+    const opponentCompleted = isFromUser ? challenge.toUserCompleted : challenge.fromUserCompleted;
+
     console.log("[renderResults] isFromUser:", isFromUser);
+    console.log("[renderResults] Current challenge state:", challenge);
     console.log("[renderResults] bothCompleted:", bothCompleted);
-    console.log("[renderResults] senderCompleted:", challenge.senderCompleted);
-    console.log("[renderResults] receiverCompleted:", challenge.receiverCompleted);
-    
-    // Determine winner based on scores and time if both have completed
-    let resultMessage = "Waiting for opponent to complete";
-    let isWinner = false;
-    
+    console.log("[renderResults] userCompleted:", userCompleted);
+    console.log("[renderResults] opponentCompleted:", opponentCompleted);
+
+    let resultMessage = "";
     if (bothCompleted) {
-      console.log("[renderResults] Both players have completed");
-      // If winner is already set in the challenge, use that
-      if (challenge.winner) {
-        console.log("[renderResults] Winner is set:", challenge.winner);
-        isWinner = challenge.winner === (isFromUser ? "fromUser" : "toUser");
+      if (challenge.winner === (isFromUser ? "fromUser" : "toUser")) {
+        resultMessage = "You won the challenge! 🎉";
+      } else if (challenge.winner === (isFromUser ? "toUser" : "fromUser")) {
+        resultMessage = "Your opponent won the challenge.";
       } else {
-        console.log("[renderResults] Determining winner based on scores and time");
-        // Otherwise determine winner based on scores and time
-        const fromUserWins = 
-          challenge.fromUserScore > challenge.toUserScore || 
-          (challenge.fromUserScore === challenge.toUserScore && 
-           challenge.fromUserTime < challenge.toUserTime);
-        isWinner = isFromUser ? fromUserWins : !fromUserWins;
+        resultMessage = "The challenge ended in a tie!";
       }
-      resultMessage = isWinner ? "Winner!" : "Better luck next time!";
+    } else if (userCompleted) {
+      resultMessage = "Waiting for opponent to complete...";
     } else {
-      // Show appropriate message based on who has completed
-      if (isFromUser && challenge.senderCompleted) {
-        resultMessage = "Waiting for opponent to complete";
-      } else if (!isFromUser && challenge.receiverCompleted) {
-        resultMessage = "Waiting for opponent to complete";
-      }
+      resultMessage = "Take the quiz to complete the challenge!";
     }
-    
+
     console.log("[renderResults] Final result message:", resultMessage);
-    console.log("[renderResults] isWinner:", isWinner);
-    
-    const pointsWagered = challenge.pointsWagered || 10;
-    
-    // If quiz data is not available, show a simplified results view
-    if (!quiz) {
-      return (
-        <div className={styles.resultsContainer}>
-          <h2 className={styles.resultsTitle}>Quiz Results</h2>
-          
-          <div className={styles.resultCard}>
-            <div className={styles.resultHeader}>
-              <h3>Quiz Results</h3>
-              <span className={`${styles.resultBadge} ${isWinner ? styles.winner : styles.loser}`}>
-                {resultMessage}
-              </span>
-            </div>
-            
-            <div className={styles.resultDetails}>
-              <p><strong>Your Score:</strong> {score}</p>
-              <p><strong>Time Taken:</strong> {formatTime(totalTime)}</p>
-              {bothCompleted && (
-                <>
-                  <p><strong>Opponent's Score:</strong> {isFromUser ? challenge.toUserScore : challenge.fromUserScore}</p>
-                  <p><strong>Points {isWinner ? 'Won' : 'Lost'}:</strong> {pointsWagered}</p>
-                </>
-              )}
-            </div>
-            
-            <div className={styles.resultActions}>
-              <button 
-                className={styles.returnButton}
-                onClick={() => router.push('/onevsoneRequests')}
-              >
-                Return to Challenges
-              </button>
-            </div>
-          </div>
-        </div>
-      );
-    }
-    
+
     return (
       <div className={styles.resultsContainer}>
-        <h2 className={styles.resultsTitle}>Quiz Results</h2>
+        <h2>Challenge Results</h2>
+        <p className={styles.resultMessage}>{resultMessage}</p>
         
-        <div className={styles.resultCard}>
-          <div className={styles.resultHeader}>
-            <h3>{quiz.topic} Quiz</h3>
-            <span className={`${styles.resultBadge} ${isWinner ? styles.winner : styles.loser}`}>
-              {resultMessage}
-            </span>
+        {userCompleted && (
+          <div className={styles.scoreContainer}>
+            <p>Your Score: {isFromUser ? challenge.fromUserScore : challenge.toUserScore}</p>
+            <p>Time Taken: {formatTime(isFromUser ? challenge.fromUserTime : challenge.toUserTime)}</p>
+            <div className={styles.questionTimes}>
+              <h3>Time per Question:</h3>
+              {answers.map((answer, index) => (
+                <p key={index}>
+                  Question {index + 1}: {formatTime(answer.timeTaken)}
+                </p>
+              ))}
+            </div>
           </div>
-          
-          <div className={styles.resultDetails}>
-            <p><strong>Your Score:</strong> {score} / {quiz.questions.length}</p>
-            <p><strong>Time Taken:</strong> {formatTime(totalTime)}</p>
-            {bothCompleted && (
-              <>
-                <p><strong>Opponent's Score:</strong> {isFromUser ? challenge.toUserScore : challenge.fromUserScore} / {quiz.questions.length}</p>
-                <p><strong>Points {isWinner ? 'Won' : 'Lost'}:</strong> {pointsWagered}</p>
-              </>
-            )}
+        )}
+        
+        {opponentCompleted && (
+          <div className={styles.scoreContainer}>
+            <p>Opponent's Score: {isFromUser ? challenge.toUserScore : challenge.fromUserScore}</p>
+            <p>Time Taken: {formatTime(isFromUser ? challenge.toUserTime : challenge.fromUserTime)}</p>
           </div>
-          
-          <div className={styles.resultActions}>
-            <button 
-              className={styles.returnButton}
-              onClick={() => router.push('/onevsoneRequests')}
-            >
-              Return to Challenges
-            </button>
-          </div>
+        )}
+
+        <div className={styles.resultActions}>
+          <button 
+            className={styles.returnButton}
+            onClick={() => router.push('/onevsoneRequests')}
+          >
+            Return to Challenges
+          </button>
         </div>
       </div>
     );
