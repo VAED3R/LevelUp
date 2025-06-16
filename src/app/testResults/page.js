@@ -6,7 +6,6 @@ import { collection, getDocs, addDoc, doc, getDoc, updateDoc, setDoc, writeBatch
 import { onAuthStateChanged } from "firebase/auth";
 import Navbar from "@/components/teacherNavbar";
 import styles from "./page.module.css";
-import IntroAnimation from "../../components/IntroAnimation";
 
 export default function TestResults() {
   const [students, setStudents] = useState([]);
@@ -323,14 +322,12 @@ export default function TestResults() {
 
   if (loading) {
     return (
-      <IntroAnimation loadingText="Loading Test Results...">
-        <div className={styles.container}>
-          <Navbar />
-          <div className={styles.content}>
-            <div className={styles.loading}>Loading test results...</div>
-          </div>
+      <div className={styles.container}>
+        <Navbar />
+        <div className={styles.content}>
+          <div className={styles.loading}>Loading test results...</div>
         </div>
-      </IntroAnimation>
+      </div>
     );
   }
 
@@ -349,116 +346,114 @@ export default function TestResults() {
   }
 
   return (
-    <IntroAnimation loadingText="Loading Test Results...">
-      <div className={styles.container}>
-        <Navbar />
-        <div className={styles.content}>
-          <h1 className={styles.title}>Add Test Results</h1>
-          
-          <form onSubmit={handleSubmit} className={styles.form}>
-            <div className={styles.filters}>
-              <div className={styles.formGroup}>
-                <label htmlFor="class" className={styles.label}>Select Class:</label>
-                <select
-                  id="class"
-                  value={selectedClass}
-                  onChange={(e) => setSelectedClass(e.target.value)}
-                  className={styles.select}
-                  required
-                  onKeyPress={handleKeyPress}
-                >
-                  <option value="">Select Class</option>
-                  {classes.map((className, index) => (
-                    <option key={index} value={className}>
-                      {className}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className={styles.formGroup}>
-                <label htmlFor="subject" className={styles.label}>Select Subject:</label>
-                <select
-                  id="subject"
-                  value={selectedSubject}
-                  onChange={(e) => setSelectedSubject(e.target.value)}
-                  className={styles.select}
-                  required
-                  onKeyPress={handleKeyPress}
-                >
-                  <option value="">Select Subject</option>
-                  {subjects.map((subject) => (
-                    <option key={subject} value={subject}>
-                      {subject.replace(/_/g, " ")}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className={styles.formGroup}>
-                <label htmlFor="totalScore" className={styles.label}>Total Score:</label>
-                <input
-                  type="number"
-                  id="totalScore"
-                  value={totalScore}
-                  onChange={handleTotalScoreChange}
-                  onKeyPress={handleKeyPress}
-                  min="0"
-                  max="100"
-                  className={styles.input}
-                  required
-                  placeholder="Enter total score"
-                />
-              </div>
+    <div className={styles.container}>
+      <Navbar />
+      <div className={styles.content}>
+        <h1 className={styles.title}>Add Test Results</h1>
+        
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <div className={styles.filters}>
+            <div className={styles.formGroup}>
+              <label htmlFor="class" className={styles.label}>Select Class:</label>
+              <select
+                id="class"
+                value={selectedClass}
+                onChange={(e) => setSelectedClass(e.target.value)}
+                className={styles.select}
+                required
+                onKeyPress={handleKeyPress}
+              >
+                <option value="">Select Class</option>
+                {classes.map((className, index) => (
+                  <option key={index} value={className}>
+                    {className}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            {filteredStudents.length > 0 && (
-              <div className={styles.marksContainer}>
-                <h2 className={styles.subtitle}>Enter Marks</h2>
-                <p className={styles.instruction}>Note: Only fill in marks for students who have taken the test. Students who haven't taken the test will automatically get 0 marks.</p>
-                {filteredStudents.map((student) => (
-                  <div key={student.id} className={styles.studentMarks}>
-                    <h3 className={styles.studentName}>{student.name}</h3>
-                    <div className={styles.marksInputs}>
-                      <div className={styles.formGroup}>
-                        <label htmlFor={`${student.id}-${selectedSubject}-obtained`} className={styles.label}>
-                          Obtained Marks:
-                        </label>
-                        <input
-                          type="number"
-                          id={`${student.id}-${selectedSubject}-obtained`}
-                          value={marks[student.id]?.[selectedSubject]?.obtained || "0"}
-                          onChange={handleMarksChange(student.id, selectedSubject, "obtained")}
-                          onKeyPress={handleKeyPress}
-                          min="0"
-                          max={totalScore}
-                          className={styles.input}
-                          placeholder="Enter marks if taken test"
-                        />
-                      </div>
-                      <div className={styles.percentageDisplay}>
-                        <span className={styles.percentageLabel}>Percentage:</span>
-                        <span className={styles.percentageValue}>
-                          {percentages[`${student.id}-${selectedSubject}`] || "0"}%
-                        </span>
-                      </div>
+            <div className={styles.formGroup}>
+              <label htmlFor="subject" className={styles.label}>Select Subject:</label>
+              <select
+                id="subject"
+                value={selectedSubject}
+                onChange={(e) => setSelectedSubject(e.target.value)}
+                className={styles.select}
+                required
+                onKeyPress={handleKeyPress}
+              >
+                <option value="">Select Subject</option>
+                {subjects.map((subject) => (
+                  <option key={subject} value={subject}>
+                    {subject.replace(/_/g, " ")}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="totalScore" className={styles.label}>Total Score:</label>
+              <input
+                type="number"
+                id="totalScore"
+                value={totalScore}
+                onChange={handleTotalScoreChange}
+                onKeyPress={handleKeyPress}
+                min="0"
+                max="100"
+                className={styles.input}
+                required
+                placeholder="Enter total score"
+              />
+            </div>
+          </div>
+
+          {filteredStudents.length > 0 && (
+            <div className={styles.marksContainer}>
+              <h2 className={styles.subtitle}>Enter Marks</h2>
+              <p className={styles.instruction}>Note: Only fill in marks for students who have taken the test. Students who haven't taken the test will automatically get 0 marks.</p>
+              {filteredStudents.map((student) => (
+                <div key={student.id} className={styles.studentMarks}>
+                  <h3 className={styles.studentName}>{student.name}</h3>
+                  <div className={styles.marksInputs}>
+                    <div className={styles.formGroup}>
+                      <label htmlFor={`${student.id}-${selectedSubject}-obtained`} className={styles.label}>
+                        Obtained Marks:
+                      </label>
+                      <input
+                        type="number"
+                        id={`${student.id}-${selectedSubject}-obtained`}
+                        value={marks[student.id]?.[selectedSubject]?.obtained || "0"}
+                        onChange={handleMarksChange(student.id, selectedSubject, "obtained")}
+                        onKeyPress={handleKeyPress}
+                        min="0"
+                        max={totalScore}
+                        className={styles.input}
+                        placeholder="Enter marks if taken test"
+                      />
+                    </div>
+                    <div className={styles.percentageDisplay}>
+                      <span className={styles.percentageLabel}>Percentage:</span>
+                      <span className={styles.percentageValue}>
+                        {percentages[`${student.id}-${selectedSubject}`] || "0"}%
+                      </span>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              ))}
+            </div>
+          )}
 
-            {error && <p className={styles.error}>{error}</p>}
-            {success && <p className={styles.success}>Marks added successfully!</p>}
+          {error && <p className={styles.error}>{error}</p>}
+          {success && <p className={styles.success}>Marks added successfully!</p>}
 
-            {filteredStudents.length > 0 && (
-              <button type="submit" className={styles.submitButton}>
-                Add Marks
-              </button>
-            )}
-          </form>
-        </div>
+          {filteredStudents.length > 0 && (
+            <button type="submit" className={styles.submitButton}>
+              Add Marks
+            </button>
+          )}
+        </form>
       </div>
-    </IntroAnimation>
+    </div>
   );
 }

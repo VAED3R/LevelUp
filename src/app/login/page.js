@@ -21,7 +21,7 @@ export default function Login() {
   const { user, loading } = useAuth();
 
   useEffect(() => {
-    setIsClient(true); // Ensure animations only run on the client
+    setIsClient(true);
 
     const roleParam = searchParams.get("role");
     if (roleParam) {
@@ -52,9 +52,7 @@ export default function Login() {
           console.log(`${role} login successful`);
           router.push(`/${role}Dashboard`);
         }
-      } /*else {
-        setError("No user data found.");
-      }*/
+      }
     } catch (error) {
       setError("Invalid email or password. Please try again.");
     }
@@ -63,100 +61,188 @@ export default function Login() {
   if (!isClient) return null;
 
   return (
-    <motion.div
-      className={styles.container}
-      initial={{ backgroundPosition: "50% 50%" }}
-      animate={{ backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"] }}
-      transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-    >
-      <div className={styles.card}>
-        <motion.h1
-          className={styles.heading}
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.6, ease: "easeOut" }}
+    <div className={styles.container}>
+      {/* Left Side - Login Form */}
+      <motion.div 
+        className={styles.loginSection}
+        initial={{ x: -100, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      >
+        <motion.div 
+          className={styles.loginCard}
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.6 }}
         >
-          {role ? `${role.charAt(0).toUpperCase() + role.slice(1)} Login` : "LevelUp"}
-        </motion.h1>
+          <motion.p 
+            className={styles.loginTitle}
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+          >
+            Sign in
+          </motion.p>
+          
+          <motion.p 
+            className={styles.loginSubtitle}
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.6 }}
+          >
+            {role ? `Access your ${role} account` : "Enter your credentials"}
+          </motion.p>
 
-        <motion.form
-          onSubmit={handleLogin}
-          className={styles.form}
-          initial="hidden"
-          animate="visible"
-          variants={{
-            hidden: { opacity: 0 },
-            visible: { opacity: 1, transition: { staggerChildren: 0.2 } },
-          }}
-        >
-          <motion.div
-            className={styles.field}
+          <motion.form
+            onSubmit={handleLogin}
+            className={styles.form}
+            initial="hidden"
+            animate="visible"
             variants={{
-              hidden: { y: 20, opacity: 0 },
-              visible: { y: 0, opacity: 1, transition: { duration: 0.4 } },
+              hidden: { opacity: 0 },
+              visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
             }}
           >
-            <label htmlFor="email">Email</label>
-            <motion.input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              whileFocus={{ scale: 1.05 }} // Increases the size of the input field on focus
-              transition={{ duration: 0.3 }} // Smooth transition duration
-            />
-          </motion.div>
-
-          <motion.div
-            className={styles.field}
-            variants={{
-              hidden: { y: 20, opacity: 0 },
-              visible: { y: 0, opacity: 1, transition: { duration: 0.4 } },
-            }}
-          >
-            <label htmlFor="password">Password</label>
-            <motion.input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              whileFocus={{ scale: 1.05 }} // Increases the size of the input field on focus
-              transition={{ duration: 0.3 }} // Smooth transition duration
-            />
-          </motion.div>
-
-          {/* Animated Login Button with fade-in and smooth expansion */}
-          <motion.button
-            type="submit"
-            className={`${styles.submitButton} ${role === "student" ? styles.student : ""} 
-                      ${role === "teacher" ? styles.teacher : ""} 
-                      ${role === "parent" ? styles.parent : ""}`}
-            initial={{ scale: 0.8, opacity: 0 }} // Start small and invisible
-            animate={{ scale: 1, opacity: 1 }}  // Final state (normal size and fully visible)
-            transition={{
-              type: "spring",
-              stiffness: 200,
-              damping: 25,
-              delay: 0.8, // Delay to create the smooth entrance
-            }}
-          >
-            Login
-          </motion.button>
-
-          {error && (
-            <motion.p
-              className={styles.error}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
+            <motion.div
+              className={styles.field}
+              variants={{
+                hidden: { y: 20, opacity: 0 },
+                visible: { y: 0, opacity: 1, transition: { duration: 0.4 } },
+              }}
             >
-              {error}
-            </motion.p>
-          )}
-        </motion.form>
-      </div>
-    </motion.div>
+              <label htmlFor="email">Email Address</label>
+              <motion.input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="Enter your email"
+                whileFocus={{ scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+              />
+            </motion.div>
+
+            <motion.div
+              className={styles.field}
+              variants={{
+                hidden: { y: 20, opacity: 0 },
+                visible: { y: 0, opacity: 1, transition: { duration: 0.4 } },
+              }}
+            >
+              <label htmlFor="password">Password</label>
+              <motion.input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="Enter your password"
+                whileFocus={{ scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+              />
+            </motion.div>
+
+            <motion.button
+              type="submit"
+              className={`${styles.submitButton} ${role === "student" ? styles.student : ""} 
+                        ${role === "teacher" ? styles.teacher : ""} 
+                        ${role === "parent" ? styles.parent : ""}`}
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{
+                type: "spring",
+                stiffness: 200,
+                damping: 25,
+                delay: 0.8,
+              }}
+            >
+              Sign In
+            </motion.button>
+
+            {error && (
+              <motion.p
+                className={styles.error}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                {error}
+              </motion.p>
+            )}
+          </motion.form>
+        </motion.div>
+      </motion.div>
+
+      {/* Right Side - LEVEL UP Branding */}
+      <motion.div 
+        className={styles.brandSection}
+        initial={{ x: 100, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      >
+        <div className={styles.brandContent}>
+          <motion.div 
+            className={styles.logoContainer}
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.6, ease: "easeOut" }}
+          >
+            <h1 className={styles.logo}>LEVEL UP</h1>
+            <div className={styles.logoSubtitle}>Gamified Learning Platform</div>
+          </motion.div>
+
+          <motion.div 
+            className={styles.features}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1, duration: 0.8 }}
+          >
+            <motion.div 
+              className={styles.feature}
+              initial={{ x: 50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 1.2, duration: 0.6 }}
+            >
+              <span className={styles.featureIcon}>🎓</span>
+              <span>Comprehensive Learning</span>
+            </motion.div>
+            
+            <motion.div 
+              className={styles.feature}
+              initial={{ x: 50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 1.4, duration: 0.6 }}
+            >
+              <span className={styles.featureIcon}>📈</span>
+              <span>Track Progress</span>
+            </motion.div>
+            
+            <motion.div 
+              className={styles.feature}
+              initial={{ x: 50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 1.6, duration: 0.6 }}
+            >
+              <span className={styles.featureIcon}>🤝</span>
+              <span>Collaborative Platform</span>
+            </motion.div>
+          </motion.div>
+
+          <motion.div 
+            className={styles.decorativeElements}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.8, duration: 1 }}
+          >
+            <div className={styles.floatingShape}></div>
+            <div className={styles.floatingShape}></div>
+            <div className={styles.floatingShape}></div>
+          </motion.div>
+        </div>
+      </motion.div>
+    </div>
   );
 }
