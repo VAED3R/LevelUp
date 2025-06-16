@@ -21,10 +21,18 @@ export default function StudentAttendance() {
     absent: 0,
     percentage: 0
   });
+  const [overallStats, setOverallStats] = useState({
+    totalClasses: 0,
+    present: 0,
+    absent: 0,
+    percentage: 0
+  });
+  const [showOverall, setShowOverall] = useState(true);
 
   useEffect(() => {
     if (user) {
       fetchSubjects();
+      fetchOverallAttendance();
     }
   }, [user]);
 
@@ -133,8 +141,104 @@ export default function StudentAttendance() {
     }
   };
 
+  const fetchOverallAttendance = async () => {
+    try {
+      if (!user || !user.uid) {
+        console.log('No user or user.uid available');
+        return;
+      }
+
+      console.log('Fetching overall attendance for user:', user.uid);
+      const attendanceRef = collection(db, 'attendance');
+      
+      // Try different possible field names for student ID
+      const possibleFields = ['studentId', 'student_id', 'userId', 'user_id', 'uid'];
+      let querySnapshot = null;
+      let usedField = null;
+
+      for (const field of possibleFields) {
+        try {
+          const q = query(attendanceRef, where(field, '==', user.uid));
+          const snapshot = await getDocs(q);
+          if (snapshot.size > 0) {
+            querySnapshot = snapshot;
+            usedField = field;
+            console.log(`Found attendance records using field: ${field}`);
+            break;
+          }
+        } catch (err) {
+          console.log(`Field ${field} not found or error:`, err);
+        }
+      }
+
+      // If no records found with specific fields, try without any filter
+      if (!querySnapshot) {
+        console.log('Trying to fetch all attendance records...');
+        querySnapshot = await getDocs(attendanceRef);
+      }
+
+      console.log('Found attendance records:', querySnapshot.size);
+      
+      let totalPresent = 0;
+      let totalAbsent = 0;
+      let totalClasses = 0;
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        console.log('Attendance record:', data);
+        
+        // Check if this record belongs to the current user
+        const isUserRecord = usedField ? 
+          data[usedField] === user.uid : 
+          (data.studentId === user.uid || 
+           data.student_id === user.uid || 
+           data.userId === user.uid || 
+           data.user_id === user.uid || 
+           data.uid === user.uid);
+
+        if (isUserRecord) {
+          totalClasses++;
+          
+          if (data.status === 'present') {
+            totalPresent++;
+          } else if (data.status === 'absent') {
+            totalAbsent++;
+          }
+        }
+      });
+
+      const overallPercentage = totalClasses > 0 ? Math.round((totalPresent / totalClasses) * 100) : 0;
+
+      console.log('Overall stats calculated:', {
+        totalClasses,
+        totalPresent,
+        totalAbsent,
+        overallPercentage,
+        usedField
+      });
+
+      setOverallStats({
+        totalClasses,
+        present: totalPresent,
+        absent: totalAbsent,
+        percentage: overallPercentage
+      });
+    } catch (err) {
+      console.error('Error fetching overall attendance:', err);
+      setError('Failed to fetch overall attendance data.');
+    }
+  };
+
   const handleSubjectChange = (e) => {
     setSelectedSubject(e.target.value);
+    setShowOverall(false);
+  };
+
+  const toggleOverallView = () => {
+    setShowOverall(!showOverall);
+    if (!showOverall) {
+      setSelectedSubject('');
+    }
   };
 
   if (!user) {
@@ -158,61 +262,114 @@ export default function StudentAttendance() {
           <div className={styles.content}>
             <h1 className={styles.title}>Attendance</h1>
             
-            <div className={styles.subjectSelector}>
-              <label htmlFor="subject">Select Subject</label>
-              <select
-                id="subject"
-                value={selectedSubject}
-                onChange={handleSubjectChange}
+            <div className={styles.viewToggle}>
+              <button 
+                className={`${styles.toggleButton} ${showOverall ? styles.active : ''}`}
+                onClick={toggleOverallView}
               >
-                <option value="">Choose a subject</option>
-                {subjects.map((subject) => (
-                  <option key={subject} value={subject}>
-                    {subject.replace(/_/g, ' ')}
-                  </option>
-                ))}
-              </select>
+                Total Attendance
+              </button>
+              <button 
+                className={`${styles.toggleButton} ${!showOverall ? styles.active : ''}`}
+                onClick={() => {
+                  setShowOverall(false);
+                  setSelectedSubject('');
+                }}
+              >
+                Subject Wise
+              </button>
             </div>
 
-            {loading ? (
-              <div className={styles.loading}>Loading...</div>
-            ) : error ? (
-              <div className={styles.error}>{error}</div>
-            ) : selectedSubject ? (
+            {showOverall ? (
               <div className={styles.attendanceContainer}>
+                <div className={styles.overallHeader}>
+                  <h2 className={styles.overallTitle}>Overall Attendance</h2>
+                  <button 
+                    className={styles.refreshButton}
+                    onClick={fetchOverallAttendance}
+                  >
+                    🔄 Refresh
+                  </button>
+                </div>
                 <div className={styles.statsContainer}>
                   <div className={styles.statCard}>
                     <h3>Total Classes</h3>
-                    <p>{stats.totalClasses}</p>
+                    <p>{overallStats.totalClasses}</p>
                   </div>
                   <div className={styles.statCard}>
                     <h3>Present</h3>
-                    <p>{stats.present}</p>
+                    <p>{overallStats.present}</p>
                   </div>
                   <div className={styles.statCard}>
                     <h3>Absent</h3>
-                    <p>{stats.absent}</p>
+                    <p>{overallStats.absent}</p>
                   </div>
                   <div className={styles.statCard}>
-                    <h3>Attendance %</h3>
-                    <p>{stats.percentage}%</p>
+                    <h3>Overall %</h3>
+                    <p>{overallStats.percentage}%</p>
                   </div>
-                </div>
-
-                <div className={styles.attendanceList}>
-                  {attendance.map((record) => (
-                    <div
-                      key={record.id}
-                      className={`${styles.attendanceItem} ${styles[record.status]}`}
-                    >
-                      <p>{record.date}</p>
-                      <p>{record.status.toUpperCase()}</p>
-                    </div>
-                  ))}
                 </div>
               </div>
             ) : (
-              <div className={styles.loading}>Select a subject to view attendance</div>
+              <>
+                <div className={styles.subjectSelector}>
+                  <label htmlFor="subject">Select Subject</label>
+                  <select
+                    id="subject"
+                    value={selectedSubject}
+                    onChange={handleSubjectChange}
+                  >
+                    <option value="">Choose a subject</option>
+                    {subjects.map((subject) => (
+                      <option key={subject} value={subject}>
+                        {subject.replace(/_/g, ' ')}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {loading ? (
+                  <div className={styles.loading}>Loading...</div>
+                ) : error ? (
+                  <div className={styles.error}>{error}</div>
+                ) : selectedSubject ? (
+                  <div className={styles.attendanceContainer}>
+                    <h2 className={styles.subjectTitle}>{selectedSubject.replace(/_/g, ' ')} Attendance</h2>
+                    <div className={styles.statsContainer}>
+                      <div className={styles.statCard}>
+                        <h3>Total Classes</h3>
+                        <p>{stats.totalClasses}</p>
+                      </div>
+                      <div className={styles.statCard}>
+                        <h3>Present</h3>
+                        <p>{stats.present}</p>
+                      </div>
+                      <div className={styles.statCard}>
+                        <h3>Absent</h3>
+                        <p>{stats.absent}</p>
+                      </div>
+                      <div className={styles.statCard}>
+                        <h3>Attendance %</h3>
+                        <p>{stats.percentage}%</p>
+                      </div>
+                    </div>
+
+                    <div className={styles.attendanceList}>
+                      {attendance.map((record) => (
+                        <div
+                          key={record.id}
+                          className={`${styles.attendanceItem} ${styles[record.status]}`}
+                        >
+                          <p>{record.date}</p>
+                          <p>{record.status.toUpperCase()}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className={styles.loading}>Select a subject to view attendance</div>
+                )}
+              </>
             )}
           </div>
         </div>
