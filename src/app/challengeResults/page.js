@@ -307,9 +307,31 @@ export default function ChallengeResults() {
       console.log("[claimPoints] Winner data:", winnerData);
       console.log("[claimPoints] Loser data:", loserData);
       
+      // Get current total points
+      const winnerCurrentPoints = winnerData.totalPoints || 0;
+      const loserCurrentPoints = loserData.totalPoints || 0;
+      
+      // Calculate new total points
+      const winnerNewTotal = winnerCurrentPoints + pointsWagered;
+      const loserNewTotal = Math.max(0, loserCurrentPoints - pointsWagered); // Ensure points don't go below 0
+      
+      console.log("[claimPoints] Points calculation:", {
+        winnerCurrentPoints,
+        loserCurrentPoints,
+        pointsWagered,
+        winnerNewTotal,
+        loserNewTotal
+      });
+      
       // Initialize fallPoints array if it doesn't exist
-      const winnerUpdate = {};
-      const loserUpdate = {};
+      const winnerUpdate = {
+        totalPoints: winnerNewTotal,
+        lastUpdated: new Date().toISOString()
+      };
+      const loserUpdate = {
+        totalPoints: loserNewTotal,
+        lastUpdated: new Date().toISOString()
+      };
       
       // Check if fallPoints array exists and initialize it if needed
       if (!winnerData.fallPoints) {
@@ -333,7 +355,7 @@ export default function ChallengeResults() {
         loserUpdate
       });
       
-      // Transfer points by adding to fallPoints array
+      // Transfer points by updating totalPoints and fallPoints array
       console.log("[claimPoints] Updating student documents");
       await Promise.all([
         updateDoc(doc(db, "students", winnerId), winnerUpdate),
