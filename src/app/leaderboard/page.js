@@ -30,6 +30,8 @@ export default function Leaderboard() {
   });
   const [currentUser, setCurrentUser] = useState(null);
   const [authError, setAuthError] = useState(false);
+  const [showActionPopup, setShowActionPopup] = useState(false);
+  const [sortBy, setSortBy] = useState("points-desc"); // points-desc, points-asc, name-asc, name-desc
   const router = useRouter();
 
   useEffect(() => {
@@ -105,6 +107,34 @@ export default function Leaderboard() {
     fetchStudents();
   }, []);
 
+  // Handle sticky positioning for bottom half users
+  useEffect(() => {
+    if (currentUser && !loading) {
+      const currentUserRow = document.querySelector(`[data-position="bottom"]`);
+      if (currentUserRow) {
+        const container = document.querySelector(`.${styles.leaderboardContainer}`);
+        if (container) {
+          const handleScroll = () => {
+            const containerRect = container.getBoundingClientRect();
+            const rowRect = currentUserRow.getBoundingClientRect();
+            
+            // If the row is near the bottom of the container, keep it visible
+            if (rowRect.bottom > containerRect.bottom) {
+              currentUserRow.style.position = 'sticky';
+              currentUserRow.style.bottom = '0';
+            } else {
+              currentUserRow.style.position = '';
+              currentUserRow.style.bottom = '';
+            }
+          };
+          
+          container.addEventListener('scroll', handleScroll);
+          return () => container.removeEventListener('scroll', handleScroll);
+        }
+      }
+    }
+  }, [currentUser, loading, styles.leaderboardContainer]);
+
   // Handle class filter change
   const handleClassChange = (event) => {
     const selected = event.target.value;
@@ -137,7 +167,46 @@ export default function Leaderboard() {
       );
     }
     
+    // Apply sorting
+    filtered = sortStudents(filtered, sortBy);
+    
     setFilteredStudents(filtered);
+  };
+
+  // Sort students based on sortBy option
+  const sortStudents = (studentsList, sortOption) => {
+    const sorted = [...studentsList];
+    
+    switch (sortOption) {
+      case "points-desc":
+        return sorted.sort((a, b) => b.totalPoints - a.totalPoints);
+      case "points-asc":
+        return sorted.sort((a, b) => a.totalPoints - b.totalPoints);
+      case "name-asc":
+        return sorted.sort((a, b) => a.name.localeCompare(b.name));
+      case "name-desc":
+        return sorted.sort((a, b) => b.name.localeCompare(a.name));
+      default:
+        return sorted.sort((a, b) => b.totalPoints - a.totalPoints);
+    }
+  };
+
+  // Handle sort change
+  const handleSortChange = (event) => {
+    const newSortBy = event.target.value;
+    setSortBy(newSortBy);
+    applyFilters(selectedClass, searchQuery);
+  };
+
+  // Handle action popup close
+  const handleActionPopupClose = () => {
+    setShowActionPopup(false);
+  };
+
+  // Apply changes from action popup
+  const handleApplyChanges = () => {
+    applyFilters(selectedClass, searchQuery);
+    setShowActionPopup(false);
   };
 
   // 🏅 Function to display badges with overall topper persistence
@@ -359,22 +428,15 @@ export default function Leaderboard() {
                 </div>
               )}
 
-              {/* Dropdown for filtering */}
+              {/* Action Button and Search */}
               <div className={styles.filterContainer}>
-                <div className={styles.filterGroup}>
-                  <label htmlFor="classFilter" className={styles.label}>Filter by Class:</label>
-                  <select
-                    id="classFilter"
-                    value={selectedClass}
-                    onChange={handleClassChange}
-                    className={styles.select}
+                <div className={styles.actionGroup}>
+                  <button 
+                    className={styles.actionButton}
+                    onClick={() => setShowActionPopup(true)}
                   >
-                    {classes.map((className, index) => (
-                      <option key={index} value={className}>
-                        {className}
-                      </option>
-                    ))}
-                  </select>
+                    Action
+                  </button>
                 </div>
                 
                 <div className={styles.searchGroup}>
@@ -398,6 +460,58 @@ export default function Leaderboard() {
                 </div>
               </div>
 
+              {/* Action Popup */}
+              {showActionPopup && (
+                <div className={styles.actionPopupOverlay}>
+                  <div className={styles.actionPopupContent}>
+                    <button className={styles.actionCloseButton} onClick={handleActionPopupClose}>×</button>
+                    <h2 className={styles.actionPopupTitle}>Filter & Sort Options</h2>
+                    
+                    <div className={styles.actionSection}>
+                      <h3 className={styles.actionSectionTitle}>Filter by Class</h3>
+                      <select
+                        value={selectedClass}
+                        onChange={handleClassChange}
+                        className={styles.actionSelect}
+                      >
+                        {classes.map((className, index) => (
+                          <option key={index} value={className}>
+                            {className}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div className={styles.actionSection}>
+                      <h3 className={styles.actionSectionTitle}>Sort by</h3>
+                      <select
+                        value={sortBy}
+                        onChange={handleSortChange}
+                        className={styles.actionSelect}
+                      >
+                        <option value="points-desc">Points (High to Low)</option>
+                        <option value="points-asc">Points (Low to High)</option>
+                      </select>
+                    </div>
+                    
+                    <div className={styles.actionButtons}>
+                      <button 
+                        className={styles.applyButton}
+                        onClick={handleApplyChanges}
+                      >
+                        Apply Changes
+                      </button>
+                      <button 
+                        className={styles.cancelButton}
+                        onClick={handleActionPopupClose}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {loading ? (
                 <p className={styles.loading}>Loading...</p>
               ) : (
@@ -418,14 +532,18 @@ export default function Leaderboard() {
                           const originalIndex = students.findIndex(s => s.id === student.id);
                           const rank = originalIndex + 1;
                           const isCurrentUser = currentUser && student.id === currentUser.id;
-                          const totalStudents = students.length;
-                          const isTopHalf = rank <= Math.ceil(totalStudents / 2);
+                          const totalStudents = filteredStudents.length;
+                          const isTopHalf = index < Math.ceil(totalStudents / 2);
                           const position = isCurrentUser ? (isTopHalf ? "top" : "bottom") : null;
                           
                           return (
                             <tr 
                               key={student.id} 
-                              onClick={() => handleStudentClick(student.id)}
+                              onClick={() => {
+                                if (!isCurrentUser) {
+                                  handleStudentClick(student.id);
+                                }
+                              }}
                               className={`${styles.tableRow} ${styles.clickableRow} ${isCurrentUser ? styles.currentUserRow : ''}`}
                               data-rank={rank}
                               data-position={position}

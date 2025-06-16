@@ -56,6 +56,7 @@
   border-radius: 8px;
   box-shadow: 5px 5px 0px #452d57;
   table-layout: fixed;
+  position: relative;
 }
 
 .table th, .table td {
@@ -168,6 +169,186 @@
   width: 100%;
   flex-wrap: wrap;
   gap: 15px;
+  position: relative;
+}
+
+.actionGroup {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  justify-content: flex-start;
+  min-width: 120px;
+}
+
+.actionButton {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 12px;
+  background: linear-gradient(45deg, #9c34d0, #4b217b);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 12px 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  box-shadow: 0 4px 0 #452d57;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.actionButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #452d57;
+  background: linear-gradient(45deg, #a944e0, #5b318b);
+}
+
+.actionButton:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #452d57;
+}
+
+/* Action Popup Styles */
+.actionPopupOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.actionPopupContent {
+  background: linear-gradient(135deg, #1a0033, #7f37c6);
+  border: 3px solid #9c34d0;
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 400px;
+  width: 90%;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  animation: slideIn 0.3s ease-out;
+}
+
+.actionCloseButton {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  font-family: 'Press Start 2P', cursive;
+  transition: all 0.2s;
+}
+
+.actionCloseButton:hover {
+  color: #ff6b6b;
+  transform: scale(1.2);
+}
+
+.actionPopupTitle {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 16px;
+  color: #fff;
+  text-align: center;
+  margin-bottom: 25px;
+  text-shadow: 2px 2px 0px #000;
+}
+
+.actionSection {
+  margin-bottom: 20px;
+}
+
+.actionSectionTitle {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 12px;
+  color: #fff;
+  margin-bottom: 10px;
+  text-shadow: 1px 1px 0px #000;
+}
+
+.actionSelect {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #7f37c6;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 11px;
+  transition: all 0.3s ease;
+}
+
+.actionSelect:focus {
+  outline: none;
+  border-color: #9c34d0;
+  box-shadow: 0 0 10px rgba(156, 52, 208, 0.5);
+}
+
+.actionButtons {
+  display: flex;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.applyButton {
+  flex: 1;
+  background: linear-gradient(45deg, #4CAF50, #45a049);
+  color: #fff;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 11px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 2px solid #fff;
+  box-shadow: 0 4px 0 #2d5a2d;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+
+.applyButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #2d5a2d;
+  background: linear-gradient(45deg, #45a049, #4CAF50);
+}
+
+.applyButton:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #2d5a2d;
+}
+
+.cancelButton {
+  flex: 1;
+  background: linear-gradient(45deg, #f44336, #d32f2f);
+  color: #fff;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 11px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 2px solid #fff;
+  box-shadow: 0 4px 0 #8b1a1a;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+
+.cancelButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #8b1a1a;
+  background: linear-gradient(45deg, #d32f2f, #f44336);
+}
+
+.cancelButton:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #8b1a1a;
 }
 
 .filterGroup {
@@ -179,6 +360,11 @@
 .searchGroup {
   display: flex;
   align-items: center;
+  justify-content: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
 }
 
 .searchContainer {
@@ -440,6 +626,8 @@
 .onevoneButtonContainer {
   display: flex;
   align-items: center;
+  min-width: 120px;
+  justify-content: flex-end;
 }
 
 /* 1v1 Button */
@@ -514,6 +702,8 @@
   position: relative;
   width: 100%;
   margin-top: 20px;
+  height: calc(100vh - 300px);
+  min-height: 400px;
 }
 
 .leaderboardContainer::-webkit-scrollbar {
@@ -537,6 +727,14 @@
   position: sticky;
   z-index: 1;
   margin-bottom: 1px;
+  cursor: default !important;
+}
+
+.currentUserRow:hover {
+  cursor: default !important;
+  background: linear-gradient(135deg, #1a0033, #7f37c6, #632298) !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 /* When current user is in top half of the table */
@@ -546,7 +744,9 @@
 
 /* When current user is in bottom half of the table */
 .currentUserRow[data-position="bottom"] {
+  position: sticky;
   bottom: 0;
+  top: auto;
 }
 
 .currentUserRow td {
