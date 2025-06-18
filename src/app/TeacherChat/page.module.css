@@ -1217,19 +1217,18 @@
 
 .messageInput {
   flex: 1;
-  padding: 0.8rem 1.2rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 25px;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
   font-size: 0.95rem;
-  transition: all 0.2s ease;
-  background-color: #f8f9fa;
+  color: #333;
+  outline: none;
+  transition: border-color 0.2s;
+  background-color: white;
 }
 
 .messageInput:focus {
-  outline: none;
   border-color: #5a35ab;
-  background-color: white;
-  box-shadow: 0 0 0 3px rgba(90, 53, 171, 0.1);
 }
 
 .sendButton {

@@ -176,32 +176,92 @@ export default function TeacherChat() {
     if (!newMessage.trim()) return;
 
     const userMessage = {
-      text: newMessage,
       sender: 'user',
-      timestamp: new Date().toISOString()
+      text: newMessage,
+      timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setNewMessage("");
+    setNewMessage('');
     setChatLoading(true);
 
     try {
-      // Add message to Firestore
-      const chatRef = collection(db, "teacher_chat");
-      await addDoc(chatRef, userMessage);
+      let context = "";
+      // Get relevant context from RAG system
+      const ragResponse = await fetch('http://localhost:8000/context', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: newMessage,
+          k: 3
+        })
+      });
 
-      // Simulate bot response (you can replace this with actual AI integration)
-      setTimeout(() => {
-        const botResponse = {
-          text: "I'm here to help you with any questions about student performance, teaching strategies, or educational resources. How can I assist you today?",
-          sender: 'bot',
-          timestamp: new Date().toISOString()
-        };
-        setMessages(prev => [...prev, botResponse]);
-        addDoc(chatRef, botResponse);
-      }, 1000);
+      if (ragResponse.ok) {
+        const ragData = await ragResponse.json();
+        context = `You are Lia, LevelUp Interactive Assistant, a helpful teaching assistant. Here is some relevant context from our knowledge base:
+        ${ragData.context}
+        
+        Based on this context and the teacher's question, provide a clear and helpful response.
+        Focus on teaching strategies, classroom management, and educational resources.
+        Keep responses concise and avoid using markdown formatting.`;
+      } else {
+        context = `You are Lia, LevelUp Interactive Assistant, a helpful teaching assistant. 
+        Provide clear, concise answers to the teacher's questions about:
+        - Teaching strategies and methodologies
+        - Classroom management techniques
+        - Educational resources and tools
+        - Student assessment and evaluation
+        - Professional development opportunities
+        
+        Keep responses focused on practical, actionable advice.
+        Avoid using markdown formatting.`;
+      }
+
+      const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'deepseek-chat',
+          messages: [
+            {
+              role: 'system',
+              content: context
+            },
+            {
+              role: 'user',
+              content: newMessage
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 1000
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response from AI');
+      }
+
+      const data = await response.json();
+      const botMessage = {
+        sender: 'bot',
+        text: data.choices[0].message.content,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, botMessage]);
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error('Error getting response:', error);
+      setMessages(prev => [...prev, {
+        sender: 'bot',
+        text: "I'm sorry, I encountered an error. Please try again.",
+        timestamp: new Date()
+      }]);
     } finally {
       setChatLoading(false);
     }
