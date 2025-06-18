@@ -46,10 +46,22 @@ export default function TestResults() {
         )?.data();
 
         if (teacher) {
-          const teacherSubjects = teacher.subject
-            .split(",")
-            .map((sub) => sub.trim().toLowerCase().replace(/ /g, "_"));
+          // Check if teacher has subjects array or string
+          let teacherSubjects = [];
+          if (teacher.subjects && Array.isArray(teacher.subjects)) {
+            teacherSubjects = teacher.subjects;
+          } else if (teacher.subject) {
+            teacherSubjects = teacher.subject.split(",").map((sub) => sub.trim().toLowerCase().replace(/ /g, "_"));
+          } else {
+            console.warn("No subjects found for teacher:", teacherEmail);
+            setError("No subjects assigned to this teacher. Please contact the administrator.");
+            return;
+          }
           setSubjects(teacherSubjects);
+        } else {
+          console.warn("Teacher not found:", teacherEmail);
+          setError("Teacher information not found. Please try logging in again.");
+          return;
         }
 
         // Fetch students
@@ -68,7 +80,7 @@ export default function TestResults() {
         setClasses(uniqueClasses.sort());
       } catch (error) {
         console.error("Error fetching data:", error);
-        setError("Failed to load data");
+        setError("Failed to load data. Please try again later.");
       } finally {
         setLoading(false);
       }
