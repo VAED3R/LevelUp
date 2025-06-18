@@ -13,6 +13,9 @@ export default function ViewResults() {
   const [error, setError] = useState(null);
   const [subjects, setSubjects] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState("");
+  const [semesters, setSemesters] = useState([]);
+  const [selectedSemester, setSelectedSemester] = useState("6"); // Default to semester 6
+  const [allSubjectsData, setAllSubjectsData] = useState([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -42,10 +45,6 @@ export default function ViewResults() {
         console.log("Fetched marks data:", marksData);
         setResults(marksData);
         
-        // Extract unique subjects
-        const uniqueSubjects = [...new Set(marksData.map(mark => mark.subject))];
-        setSubjects(uniqueSubjects);
-        
         setLoading(false);
       } catch (error) {
         console.error("Error fetching results:", error);
@@ -57,14 +56,83 @@ export default function ViewResults() {
     fetchResults();
   }, [router]);
 
+  // Fetch subjects and semesters from subjects collection
+  useEffect(() => {
+    const fetchSubjectsAndSemesters = async () => {
+      try {
+        const subjectsQuery = await getDocs(collection(db, "subjects"));
+        const subjectsData = subjectsQuery.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        console.log("All subjects from collection:", subjectsData);
+
+        // Store all subjects data for filtering later
+        setAllSubjectsData(subjectsData);
+
+        // Extract unique semesters
+        const uniqueSemesters = [...new Set(
+          subjectsData.map(subject => subject.semester).filter(Boolean)
+        )];
+
+        console.log("Available semesters:", uniqueSemesters);
+        setSemesters(uniqueSemesters.sort());
+        
+        // Clear subjects initially
+        setSubjects([]);
+      } catch (error) {
+        console.error("Error fetching subjects and semesters:", error);
+        setError("Failed to load subjects and semesters");
+      }
+    };
+
+    fetchSubjectsAndSemesters();
+  }, []);
+
+  // Filter subjects based on selected semester
+  useEffect(() => {
+    if (selectedSemester && allSubjectsData.length > 0) {
+      // Filter subjects by selected semester
+      const filteredSubjects = allSubjectsData.filter(
+        subject => subject.semester === selectedSemester
+      );
+
+      // Extract unique subject names for the selected semester
+      const uniqueSubjects = [...new Set(
+        filteredSubjects.map(subject => subject.courseName).filter(Boolean)
+      )];
+
+      console.log(`Subjects for semester ${selectedSemester}:`, uniqueSubjects);
+      setSubjects(uniqueSubjects.sort());
+      
+      // Reset selected subject when semester changes
+      setSelectedSubject("");
+    } else {
+      setSubjects([]);
+      setSelectedSubject("");
+    }
+  }, [selectedSemester, allSubjectsData]);
+
   const filteredResults = selectedSubject
     ? results.filter(result => result.subject === selectedSubject)
+    : selectedSemester
+    ? results.filter(result => result.semester === selectedSemester)
     : results;
 
   const calculateAverage = (results) => {
     if (results.length === 0) return 0;
     const sum = results.reduce((acc, result) => acc + result.percentage, 0);
     return (sum / results.length).toFixed(2);
+  };
+
+  const handleSemesterChange = (e) => {
+    setSelectedSemester(e.target.value);
+    setSelectedSubject("");
+  };
+
+  const handleSubjectChange = (e) => {
+    setSelectedSubject(e.target.value);
   };
 
   return (
@@ -82,17 +150,37 @@ export default function ViewResults() {
             <>
               <div className={styles.filters}>
                 <div className={styles.formGroup}>
+                  <label htmlFor="semester" className={styles.label}>Filter by Semester:</label>
+                  <select
+                    id="semester"
+                    value={selectedSemester}
+                    onChange={handleSemesterChange}
+                    className={styles.select}
+                  >
+                    <option value="">All Semesters</option>
+                    {semesters.map((semester) => (
+                      <option key={semester} value={semester}>
+                        Semester {semester}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className={styles.formGroup}>
                   <label htmlFor="subject" className={styles.label}>Filter by Subject:</label>
                   <select
                     id="subject"
                     value={selectedSubject}
-                    onChange={(e) => setSelectedSubject(e.target.value)}
+                    onChange={handleSubjectChange}
                     className={styles.select}
+                    disabled={!selectedSemester}
                   >
-                    <option value="">All Subjects</option>
+                    <option value="">
+                      {selectedSemester ? "All Subjects" : "Select semester first"}
+                    </option>
                     {subjects.map((subject) => (
                       <option key={subject} value={subject}>
-                        {subject.replace(/_/g, " ")}
+                        {subject}
                       </option>
                     ))}
                   </select>
@@ -101,7 +189,14 @@ export default function ViewResults() {
               
               {filteredResults.length === 0 ? (
                 <div className={styles.noResults}>
-                  <p>No test results found.</p>
+                  <p>
+                    {selectedSubject 
+                      ? `No test results found for ${selectedSubject} in Semester ${selectedSemester}.`
+                      : selectedSemester 
+                      ? `No test results found for Semester ${selectedSemester}.`
+                      : "No test results found."
+                    }
+                  </p>
                 </div>
               ) : (
                 <>
@@ -109,16 +204,25 @@ export default function ViewResults() {
                     <h2>Summary</h2>
                     <p>Total Tests: {filteredResults.length}</p>
                     <p>Average Score: {calculateAverage(filteredResults)}%</p>
+                    {selectedSemester && (
+                      <p>Semester: {selectedSemester}</p>
+                    )}
+                    {selectedSubject && (
+                      <p>Subject: {selectedSubject}</p>
+                    )}
                   </div>
                   
                   <div className={styles.resultsGrid}>
                     {filteredResults.map((result) => (
                       <div key={result.id} className={styles.resultCard}>
-                        <h3>{result.subject.replace(/_/g, " ")}</h3>
+                        <h3>{result.subject}</h3>
                         <div className={styles.resultDetails}>
                           <p><strong>Score:</strong> {result.obtainedMarks}/{result.totalMarks}</p>
                           <p><strong>Percentage:</strong> {result.percentage}%</p>
                           <p><strong>Date:</strong> {new Date(result.addedAt).toLocaleDateString()}</p>
+                          {result.semester && (
+                            <p><strong>Semester:</strong> {result.semester}</p>
+                          )}
                         </div>
                         <div className={styles.percentageBar}>
                           <div 
