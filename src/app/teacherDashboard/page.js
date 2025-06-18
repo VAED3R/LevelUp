@@ -82,6 +82,10 @@ export default function TeacherDashboard() {
                         <h2>Create Quiz</h2>
                         <p>Generate or create new quizzes for your students</p>
                     </Link>
+                    <Link href="/coursemapping" className={style.card}>
+                        <h2>Course Mapping</h2>
+                        <p>Map and organize your course content and curriculum</p>
+                    </Link>
                 </div>
 
                 {loading ? (
