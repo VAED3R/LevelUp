@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import style from './page.module.css';
 import IntroAnimation from "../../components/IntroAnimation";
-
 import Navbar from "@/components/studentNavbar";
+import StudentChatbot from "@/components/StudentChatbot";
 
 // Helper to get the notification read doc ref
 const getReadNotificationsDocRef = (userId) => doc(db, "students", userId, "meta", "notificationRead");
@@ -419,6 +419,7 @@ export default function StudentDashboard() {
     <IntroAnimation loadingText="Loading Student Dashboard...">
       <div className={style.container}>
         <Navbar />
+        <StudentChatbot />
         <div className={style.content}>
           <div className={style.header}>
             <h1 className={style.title}>Welcome, {userData?.name}</h1>
