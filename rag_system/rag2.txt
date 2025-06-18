@@ -1,0 +1,117 @@
+UNIVERSITY OF CALICUT
+U.O.No. 11430/2024/Admn
+Dated, Calicut University.P.O, 23.07.2024
+Ajayakumar T.K
+Assistant Registrar
+Forwarded / By Order
+Section Officer
+File Ref.No.24326/GA-IV-K-ASST-2/2013/Admn
+
+ABSTRACT
+- General and Academic IV- Faculty of Science- CUFYUGP Regulations 2024
+- B.Sc Applied Statistics with Data Science Honours Programme
+- Scheme and Syllabus - Implemented with effect from 2024 Admission
+- Subject to ratification by the Academic Council - Orders Issued.
+
+ORDERS
+1. The Regulations of the Calicut University Four Year UG Programmes (CUFYUGP Regulations 2024) for Affiliated Colleges, were implemented with effect from 2024 admission onwards.
+2. The meeting of the Board of Studies in Statistics(UG) held on 14.06.2024, approved the scheme and syllabus of the B.Sc Applied Statistics with Data Science Honours programme.
+3. The Dean, Faculty of Science approved the minutes of the meeting of the Board of Studies in Statistics(UG).
+4. The Vice Chancellor has approved the minutes of the meeting of the Board of Studies in Statistics(UG) and granted permission to implement the scheme and syllabus.
+5. The scheme and syllabus of the B.Sc Applied Statistics with Data Science Honours programme is implemented with effect from 2024 Admission onwards.
+
+PROGRAMME OUTCOMES (PO):
+At the end of the graduate programme at Calicut University, a student would:
+- PO1: Knowledge Acquisition
+- PO2: Communication, Collaboration, Inclusiveness, and Leadership
+- PO3: Professional Skills
+- PO4: Digital Intelligence
+- PO5: Scientific Awareness and Critical Thinking
+- PO6: Human Values, Professional Ethics, and Societal and Environmental Responsibility
+- PO7: Research, Innovation, and Entrepreneurship
+
+PROGRAMME SPECIFIC OUTCOMES (PSO):
+At the end of the BSc Applied Statistics with Data Science (Honours) programme at Calicut University, a student would:
+- PSO1: Comprehensive understanding of concepts, principles, theories, and applications of Statistics.
+- PSO2: Apply fundamental concepts of descriptive and inferential Statistics using data science methodology.
+- PSO3: Master skills in using Statistical Software.
+- PSO4: Identify potential applications of Statistical theories.
+- PSO5: Construct Statistical models for real-world problems.
+- PSO6: Continue to acquire relevant knowledge and skills.
+- PSO7: Acquire statistical skills required to work in the data science industry.
+
+MINIMUM CREDIT REQUIREMENTS OF THE DIFFERENT PATHWAYS IN THE THREE-YEAR PROGRAMME IN CUFYUGP:
+- Single Major: 68 (17 courses), Minor/Other Disciplines: 24 (6 courses), Foundation Courses: 39 (13 courses), Total Credits: 133
+- Major with Multiple Disciplines: 68 (17 courses), 12 + 12 (3 + 3 = 6 courses), Total Credits: 133
+- Major with Minor: 68 (17 courses), Minor: 24 (6 courses), Total Credits: 133
+
+COURSE STRUCTURE FOR PATHWAYS 1 – 3:
+1. Single Major
+2. Major with Multiple Disciplines
+3. Major with Minor
+
+COURSE STRUCTURE:
+SEMESTER I
+- Course Code: ASD1CJ101
+- Course Title: Descriptive Statistics
+- Total Hours: 75
+- Credits: 4
+- Marks: Internal: 30, External: 70, Total: 100
+
+SEMESTER II
+- Course Code: ASD2CJ101
+- Course Title: Probability and Random Variables
+- Total Hours: 75
+- Credits: 4
+- Marks: Internal: 30, External: 70, Total: 100
+
+SEMESTER III
+- Course Code: ASD3CJ201
+- Course Title: Probability Distributions
+- Total Hours: 75
+- Credits: 4
+- Marks: Internal: 30, External: 70, Total: 100
+
+SEMESTER IV
+- Course Code: ASD4CJ203
+- Course Title: Sampling Methods
+- Total Hours: 75
+- Credits: 4
+- Marks: Internal: 30, External: 70, Total: 100
+
+SEMESTER V
+- Course Code: ASD5CJ301
+- Course Title: Design and Analysis of Experiments
+- Total Hours: 75
+- Credits: 4
+- Marks: Internal: 30, External: 70, Total: 100
+
+SEMESTER VI
+- Course Code: ASD6CJ304
+- Course Title: Linear Regression Analysis
+- Total Hours: 75
+- Credits: 4
+- Marks: Internal: 30, External: 70, Total: 100
+
+SEMESTER VII
+- Course Code: STA7CJ401
+- Course Title: Advanced Analytical Tools
+- Total Hours: 75
+- Credits: 4
+- Marks: Internal: 30, External: 70, Total: 100
+
+SEMESTER VIII
+- Course Code: STA8CJ406
+- Course Title: Applied Stochastic Processes and Time Series Analysis
+- Total Hours: 75
+- Credits: 4
+- Marks: Internal: 30, External: 70, Total: 100
+
+ELECTIVE COURSES IN STATISTICS:
+- Semester V: Official Statistics, Actuarial Statistics, Psychometric Theory and Methods, Survival Analysis, Population Statistics
+- Semester VI: Biostatistics, Econometrics, Statistical Quality Control, Operations Research, Simulation Techniques
+
+EVALUATION SCHEME:
+- Internal evaluation (about 30%) and external evaluation (about 70%).
+- Major and Minor courses are of 4 credits, evaluated for 100 marks.
+- General Foundation

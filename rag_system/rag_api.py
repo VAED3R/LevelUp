@@ -26,7 +26,7 @@ rag_processor = RAGProcessor()
 
 # Load the RAG text file
 try:
-    file_path = os.path.join(os.path.dirname(__file__), "Calicut_RAG.txt")
+    file_path = os.path.join(os.path.dirname(__file__), "rag2.txt")
     logger.info(f"Loading RAG text from: {file_path}")
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"RAG text file not found at: {file_path}")
