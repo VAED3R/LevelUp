@@ -289,12 +289,12 @@ const ParentChatbot = () => {
     }
 
     const initialMessage = option === 'counseling' 
-      ? "Hello! I'm here to help with counseling. Could you please tell me what specific concerns you have about your child?"
+      ? "Hello! I'm Lia, LevelUp Interactive Assistant. I'm here to help with counseling. Could you please tell me what specific concerns you have about your child?"
       : option === 'career'
       ? studentPerformance 
-        ? "Hello! I'm here to help with career guidance. I've analyzed your child's performance and can suggest suitable career paths. What specific career-related questions do you have?"
-        : "Hello! I'm here to help with career guidance. I'm currently analyzing your child's performance data. What specific career-related questions do you have?"
-      : "Hello! I'm here to help. What would you like to know?";
+        ? "Hello! I'm Lia, LevelUp Interactive Assistant. I've analyzed your child's performance and can suggest suitable career paths. What specific career-related questions do you have?"
+        : "Hello! I'm Lia, LevelUp Interactive Assistant. I'm currently analyzing your child's performance data. What specific career-related questions do you have?"
+      : "Hello! I'm Lia, LevelUp Interactive Assistant. How can I help you today?";
     
     setMessages([{
       type: 'bot',

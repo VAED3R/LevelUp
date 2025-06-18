@@ -346,7 +346,7 @@ export default function TeacherChat() {
               <div className={styles.welcomeCard}>
                 <div className={styles.welcomeContent}>
                   <h3>Hello! 👋</h3>
-                  <p>I'm your helper assistant. I can help you with your queries.</p>
+                  <p>I'm Lia, LevelUp Interactive Assistant. I can help you with your teaching queries and classroom management.</p>
                   <button 
                     className={styles.startChatButton}
                     onClick={toggleChat}

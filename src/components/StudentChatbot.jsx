@@ -258,12 +258,12 @@ const StudentChatbot = () => {
     }
 
     const initialMessage = option === 'study' 
-      ? "Hello! I'm here to help with your studies. What subject or topic would you like help with?"
+      ? "Hello! I'm Lia, LevelUp Interactive Assistant here to help with your studies. What subject or topic would you like help with?"
       : option === 'performance'
       ? studentPerformance 
-        ? "Hello! I've analyzed your performance and can help you understand your strengths and areas for improvement. What would you like to know about your performance?"
-        : "Hello! I'm analyzing your performance data. What would you like to know about your academic progress?"
-      : "Hello! I'm here to help. What would you like to know?";
+        ? "Hello! I'm Lia, LevelUp Interactive Assistant. I've analyzed your performance and can help you understand your strengths and areas for improvement. What would you like to know about your performance?"
+        : "Hello! I'm Lia, LevelUp Interactive Assistant. I'm analyzing your performance data. What would you like to know about your academic progress?"
+      : "Hello! I'm Lia, LevelUp Interactive Assistant. How can I help you today?";
     
     setMessages([{
       type: 'bot',
