@@ -497,7 +497,9 @@ export default function StudentDashboard() {
               <h2>Your Information</h2>
               <p><strong>Name:</strong> {userData?.name}</p>
               <p><strong>Class:</strong> {userData?.class}</p>
-              <p><strong>University:</strong> Calicut University</p>
+              <p><strong>Course:</strong> B.Sc. APPLIED STATISTICS WITH DATA
+              SCIENCE HONOURS</p>
+              <p><strong>University:</strong> Calicut University-FYUGP</p>
               <div className={style.pointsInfo}>
                 <p><strong>Total Points:</strong> {pointsData?.totalPoints || 0}</p>
               </div>

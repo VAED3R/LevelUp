@@ -11,27 +11,26 @@ import styles from './page.module.css';
 export default function StudentAttendance() {
   const { user } = useAuth();
   const [selectedSubject, setSelectedSubject] = useState('');
+  const [selectedSemester, setSelectedSemester] = useState('6'); // Default to semester 6
   const [attendance, setAttendance] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [subjects, setSubjects] = useState([]);
+  const [semesters, setSemesters] = useState([]);
+  const [allSubjectsData, setAllSubjectsData] = useState([]);
   const [stats, setStats] = useState({
     totalClasses: 0,
     present: 0,
     absent: 0,
     percentage: 0
   });
-  const [overallStats, setOverallStats] = useState({
-    totalClasses: 0,
-    present: 0,
-    absent: 0,
-    percentage: 0
-  });
+  const [semesterStats, setSemesterStats] = useState({});
   const [showOverall, setShowOverall] = useState(true);
+  const [selectedOverallSemester, setSelectedOverallSemester] = useState('6'); // Default to semester 6
 
   useEffect(() => {
     if (user) {
-      fetchSubjects();
+      fetchSubjectsAndSemesters();
       fetchOverallAttendance();
     }
   }, [user]);
@@ -42,27 +41,58 @@ export default function StudentAttendance() {
     }
   }, [user, selectedSubject]);
 
-  const fetchSubjects = async () => {
-    try {
-      const usersRef = collection(db, 'users');
-      const teachersQuery = query(usersRef, where('role', '==', 'teacher'));
-      const querySnapshot = await getDocs(teachersQuery);
-      
-      const allSubjects = new Set();
-      querySnapshot.forEach((doc) => {
-        const teacherData = doc.data();
-        if (teacherData.subject) {
-          teacherData.subject.split(',').forEach(subject => {
-            allSubjects.add(subject.trim().toLowerCase().replace(/ /g, '_'));
-          });
-        }
-      });
+  // Filter subjects based on selected semester
+  useEffect(() => {
+    if (selectedSemester && allSubjectsData.length > 0) {
+      // Filter subjects by selected semester
+      const filteredSubjects = allSubjectsData.filter(
+        subject => subject.semester === selectedSemester
+      );
 
-      setSubjects(Array.from(allSubjects).sort());
+      // Extract unique subject names for the selected semester
+      const uniqueSubjects = [...new Set(
+        filteredSubjects.map(subject => subject.courseName).filter(Boolean)
+      )];
+
+      console.log(`Subjects for semester ${selectedSemester}:`, uniqueSubjects);
+      setSubjects(uniqueSubjects.sort());
+      
+      // Reset selected subject when semester changes
+      setSelectedSubject("");
+    } else {
+      setSubjects([]);
+      setSelectedSubject("");
+    }
+  }, [selectedSemester, allSubjectsData]);
+
+  const fetchSubjectsAndSemesters = async () => {
+    try {
+      // Fetch subjects and semesters from subjects collection
+      const subjectsQuery = await getDocs(collection(db, "subjects"));
+      const subjectsData = subjectsQuery.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      console.log("All subjects from collection:", subjectsData);
+
+      // Store all subjects data for filtering later
+      setAllSubjectsData(subjectsData);
+
+      // Extract unique semesters
+      const uniqueSemesters = [...new Set(
+        subjectsData.map(subject => subject.semester).filter(Boolean)
+      )];
+
+      console.log("Available semesters:", uniqueSemesters);
+      setSemesters(uniqueSemesters.sort());
+      
+      // Clear subjects initially
+      setSubjects([]);
       setLoading(false);
     } catch (err) {
-      console.error('Error fetching subjects:', err);
-      setError('Failed to fetch subjects. Please try again later.');
+      console.error('Error fetching subjects and semesters:', err);
+      setError('Failed to fetch subjects and semesters. Please try again later.');
       setLoading(false);
     }
   };
@@ -113,7 +143,8 @@ export default function StudentAttendance() {
           id: doc.id,
           date: formattedDate,
           status: data.status,
-          subject: data.subject
+          subject: data.subject,
+          semester: data.semester
         });
 
         if (data.status === 'present') {
@@ -179,9 +210,7 @@ export default function StudentAttendance() {
 
       console.log('Found attendance records:', querySnapshot.size);
       
-      let totalPresent = 0;
-      let totalAbsent = 0;
-      let totalClasses = 0;
+      const semesterData = {};
 
       querySnapshot.forEach((doc) => {
         const data = doc.data();
@@ -197,32 +226,36 @@ export default function StudentAttendance() {
            data.uid === user.uid);
 
         if (isUserRecord) {
-          totalClasses++;
+          // Group by semester
+          const semester = data.semester || 'Unknown';
+          if (!semesterData[semester]) {
+            semesterData[semester] = {
+              totalClasses: 0,
+              present: 0,
+              absent: 0,
+              percentage: 0
+            };
+          }
           
+          semesterData[semester].totalClasses++;
           if (data.status === 'present') {
-            totalPresent++;
+            semesterData[semester].present++;
           } else if (data.status === 'absent') {
-            totalAbsent++;
+            semesterData[semester].absent++;
           }
         }
       });
 
-      const overallPercentage = totalClasses > 0 ? Math.round((totalPresent / totalClasses) * 100) : 0;
-
-      console.log('Overall stats calculated:', {
-        totalClasses,
-        totalPresent,
-        totalAbsent,
-        overallPercentage,
-        usedField
+      // Calculate percentages for each semester
+      Object.keys(semesterData).forEach(semester => {
+        const semData = semesterData[semester];
+        semData.percentage = semData.totalClasses > 0 ? 
+          Math.round((semData.present / semData.totalClasses) * 100) : 0;
       });
 
-      setOverallStats({
-        totalClasses,
-        present: totalPresent,
-        absent: totalAbsent,
-        percentage: overallPercentage
-      });
+      console.log('Semester stats:', semesterData);
+
+      setSemesterStats(semesterData);
     } catch (err) {
       console.error('Error fetching overall attendance:', err);
       setError('Failed to fetch overall attendance data.');
@@ -234,10 +267,21 @@ export default function StudentAttendance() {
     setShowOverall(false);
   };
 
+  const handleSemesterChange = (e) => {
+    setSelectedSemester(e.target.value);
+    setSelectedSubject('');
+    setShowOverall(false);
+  };
+
+  const handleOverallSemesterChange = (e) => {
+    setSelectedOverallSemester(e.target.value);
+  };
+
   const toggleOverallView = () => {
     setShowOverall(!showOverall);
     if (!showOverall) {
       setSelectedSubject('');
+      setSelectedSemester('6'); // Reset to default semester
     }
   };
 
@@ -274,6 +318,7 @@ export default function StudentAttendance() {
                 onClick={() => {
                   setShowOverall(false);
                   setSelectedSubject('');
+                  setSelectedSemester('6'); // Reset to default semester
                 }}
               >
                 Subject Wise
@@ -283,7 +328,22 @@ export default function StudentAttendance() {
             {showOverall ? (
               <div className={styles.attendanceContainer}>
                 <div className={styles.overallHeader}>
-                  <h2 className={styles.overallTitle}>Overall Attendance</h2>
+                  <h2 className={styles.overallTitle}>Overall Attendance by Semester</h2>
+                  <div className={styles.semesterSelector}>
+                    <label htmlFor="overallSemester">Select Semester:</label>
+                    <select
+                      id="overallSemester"
+                      value={selectedOverallSemester}
+                      onChange={handleOverallSemesterChange}
+                      className={styles.select}
+                    >
+                      {semesters.map((semester) => (
+                        <option key={semester} value={semester}>
+                          Semester {semester}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   <button 
                     className={styles.refreshButton}
                     onClick={fetchOverallAttendance}
@@ -291,41 +351,74 @@ export default function StudentAttendance() {
                     🔄 Refresh
                   </button>
                 </div>
-                <div className={styles.statsContainer}>
-                  <div className={styles.statCard}>
-                    <h3>Total Classes</h3>
-                    <p>{overallStats.totalClasses}</p>
-                  </div>
-                  <div className={styles.statCard}>
-                    <h3>Present</h3>
-                    <p>{overallStats.present}</p>
-                  </div>
-                  <div className={styles.statCard}>
-                    <h3>Absent</h3>
-                    <p>{overallStats.absent}</p>
-                  </div>
-                  <div className={styles.statCard}>
-                    <h3>Overall %</h3>
-                    <p>{overallStats.percentage}%</p>
-                  </div>
+                
+                {/* Semester Stats */}
+                <div className={styles.semesterStatsContainer}>
+                  {semesterStats[selectedOverallSemester] ? (
+                    <div className={styles.semesterStatCard}>
+                      <h3 className={styles.semesterTitle}>Semester {selectedOverallSemester}</h3>
+                      <div className={styles.statsContainer}>
+                        <div className={styles.statCard}>
+                          <h4>Total Classes</h4>
+                          <p>{semesterStats[selectedOverallSemester].totalClasses}</p>
+                        </div>
+                        <div className={styles.statCard}>
+                          <h4>Present</h4>
+                          <p>{semesterStats[selectedOverallSemester].present}</p>
+                        </div>
+                        <div className={styles.statCard}>
+                          <h4>Absent</h4>
+                          <p>{semesterStats[selectedOverallSemester].absent}</p>
+                        </div>
+                        <div className={styles.statCard}>
+                          <h4>Overall %</h4>
+                          <p>{semesterStats[selectedOverallSemester].percentage}%</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className={styles.noData}>
+                      <p>No attendance records found for Semester {selectedOverallSemester}.</p>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
               <>
                 <div className={styles.subjectSelector}>
-                  <label htmlFor="subject">Select Subject</label>
-                  <select
-                    id="subject"
-                    value={selectedSubject}
-                    onChange={handleSubjectChange}
-                  >
-                    <option value="">Choose a subject</option>
-                    {subjects.map((subject) => (
-                      <option key={subject} value={subject}>
-                        {subject.replace(/_/g, ' ')}
+                  <div className={styles.formGroup}>
+                    <label htmlFor="semester">Select Semester</label>
+                    <select
+                      id="semester"
+                      value={selectedSemester}
+                      onChange={handleSemesterChange}
+                    >
+                      {semesters.map((semester) => (
+                        <option key={semester} value={semester}>
+                          Semester {semester}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label htmlFor="subject">Select Subject</label>
+                    <select
+                      id="subject"
+                      value={selectedSubject}
+                      onChange={handleSubjectChange}
+                      disabled={!selectedSemester}
+                    >
+                      <option value="">
+                        {selectedSemester ? "Choose a subject" : "Select semester first"}
                       </option>
-                    ))}
-                  </select>
+                      {subjects.map((subject) => (
+                        <option key={subject} value={subject}>
+                          {subject}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 {loading ? (
@@ -334,7 +427,9 @@ export default function StudentAttendance() {
                   <div className={styles.error}>{error}</div>
                 ) : selectedSubject ? (
                   <div className={styles.attendanceContainer}>
-                    <h2 className={styles.subjectTitle}>{selectedSubject.replace(/_/g, ' ')} Attendance</h2>
+                    <h2 className={styles.subjectTitle}>
+                      {selectedSubject} Attendance (Semester {selectedSemester})
+                    </h2>
                     <div className={styles.statsContainer}>
                       <div className={styles.statCard}>
                         <h3>Total Classes</h3>
@@ -362,12 +457,15 @@ export default function StudentAttendance() {
                         >
                           <p>{record.date}</p>
                           <p>{record.status.toUpperCase()}</p>
+                          {record.semester && <p>Semester: {record.semester}</p>}
                         </div>
                       ))}
                     </div>
                   </div>
                 ) : (
-                  <div className={styles.loading}>Select a subject to view attendance</div>
+                  <div className={styles.loading}>
+                    {selectedSemester ? "Select a subject to view attendance" : "Select a semester to view attendance"}
+                  </div>
                 )}
               </>
             )}
