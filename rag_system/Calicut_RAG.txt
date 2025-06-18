@@ -1,0 +1,61 @@
+
+University of Calicut
+B.Sc. Applied Statistics with Data Science (Honours) — Scheme & Syllabus
+CU-FYUGP Regulations 2024 | Effective from 2024 Admission Onwards
+
+Programme Outcomes (PO):
+1. Knowledge Acquisition: Master concepts and developments in statistics and data science.
+2. Communication & Leadership: Collaborate and lead with inclusiveness and ethical awareness.
+3. Professional Skills: Navigate diverse career opportunities with adaptability.
+4. Digital Intelligence: Utilize digital tools for data-driven problem solving.
+5. Scientific Thinking: Apply scientific reasoning to develop sustainable solutions.
+6. Human & Environmental Values: Uphold ethical standards and social/environmental responsibility.
+7. Research & Innovation: Lead or contribute to research and entrepreneurial ventures.
+
+Programme Specific Outcomes (PSO):
+- Gain strong grounding in statistical theory and application.
+- Use statistical software for data analysis.
+- Apply data science methods to real-world problems.
+- Identify areas for statistical applications.
+- Design models to solve practical problems.
+- Act ethically in statistical practice.
+- Be industry-ready for data science careers.
+
+Course Structure Summary (Semesters I–VIII):
+
+Semester | Core Topics (Selected)                          | Credits
+---------|--------------------------------------------------|---------
+I        | Descriptive Statistics                           | 4
+II       | Probability & Random Variables                   | 4
+III      | Probability Distributions                        | 4
+IV       | Sampling Methods                                 | 4
+V        | Data Mining, Time Series, Experiments            | 4–5
+VI       | Regression, Multivariate, Machine Learning       | 4–5
+VII      | Advanced Tools, Probability, Inference           | 4–5
+VIII     | GLMs, Stochastic Processes / Project             | 4–12
+
+Total Credits (4-Year Honours): 177
+Total Marks: 4425
+
+Elective Courses (Selected Examples):
+- Biostatistics
+- Econometrics
+- Operations Research
+- Simulation Techniques
+- Statistical Decision Theory
+- Statistical Methods for Machine Learning
+- Applied Algorithms and Big Data Techniques
+
+Skill/Value-Added Courses:
+- Statistical Analysis using Python
+- Basic Research Methodology
+- Communication & Ethics
+
+Internship & Project Requirements:
+- Internship: Mandatory (2 credits), completed by Semester 6.
+- Project (Optional in Honours): 12 credits in Semester 8 — research-focused, requires faculty supervision and regular logbook entries.
+
+Evaluation Overview:
+- 4-Credit Courses: 30% internal, 70% external
+- 3-Credit Courses: 25% internal, 50% external
+- Internal includes tests, assignments, seminars, and practicals (if applicable)

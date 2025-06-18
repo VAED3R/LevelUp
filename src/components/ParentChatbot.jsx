@@ -318,7 +318,29 @@ const ParentChatbot = () => {
     try {
       let context = "";
       if (activeChat === 'counseling') {
-        context = "You are a counseling assistant helping parents with their children's issues. Be empathetic and provide practical advice. Focus on understanding the parent's concerns and offering supportive guidance. Keep responses concise and avoid using markdown formatting.";
+        // Get relevant context from RAG system
+        const ragResponse = await fetch('http://localhost:8000/context', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            text: inputMessage,
+            k: 3
+          })
+        });
+
+        if (ragResponse.ok) {
+          const ragData = await ragResponse.json();
+          context = `You are a counseling assistant helping parents with their children's issues. 
+          Here is some relevant context from our knowledge base:
+          ${ragData.context}
+          
+          Based on this context and the user's question, provide a helpful and empathetic response.
+          Be supportive and provide practical advice. Keep responses concise and avoid using markdown formatting.`;
+        } else {
+          context = "You are a counseling assistant helping parents with their children's issues. Be empathetic and provide practical advice. Focus on understanding the parent's concerns and offering supportive guidance. Keep responses concise and avoid using markdown formatting.";
+        }
       } else if (activeChat === 'career') {
         // Create a performance summary for career guidance
         const performanceSummary = studentPerformance ? `
@@ -345,21 +367,74 @@ const ParentChatbot = () => {
           ).join('\n')}
         ` : "No performance data available yet.";
         
-        context = `You are a career guidance assistant helping parents understand career options for their children. 
-        Based on the student's performance data: ${performanceSummary}
-        
-        Please provide personalized career guidance by:
-        1. Analyzing the student's academic strengths based on their performance in different subjects
-        2. Suggesting specific career paths that align with their strong subjects
-        3. Recommending educational paths (college majors, courses) that would best suit their academic profile
-        4. Providing insights on how their current performance might translate to future career success
-        5. Suggesting areas for improvement if needed for their desired career path
-        
-        Keep responses focused on the student's actual performance data and provide specific, actionable recommendations.
-        Avoid generic advice and ensure all suggestions are directly tied to the student's academic profile.
-        Keep responses concise and avoid using markdown formatting.`;
+        // Get relevant context from RAG system
+        const ragResponse = await fetch('http://localhost:8000/context', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            text: inputMessage,
+            k: 3
+          })
+        });
+
+        if (ragResponse.ok) {
+          const ragData = await ragResponse.json();
+          context = `You are a career guidance assistant helping parents understand career options for their children. 
+          Based on the student's performance data: ${performanceSummary}
+          
+          Here is some relevant context from our knowledge base:
+          ${ragData.context}
+          
+          Please provide personalized career guidance by:
+          1. Analyzing the student's academic strengths based on their performance in different subjects
+          2. Suggesting specific career paths that align with their strong subjects
+          3. Recommending educational paths (college majors, courses) that would best suit their academic profile
+          4. Providing insights on how their current performance might translate to future career success
+          5. Suggesting areas for improvement if needed for their desired career path
+          
+          Keep responses focused on the student's actual performance data and provide specific, actionable recommendations.
+          Avoid generic advice and ensure all suggestions are directly tied to the student's academic profile.
+          Keep responses concise and avoid using markdown formatting.`;
+        } else {
+          context = `You are a career guidance assistant helping parents understand career options for their children. 
+          Based on the student's performance data: ${performanceSummary}
+          
+          Please provide personalized career guidance by:
+          1. Analyzing the student's academic strengths based on their performance in different subjects
+          2. Suggesting specific career paths that align with their strong subjects
+          3. Recommending educational paths (college majors, courses) that would best suit their academic profile
+          4. Providing insights on how their current performance might translate to future career success
+          5. Suggesting areas for improvement if needed for their desired career path
+          
+          Keep responses focused on the student's actual performance data and provide specific, actionable recommendations.
+          Avoid generic advice and ensure all suggestions are directly tied to the student's academic profile.
+          Keep responses concise and avoid using markdown formatting.`;
+        }
       } else {
-        context = "You are a helpful assistant. Provide clear, concise answers to the user's questions. Avoid using markdown formatting.";
+        // Get relevant context from RAG system for general queries
+        const ragResponse = await fetch('http://localhost:8000/context', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            text: inputMessage,
+            k: 3
+          })
+        });
+
+        if (ragResponse.ok) {
+          const ragData = await ragResponse.json();
+          context = `You are a helpful assistant. Here is some relevant context from our knowledge base:
+          ${ragData.context}
+          
+          Based on this context and the user's question, provide a clear and helpful response.
+          Keep responses concise and avoid using markdown formatting.`;
+        } else {
+          context = "You are a helpful assistant. Provide clear, concise answers to the user's questions. Avoid using markdown formatting.";
+        }
       }
 
       const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
