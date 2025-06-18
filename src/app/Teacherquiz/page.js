@@ -15,12 +15,15 @@ import styles from "./page.module.css";
 
 export default function TeacherQuiz() {
     const [subject, setSubject] = useState("");
+    const [semester, setSemester] = useState("");
     const [topic, setTopic] = useState("");
     const [numQuestions, setNumQuestions] = useState(5);
     const [questions, setQuestions] = useState([]);
     const [loading, setLoading] = useState(false);
     const [teacherEmail, setTeacherEmail] = useState("");
     const [subjects, setSubjects] = useState([]);
+    const [semesters, setSemesters] = useState([]);
+    const [allSubjectsData, setAllSubjectsData] = useState([]);
     const [error, setError] = useState("");
     const [isManualMode, setIsManualMode] = useState(false);
     const [currentQuestion, setCurrentQuestion] = useState({
@@ -39,25 +42,61 @@ export default function TeacherQuiz() {
     }, []);
 
     useEffect(() => {
-        const fetchTeacherSubjects = async () => {
-            if (!teacherEmail) return;
+        const fetchSubjects = async () => {
+            try {
+                const subjectsQuery = await getDocs(collection(db, "subjects"));
+                const subjectsData = subjectsQuery.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
 
-            const usersRef = collection(db, "users");
-            const querySnapshot = await getDocs(usersRef);
-            const teacher = querySnapshot.docs.find(
-                (doc) => doc.data().email === teacherEmail
-            )?.data();
+                console.log("All subjects from collection:", subjectsData);
 
-            if (teacher && teacher.subject) {
-                const teacherSubjects = teacher.subject
-                    .split(",")
-                    .map((sub) => sub.trim().toLowerCase().replace(/ /g, "_"));
-                setSubjects(teacherSubjects);
+                // Store all subjects data for filtering later
+                setAllSubjectsData(subjectsData);
+
+                // Extract unique semesters
+                const uniqueSemesters = [...new Set(
+                    subjectsData.map(subject => subject.semester).filter(Boolean)
+                )];
+
+                console.log("Available semesters:", uniqueSemesters);
+                setSemesters(uniqueSemesters.sort());
+                
+                // Clear subjects initially
+                setSubjects([]);
+            } catch (error) {
+                console.error("Error fetching subjects:", error);
+                setError("Failed to load subjects");
             }
         };
 
-        fetchTeacherSubjects();
-    }, [teacherEmail]);
+        fetchSubjects();
+    }, []);
+
+    // Filter subjects based on selected semester
+    useEffect(() => {
+        if (semester && allSubjectsData.length > 0) {
+            // Filter subjects by selected semester
+            const filteredSubjects = allSubjectsData.filter(
+                subject => subject.semester === semester
+            );
+
+            // Extract unique subject names for the selected semester
+            const uniqueSubjects = [...new Set(
+                filteredSubjects.map(subject => subject.courseName).filter(Boolean)
+            )];
+
+            console.log(`Subjects for semester ${semester}:`, uniqueSubjects);
+            setSubjects(uniqueSubjects.sort());
+            
+            // Reset selected subject when semester changes
+            setSubject("");
+        } else {
+            setSubjects([]);
+            setSubject("");
+        }
+    }, [semester, allSubjectsData]);
 
     const handleOptionChange = (index, value) => {
         const newOptions = [...currentQuestion.options];
@@ -89,7 +128,7 @@ export default function TeacherQuiz() {
     };
 
     const generateQuestions = async () => {
-        if (!subject || !topic) {
+        if (!subject || !semester || !topic) {
             setError("Please fill in all fields");
             return;
         }
@@ -98,7 +137,7 @@ export default function TeacherQuiz() {
         setError("");
 
         try {
-            const prompt = `Generate ${numQuestions} multiple choice questions about ${topic} in ${subject}. 
+            const prompt = `Generate ${numQuestions} multiple choice questions about ${topic} in ${subject} for semester ${semester}. 
             IMPORTANT: Return ONLY a JSON array in the following format, with no additional text or explanation:
             [
                 {
@@ -177,7 +216,7 @@ export default function TeacherQuiz() {
     };
 
     const handleSaveQuiz = async () => {
-        if (!subject || !topic || questions.length === 0) {
+        if (!subject || !semester || !topic || questions.length === 0) {
             setError("Please generate or create questions first");
             return;
         }
@@ -186,6 +225,7 @@ export default function TeacherQuiz() {
         try {
             const quizData = {
                 subject,
+                semester,
                 topic,
                 questions,
                 teacherEmail,
@@ -209,16 +249,37 @@ export default function TeacherQuiz() {
 
                 <div className={styles.form}>
                     <div className={styles.formGroup}>
+                        <label>Semester:</label>
+                        <select
+                            value={semester}
+                            onChange={(e) => setSemester(e.target.value)}
+                            className={styles.select}
+                            required
+                        >
+                            <option value="">Select Semester</option>
+                            {semesters.map((semesterItem) => (
+                                <option key={semesterItem} value={semesterItem}>
+                                    {semesterItem}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className={styles.formGroup}>
                         <label>Subject:</label>
                         <select
                             value={subject}
                             onChange={(e) => setSubject(e.target.value)}
                             className={styles.select}
+                            required
+                            disabled={!semester}
                         >
-                            <option value="">Select Subject</option>
-                            {subjects.map((sub) => (
-                                <option key={sub} value={sub}>
-                                    {sub.replace(/_/g, " ")}
+                            <option value="">
+                                {semester ? "Select Subject" : "Select semester first"}
+                            </option>
+                            {subjects.map((subjectName) => (
+                                <option key={subjectName} value={subjectName}>
+                                    {subjectName}
                                 </option>
                             ))}
                         </select>
