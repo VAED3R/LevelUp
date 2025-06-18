@@ -14,6 +14,8 @@ export default function Assignments() {
   const [selectedClass, setSelectedClass] = useState("");
   const [subjects, setSubjects] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState("");
+  const [semesters, setSemesters] = useState([]);
+  const [selectedSemester, setSelectedSemester] = useState("");
   const [marks, setMarks] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -22,6 +24,8 @@ export default function Assignments() {
   const [assignmentTitle, setAssignmentTitle] = useState("");
   const [assignmentDescription, setAssignmentDescription] = useState("");
   const [commonTotalMarks, setCommonTotalMarks] = useState("");
+  const [allSubjectsData, setAllSubjectsData] = useState([]);
+  const [allStudents, setAllStudents] = useState([]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -40,44 +44,101 @@ export default function Assignments() {
 
     const fetchData = async () => {
       try {
-        // Fetch teacher info
-        const teacherQuery = await getDocs(collection(db, "users"));
-        const teacher = teacherQuery.docs.find(
-          (doc) => doc.data().email === teacherEmail
-        )?.data();
+        // Fetch subjects and semesters from subjects collection
+        const subjectsQuery = await getDocs(collection(db, "subjects"));
+        const subjectsData = subjectsQuery.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
 
-        if (teacher) {
-          // Check if teacher has subjects array or string
-          let teacherSubjects = [];
-          if (teacher.subjects && Array.isArray(teacher.subjects)) {
-            teacherSubjects = teacher.subjects;
-          } else if (teacher.subject) {
-            teacherSubjects = teacher.subject.split(",").map((sub) => sub.trim().toLowerCase().replace(/ /g, "_"));
-          } else {
-            console.warn("No subjects found for teacher:", teacherEmail);
-            setError("No subjects assigned to this teacher. Please contact the administrator.");
-            return;
-          }
-          setSubjects(teacherSubjects);
-        } else {
-          console.warn("Teacher not found:", teacherEmail);
-          setError("Teacher information not found. Please try logging in again.");
-          return;
-        }
+        console.log("All subjects from collection:", subjectsData);
 
-        // Fetch students
-        const studentQuery = await getDocs(collection(db, "users"));
-        const studentList = studentQuery.docs
+        // Store all subjects data for filtering later
+        setAllSubjectsData(subjectsData);
+
+        // Extract unique semesters
+        const uniqueSemesters = [...new Set(
+          subjectsData.map(subject => subject.semester).filter(Boolean)
+        )];
+
+        console.log("Available semesters:", uniqueSemesters);
+        setSemesters(uniqueSemesters.sort());
+        
+        // Clear subjects initially
+        setSubjects([]);
+
+        // Fetch students from users collection
+        const usersQuery = await getDocs(collection(db, "users"));
+        const usersList = usersQuery.docs
           .filter((doc) => doc.data().role === "student")
           .map((doc) => ({
             id: doc.id,
             ...doc.data(),
           }));
 
-        setStudents(studentList);
+        // Fetch students from students collection
+        const studentsQuery = await getDocs(collection(db, "students"));
+        const studentsList = studentsQuery.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        // Create a map of existing student documents
+        const studentsMap = {};
+        studentsList.forEach(student => {
+          studentsMap[student.id] = student;
+        });
+
+        // Ensure all users are in the students collection
+        let batch = writeBatch(db);
+        let batchCount = 0;
+        const batchPromises = [];
+
+        for (const user of usersList) {
+          if (!studentsMap[user.id]) {
+            // Student doesn't exist in students collection, create it
+            const studentRef = doc(db, "students", user.id);
+            const studentData = {
+              ...user,
+              points: [],
+              totalPoints: 0,
+              lastUpdated: new Date().toISOString()
+            };
+            
+            batch.set(studentRef, studentData);
+            batchCount++;
+            
+            if (batchCount >= 500) {
+              // Firestore has a limit of 500 operations per batch
+              batchPromises.push(batch.commit());
+              batch = writeBatch(db);
+              batchCount = 0;
+            }
+          }
+        }
+        
+        // Commit any remaining operations
+        if (batchCount > 0) {
+          batchPromises.push(batch.commit());
+        }
+        
+        // Wait for all batches to complete
+        if (batchPromises.length > 0) {
+          await Promise.all(batchPromises);
+        }
+
+        // Now fetch the updated students list
+        const updatedStudentsQuery = await getDocs(collection(db, "students"));
+        const updatedStudentsList = updatedStudentsQuery.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setAllStudents(updatedStudentsList);
+        setStudents(updatedStudentsList);
 
         // Extract unique classes
-        const uniqueClasses = [...new Set(studentList.map((student) => student.class))];
+        const uniqueClasses = [...new Set(updatedStudentsList.map((student) => student.class))];
         setClasses(uniqueClasses.sort());
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -90,37 +151,104 @@ export default function Assignments() {
     fetchData();
   }, [teacherEmail]);
 
+  // Filter subjects based on selected semester
   useEffect(() => {
-    if (selectedClass) {
-      const filtered = students.filter(
-        (student) => student.class === selectedClass
+    if (selectedSemester && allSubjectsData.length > 0) {
+      // Filter subjects by selected semester
+      const filteredSubjects = allSubjectsData.filter(
+        subject => subject.semester === selectedSemester
       );
-      // Sort students by name in ascending order
-      const sortedStudents = filtered.sort((a, b) => 
-        a.name.localeCompare(b.name)
-      );
-      setFilteredStudents(sortedStudents);
+
+      // Extract unique subject names for the selected semester
+      const uniqueSubjects = [...new Set(
+        filteredSubjects.map(subject => subject.courseName).filter(Boolean)
+      )];
+
+      console.log(`Subjects for semester ${selectedSemester}:`, uniqueSubjects);
+      setSubjects(uniqueSubjects.sort());
       
-      // Initialize marks for each student with the faculty's subjects
-      const initialMarks = {};
-      sortedStudents.forEach(student => {
-        const studentMarks = {};
-        subjects.forEach(subject => {
-          studentMarks[subject] = {
-            obtained: "0",
-            total: "0"
-          };
-        });
-        initialMarks[student.id] = studentMarks;
-      });
-      setMarks(initialMarks);
+      // Reset selected subject when semester changes
+      setSelectedSubject("");
+    } else {
+      setSubjects([]);
+      setSelectedSubject("");
+    }
+  }, [selectedSemester, allSubjectsData]);
+
+  // Filter students based on class and subject using coursemap
+  useEffect(() => {
+    if (selectedClass && selectedSubject) {
+      const fetchStudentsForSubject = async () => {
+        try {
+          // Fetch coursemap data for the selected subject
+          const coursemapQuery = await getDocs(collection(db, "coursemap"));
+          const coursemapData = coursemapQuery.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+
+          console.log("Coursemap data:", coursemapData);
+
+          // Find students enrolled in the selected subject
+          const enrolledStudents = coursemapData.filter(course => {
+            // Check if the student is in the selected class
+            if (course.class !== selectedClass) return false;
+            
+            // Check if any semester contains the selected subject
+            if (course.semesters && Array.isArray(course.semesters)) {
+              return course.semesters.some(semester => 
+                semester.courses && Array.isArray(semester.courses) &&
+                semester.courses.some(courseItem => 
+                  courseItem.courseName === selectedSubject
+                )
+              );
+            }
+            return false;
+          });
+
+          console.log("Enrolled students for subject:", enrolledStudents);
+
+          // Get student IDs enrolled in this subject
+          const enrolledStudentIds = enrolledStudents.map(course => course.studentId);
+
+          // Filter students by class and enrollment
+          const filtered = allStudents.filter(student => 
+            student.class === selectedClass && 
+            enrolledStudentIds.includes(student.id)
+          );
+
+          // Sort students alphabetically by name
+          const sortedStudents = filtered.sort((a, b) => 
+            a.name.localeCompare(b.name)
+          );
+
+          console.log("Filtered students:", sortedStudents);
+          setFilteredStudents(sortedStudents);
+
+          // Initialize marks for each student
+          const initialMarks = {};
+          sortedStudents.forEach(student => {
+            initialMarks[student.id] = {
+              obtained: "0",
+              total: commonTotalMarks || "0"
+            };
+          });
+          setMarks(initialMarks);
+        } catch (error) {
+          console.error("Error fetching coursemap data:", error);
+          setFilteredStudents([]);
+          setMarks({});
+        }
+      };
+
+      fetchStudentsForSubject();
     } else {
       setFilteredStudents([]);
       setMarks({});
     }
-  }, [selectedClass, students, subjects]);
+  }, [selectedClass, selectedSubject, allStudents, commonTotalMarks]);
 
-  const handleMarksChange = (studentId, subject, field) => (e) => {
+  const handleMarksChange = (studentId, field) => (e) => {
     const value = e.target.value;
     // Allow empty string or numbers between 0 and 100
     if (value === "" || (/^\d+$/.test(value) && parseInt(value) >= 0 && parseInt(value) <= 100)) {
@@ -128,10 +256,7 @@ export default function Assignments() {
         ...prev,
         [studentId]: {
           ...prev[studentId],
-          [subject]: {
-            ...prev[studentId]?.[subject],
-            [field]: value
-          }
+          [field]: value
         }
       }));
     }
@@ -147,29 +272,24 @@ export default function Assignments() {
     // Allow empty string or numbers between 0 and 100
     if (value === "" || (/^\d+$/.test(value) && parseInt(value) >= 0 && parseInt(value) <= 100)) {
       setCommonTotalMarks(value);
-      // Update all students' total marks for the selected subject
-      if (selectedSubject) {
-        setMarks(prev => {
-          const newMarks = { ...prev };
-          Object.keys(newMarks).forEach(studentId => {
-            newMarks[studentId] = {
-              ...newMarks[studentId],
-              [selectedSubject]: {
-                ...newMarks[studentId][selectedSubject],
-                total: value
-              }
-            };
-          });
-          return newMarks;
+      // Update all students' total marks
+      setMarks(prev => {
+        const newMarks = { ...prev };
+        Object.keys(newMarks).forEach(studentId => {
+          newMarks[studentId] = {
+            ...newMarks[studentId],
+            total: value
+          };
         });
-      }
+        return newMarks;
+      });
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedClass || !selectedSubject || !assignmentTitle) {
-      setError("Please select a class, subject and enter assignment title");
+    if (!selectedClass || !selectedSubject || !selectedSemester || !assignmentTitle) {
+      setError("Please select a class, subject, semester and enter assignment title");
       return;
     }
 
@@ -178,7 +298,7 @@ export default function Assignments() {
       const batch = writeBatch(db);
       
       const promises = filteredStudents.map(async (student) => {
-        const studentMarks = marks[student.id][selectedSubject];
+        const studentMarks = marks[student.id];
         // If marks are empty or not filled, use 0 as default
         const obtainedMarks = Number(studentMarks.obtained) || 0;
         const totalMarks = Number(studentMarks.total) || 0;
@@ -189,6 +309,7 @@ export default function Assignments() {
           studentName: student.name,
           class: selectedClass,
           subject: selectedSubject,
+          semester: selectedSemester,
           assignmentTitle: assignmentTitle,
           assignmentDescription: assignmentDescription,
           obtainedMarks: obtainedMarks,
@@ -215,6 +336,7 @@ export default function Assignments() {
             points: pointsToAdd,
             date: new Date().toISOString(),
             subject: selectedSubject,
+            semester: selectedSemester,
             score: percentage,
             totalQuestions: totalMarks,
             quizId: "assignment_" + new Date().getTime(), // Unique ID for assignment
@@ -277,16 +399,14 @@ export default function Assignments() {
       // Reset form
       setAssignmentTitle("");
       setAssignmentDescription("");
+      setSelectedSemester("");
+      setSelectedSubject("");
       const resetMarks = {};
       filteredStudents.forEach(student => {
-        const studentMarks = {};
-        subjects.forEach(subject => {
-          studentMarks[subject] = {
-            obtained: "0",
-            total: "0"
-          };
-        });
-        resetMarks[student.id] = studentMarks;
+        resetMarks[student.id] = {
+          obtained: "0",
+          total: "0"
+        };
       });
       setMarks(resetMarks);
     } catch (error) {
@@ -334,6 +454,24 @@ export default function Assignments() {
             </div>
 
             <div className={styles.formGroup}>
+              <label htmlFor="semester" className={styles.label}>Select Semester:</label>
+              <select
+                id="semester"
+                value={selectedSemester}
+                onChange={(e) => setSelectedSemester(e.target.value)}
+                className={styles.select}
+                required
+              >
+                <option value="">Select Semester</option>
+                {semesters.map((semesterItem) => (
+                  <option key={semesterItem} value={semesterItem}>
+                    {semesterItem}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className={styles.formGroup}>
               <label htmlFor="subject" className={styles.label}>Select Subject:</label>
               <select
                 id="subject"
@@ -341,11 +479,14 @@ export default function Assignments() {
                 onChange={(e) => setSelectedSubject(e.target.value)}
                 className={styles.select}
                 required
+                disabled={!selectedSemester}
               >
-                <option value="">Select Subject</option>
+                <option value="">
+                  {selectedSemester ? "Select Subject" : "Select semester first"}
+                </option>
                 {subjects.map((subject) => (
                   <option key={subject} value={subject}>
-                    {subject.replace(/_/g, " ")}
+                    {subject}
                   </option>
                 ))}
               </select>
@@ -392,7 +533,7 @@ export default function Assignments() {
             </div>
           </div>
 
-          {filteredStudents.length > 0 && (
+          {filteredStudents.length > 0 ? (
             <div className={styles.marksContainer}>
               <h2 className={styles.subtitle}>Enter Marks</h2>
               <p className={styles.instruction}>Note: Only fill in marks for students who have submitted the assignment. Students who haven't submitted will automatically get 0 marks.</p>
@@ -401,14 +542,14 @@ export default function Assignments() {
                   <h3 className={styles.studentName}>{student.name}</h3>
                   <div className={styles.marksInputs}>
                     <div className={styles.formGroup}>
-                      <label htmlFor={`${student.id}-${selectedSubject}-obtained`} className={styles.label}>
+                      <label htmlFor={`${student.id}-obtained`} className={styles.label}>
                         Obtained Marks:
                       </label>
                       <input
                         type="text"
-                        id={`${student.id}-${selectedSubject}-obtained`}
-                        value={marks[student.id]?.[selectedSubject]?.obtained || ""}
-                        onChange={handleMarksChange(student.id, selectedSubject, "obtained")}
+                        id={`${student.id}-obtained`}
+                        value={marks[student.id]?.obtained || ""}
+                        onChange={handleMarksChange(student.id, "obtained")}
                         className={styles.input}
                         placeholder="Enter marks"
                         inputMode="numeric"
@@ -416,14 +557,14 @@ export default function Assignments() {
                       />
                     </div>
                     <div className={styles.formGroup}>
-                      <label htmlFor={`${student.id}-${selectedSubject}-total`} className={styles.label}>
+                      <label htmlFor={`${student.id}-total`} className={styles.label}>
                         Total Marks:
                       </label>
                       <input
                         type="text"
-                        id={`${student.id}-${selectedSubject}-total`}
-                        value={marks[student.id]?.[selectedSubject]?.total || ""}
-                        onChange={handleMarksChange(student.id, selectedSubject, "total")}
+                        id={`${student.id}-total`}
+                        value={marks[student.id]?.total || ""}
+                        onChange={handleMarksChange(student.id, "total")}
                         className={styles.input}
                         placeholder="Enter total marks"
                         inputMode="numeric"
@@ -434,6 +575,10 @@ export default function Assignments() {
                 </div>
               ))}
             </div>
+          ) : (
+            selectedClass && selectedSubject && (
+              <p>No students found enrolled in {selectedSubject} for {selectedClass}</p>
+            )
           )}
 
           {error && <p className={styles.error}>{error}</p>}
