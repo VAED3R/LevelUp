@@ -31,6 +31,10 @@ export default function TeacherAttendance() {
     const [teacherEmail, setTeacherEmail] = useState("");
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
+    const [semesters, setSemesters] = useState([]);
+    const [selectedSemester, setSelectedSemester] = useState("");
+    const [allSubjectsData, setAllSubjectsData] = useState([]);
+    const [allStudents, setAllStudents] = useState([]);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -48,17 +52,41 @@ export default function TeacherAttendance() {
         if (!teacherEmail) return;
 
         const fetchData = async () => {
-            // Fetch teacher info
+            console.log("Fetching data for teacher:", teacherEmail);
+            
+            // Fetch teacher info to get teacher's subjects
             const teacherQuery = await getDocs(collection(db, "users"));
             const teacher = teacherQuery.docs.find(
                 (doc) => doc.data().email === teacherEmail
             )?.data();
 
-            if (teacher) {
-                const teacherSubjects = teacher.subject
-                    .split(",")
-                    .map((sub) => sub.trim().toLowerCase().replace(/ /g, "_"));
-                setSubjects(teacherSubjects);
+            console.log("Teacher data:", teacher);
+
+            // Fetch subjects and semesters from subjects collection
+            try {
+                const subjectsQuery = await getDocs(collection(db, "subjects"));
+                const subjectsData = subjectsQuery.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                console.log("All subjects from collection:", subjectsData);
+
+                // Store all subjects data for filtering later
+                setAllSubjectsData(subjectsData);
+
+                // Extract unique semesters
+                const uniqueSemesters = [...new Set(
+                    subjectsData.map(subject => subject.semester).filter(Boolean)
+                )];
+
+                console.log("Unique semesters:", uniqueSemesters);
+                setSemesters(uniqueSemesters.sort());
+                
+                // Clear subjects initially
+                setSubjects([]);
+            } catch (error) {
+                console.error("Error fetching subjects and semesters:", error);
             }
 
             // Fetch students from users collection
@@ -128,6 +156,7 @@ export default function TeacherAttendance() {
                 ...doc.data(),
             }));
 
+            setAllStudents(updatedStudentsList);
             setStudents(updatedStudentsList);
 
             // Extract unique classes
@@ -141,27 +170,96 @@ export default function TeacherAttendance() {
     }, [teacherEmail]);
 
     useEffect(() => {
-        if (selectedClass) {
-            const filtered = students.filter(
-                (student) => student.class === selectedClass
+        if (selectedSemester && allSubjectsData.length > 0) {
+            // Filter subjects by selected semester
+            const filteredSubjects = allSubjectsData.filter(
+                subject => subject.semester === selectedSemester
             );
-            // Sort students alphabetically by name
-            const sortedStudents = filtered.sort((a, b) => 
-                a.name.localeCompare(b.name)
-            );
-            setFilteredStudents(sortedStudents);
 
-            // Initialize attendance state
-            const initialAttendance = {};
-            sortedStudents.forEach((student) => {
-                initialAttendance[student.id] = false;
-            });
-            setAttendance(initialAttendance);
+            // Extract unique subject names for the selected semester
+            const uniqueSubjects = [...new Set(
+                filteredSubjects.map(subject => subject.courseName).filter(Boolean)
+            )];
+
+            console.log(`Subjects for semester ${selectedSemester}:`, uniqueSubjects);
+            setSubjects(uniqueSubjects.sort());
+            
+            // Reset selected subject when semester changes
+            setSelectedSubject("");
+        } else {
+            setSubjects([]);
+            setSelectedSubject("");
+        }
+    }, [selectedSemester, allSubjectsData]);
+
+    useEffect(() => {
+        if (selectedClass && selectedSubject) {
+            const fetchStudentsForSubject = async () => {
+                try {
+                    // Fetch coursemap data for the selected subject
+                    const coursemapQuery = await getDocs(collection(db, "coursemap"));
+                    const coursemapData = coursemapQuery.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+
+                    console.log("Coursemap data:", coursemapData);
+
+                    // Find students enrolled in the selected subject
+                    const enrolledStudents = coursemapData.filter(course => {
+                        // Check if the student is in the selected class
+                        if (course.class !== selectedClass) return false;
+                        
+                        // Check if any semester contains the selected subject
+                        if (course.semesters && Array.isArray(course.semesters)) {
+                            return course.semesters.some(semester => 
+                                semester.courses && Array.isArray(semester.courses) &&
+                                semester.courses.some(courseItem => 
+                                    courseItem.courseName === selectedSubject
+                                )
+                            );
+                        }
+                        return false;
+                    });
+
+                    console.log("Enrolled students for subject:", enrolledStudents);
+
+                    // Get student IDs enrolled in this subject
+                    const enrolledStudentIds = enrolledStudents.map(course => course.studentId);
+
+                    // Filter students by class and enrollment
+                    const filtered = allStudents.filter(student => 
+                        student.class === selectedClass && 
+                        enrolledStudentIds.includes(student.id)
+                    );
+
+                    // Sort students alphabetically by name
+                    const sortedStudents = filtered.sort((a, b) => 
+                        a.name.localeCompare(b.name)
+                    );
+
+                    console.log("Filtered students:", sortedStudents);
+                    setFilteredStudents(sortedStudents);
+
+                    // Initialize attendance state
+                    const initialAttendance = {};
+                    sortedStudents.forEach((student) => {
+                        initialAttendance[student.id] = false;
+                    });
+                    setAttendance(initialAttendance);
+                } catch (error) {
+                    console.error("Error fetching coursemap data:", error);
+                    setFilteredStudents([]);
+                    setAttendance({});
+                }
+            };
+
+            fetchStudentsForSubject();
         } else {
             setFilteredStudents([]);
             setAttendance({});
         }
-    }, [selectedClass, students]);
+    }, [selectedClass, selectedSubject, allStudents]);
 
     const handleToggleAttendance = (studentId) => {
         setAttendance((prev) => ({
@@ -188,24 +286,25 @@ export default function TeacherAttendance() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!selectedClass || !selectedSubject) {
-            setError("Please select a class and subject");
+        if (!selectedClass || !selectedSubject || !selectedSemester) {
+            setError("Please select a class, subject, and semester");
             return;
         }
 
         try {
-        setLoading(true);
+            setLoading(true);
 
             // Create a batch for atomic updates
             const batch = writeBatch(db);
 
             // Process each student's attendance
-        const promises = filteredStudents.map(async (student) => {
+            const promises = filteredStudents.map(async (student) => {
                 const attendanceData = {
                     studentId: student.id,
                     studentName: student.name,
                     class: selectedClass,
                     subject: selectedSubject,
+                    semester: selectedSemester,
                     status: attendance[student.id] ? "present" : "absent",
                     addedBy: auth.currentUser.uid,
                     addedAt: selectedDate ? new Date(selectedDate).toISOString() : new Date().toISOString(),
@@ -245,6 +344,7 @@ export default function TeacherAttendance() {
                             points: 10,
                             date: selectedDate ? new Date(selectedDate).toISOString() : new Date().toISOString(),
                             subject: selectedSubject,
+                            semester: selectedSemester,
                             score: 100, // Full score for attendance
                             totalQuestions: 1,
                             quizId: "attendance",
@@ -281,6 +381,7 @@ export default function TeacherAttendance() {
                                     points: 10,
                                     date: selectedDate ? new Date(selectedDate).toISOString() : new Date().toISOString(),
                                     subject: selectedSubject,
+                                    semester: selectedSemester,
                                     score: 100,
                                     totalQuestions: 1,
                                     quizId: "attendance",
@@ -296,9 +397,9 @@ export default function TeacherAttendance() {
                         }
                     }
                 }
-        });
+            });
 
-        await Promise.all(promises);
+            await Promise.all(promises);
             
             // Commit the batch
             await batch.commit();
@@ -317,7 +418,7 @@ export default function TeacherAttendance() {
             setError("Failed to add attendance");
             setSuccess(false);
         } finally {
-        setLoading(false);
+            setLoading(false);
         }
     };
     
@@ -346,12 +447,28 @@ export default function TeacherAttendance() {
                         <select
                             value={selectedClass}
                             onChange={(e) => setSelectedClass(e.target.value)}
-                                required
-                            >
-                                <option value="">Choose a class</option>
-                                {classes.map((classItem) => (
-                                    <option key={classItem} value={classItem}>
-                                        {classItem}
+                            required
+                        >
+                            <option value="">Choose a class</option>
+                            {classes.map((classItem) => (
+                                <option key={classItem} value={classItem}>
+                                    {classItem}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label>Semester:</label>
+                        <select
+                            value={selectedSemester}
+                            onChange={(e) => setSelectedSemester(e.target.value)}
+                            required
+                        >
+                            <option value="">Choose a semester</option>
+                            {semesters.map((semester) => (
+                                <option key={semester} value={semester}>
+                                    {semester}
                                 </option>
                             ))}
                         </select>
@@ -362,19 +479,22 @@ export default function TeacherAttendance() {
                         <select
                             value={selectedSubject}
                             onChange={(e) => setSelectedSubject(e.target.value)}
-                                required
+                            required
+                            disabled={!selectedSemester}
                         >
-                                <option value="">Choose a subject</option>
+                            <option value="">
+                                {selectedSemester ? "Choose a subject" : "Select semester first"}
+                            </option>
                             {subjects.map((subject) => (
                                 <option key={subject} value={subject}>
-                                    {subject.replace(/_/g, " ")}
+                                    {subject}
                                 </option>
                             ))}
                         </select>
                     </div>
                 </div>
 
-                {selectedClass && selectedSubject && (
+                {selectedClass && selectedSubject && selectedSemester && (
                     <div className={styles.markAllContainer}>
                         <button
                             type="button"
@@ -394,30 +514,36 @@ export default function TeacherAttendance() {
                 )}
 
                 <div className={styles.cardContainer}>
-                    {filteredStudents.map((student) => (
-                        <div
-                            key={student.id}
-                            className={`${styles.studentCard} ${
-                                attendance[student.id] ? styles.present : styles.absent
-                            }`}
-                            onClick={() => handleToggleAttendance(student.id)}
-                        >
-                            <h3>{student.name}</h3>
-                            <p>Class: {student.class}</p>
-                            <p>{attendance[student.id] ? "Present" : "Absent"}</p>
-                        </div>
-                    ))}
+                    {filteredStudents.length > 0 ? (
+                        filteredStudents.map((student) => (
+                            <div
+                                key={student.id}
+                                className={`${styles.studentCard} ${
+                                    attendance[student.id] ? styles.present : styles.absent
+                                }`}
+                                onClick={() => handleToggleAttendance(student.id)}
+                            >
+                                <h3>{student.name}</h3>
+                                <p>Class: {student.class}</p>
+                                <p>{attendance[student.id] ? "Present" : "Absent"}</p>
+                            </div>
+                        ))
+                    ) : (
+                        selectedClass && selectedSubject && (
+                            <p>No students found enrolled in {selectedSubject} for {selectedClass}</p>
+                        )
+                    )}
                 </div>
 
-                {selectedClass && selectedSubject && filteredStudents.length > 0 && (
-                <button
+                {selectedClass && selectedSubject && selectedSemester && filteredStudents.length > 0 && (
+                    <button
                         type="submit"
                         onClick={handleSubmit}
-                    className={styles.saveButton}
-                    disabled={loading}
-                >
-                    {loading ? "Saving..." : "Save Attendance"}
-                </button>
+                        className={styles.saveButton}
+                        disabled={loading}
+                    >
+                        {loading ? "Saving..." : "Save Attendance"}
+                    </button>
                 )}
             </div>
         </div>
