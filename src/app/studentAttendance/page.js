@@ -44,18 +44,18 @@ export default function StudentAttendance() {
   // Filter subjects based on selected semester
   useEffect(() => {
     if (selectedSemester && allSubjectsData.length > 0) {
-      // Filter subjects by selected semester
-      const filteredSubjects = allSubjectsData.filter(
-        subject => subject.semester === selectedSemester
+      // Filter courses by selected semester from coursemap
+      const filteredCourses = allSubjectsData.filter(
+        course => course.semester === selectedSemester
       );
 
-      // Extract unique subject names for the selected semester
-      const uniqueSubjects = [...new Set(
-        filteredSubjects.map(subject => subject.courseName).filter(Boolean)
+      // Extract unique course names for the selected semester
+      const uniqueCourses = [...new Set(
+        filteredCourses.map(course => course.courseName).filter(Boolean)
       )];
 
-      console.log(`Subjects for semester ${selectedSemester}:`, uniqueSubjects);
-      setSubjects(uniqueSubjects.sort());
+      console.log(`Courses for semester ${selectedSemester} from coursemap:`, uniqueCourses);
+      setSubjects(uniqueCourses.sort());
       
       // Reset selected subject when semester changes
       setSelectedSubject("");
@@ -67,32 +67,62 @@ export default function StudentAttendance() {
 
   const fetchSubjectsAndSemesters = async () => {
     try {
-      // Fetch subjects and semesters from subjects collection
-      const subjectsQuery = await getDocs(collection(db, "subjects"));
-      const subjectsData = subjectsQuery.docs.map(doc => ({
+      // Fetch subjects and semesters from coursemap collection
+      const coursemapQuery = await getDocs(collection(db, "coursemap"));
+      const coursemapData = coursemapQuery.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
 
-      console.log("All subjects from collection:", subjectsData);
+      console.log("All courses from coursemap collection:", coursemapData);
+      console.log("Current user ID:", user.uid);
 
-      // Store all subjects data for filtering later
-      setAllSubjectsData(subjectsData);
+      // Filter courses based on current user ID
+      const studentCourses = coursemapData.filter(course => {
+        return course.studentId === user.uid;
+      });
 
-      // Extract unique semesters
+      console.log("Courses mapped to current user:", studentCourses);
+
+      // Extract all courses from the student's coursemap
+      const allCourses = [];
+      studentCourses.forEach(courseMap => {
+        if (courseMap.semesters && Array.isArray(courseMap.semesters)) {
+          courseMap.semesters.forEach(semester => {
+            if (semester.courses && Array.isArray(semester.courses)) {
+              semester.courses.forEach(course => {
+                allCourses.push({
+                  ...course,
+                  semester: course.semester,
+                  courseName: course.courseName,
+                  courseCode: course.courseCode,
+                  courseType: course.courseType
+                });
+              });
+            }
+          });
+        }
+      });
+
+      console.log("All courses for current user:", allCourses);
+
+      // Store all courses data for filtering later
+      setAllSubjectsData(allCourses);
+
+      // Extract unique semesters from coursemap collection
       const uniqueSemesters = [...new Set(
-        subjectsData.map(subject => subject.semester).filter(Boolean)
+        allCourses.map(course => course.semester).filter(Boolean)
       )];
 
-      console.log("Available semesters:", uniqueSemesters);
+      console.log("Available semesters from coursemap:", uniqueSemesters);
       setSemesters(uniqueSemesters.sort());
       
       // Clear subjects initially
       setSubjects([]);
       setLoading(false);
     } catch (err) {
-      console.error('Error fetching subjects and semesters:', err);
-      setError('Failed to fetch subjects and semesters. Please try again later.');
+      console.error('Error fetching courses and semesters:', err);
+      setError('Failed to fetch courses and semesters. Please try again later.');
       setLoading(false);
     }
   };
