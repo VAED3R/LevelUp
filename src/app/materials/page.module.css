@@ -1,4 +1,6 @@
 /* Use local class names instead of global selectors */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
 .container {
   min-height: 100vh;
   background: linear-gradient(135deg, #1a0033, #7f37c6, #632298);
@@ -25,70 +27,49 @@
 
 .title {
   font-family: 'Press Start 2P', cursive;
-  font-size: 24px;
+  font-size: 25px;
   text-transform: uppercase;
   margin-bottom: 20px;
   color: #fff;
-  padding: 8px 16px;
+  padding: 10px 20px;
   display: inline-block;
   border-radius: 8px;
   text-shadow: 4px 4px 0px #000;
-  background: rgba(0, 0, 0, 0.3);
-  border: 2px solid rgba(127, 55, 198, 0.5);
-  box-shadow: 0 0 15px rgba(127, 55, 198, 0.3);
-  white-space: normal;
-  overflow: visible;
-  max-width: 100%;
-  text-align: center;
-  line-height: 1.3;
 }
 
 .fileList {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 30px;
   width: 100%;
-  margin-top: 15px;
+  margin-top: 25px;
 }
 
 .fileCard {
-  background: rgba(20, 10, 40, 0.7);
-  border: 3px solid #7f37c6;
+  background: rgba(0, 0, 0, 0.7);
+  border: 4px solid #7f37c6;
   border-radius: 12px;
-  padding: 15px;
-  box-shadow: 5px 5px 0px #452d57, 0 0 15px rgba(127, 55, 198, 0.3);
-  transition: all 0.3s ease;
+  padding: 0;
+  box-shadow: 0 8px 0 #452d57;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   display: flex;
   flex-direction: column;
   position: relative;
   overflow: hidden;
   height: 100%;
-  backdrop-filter: blur(5px);
-  border-image: linear-gradient(45deg, #7f37c6, #9c34d0, #7f37c6) 1;
 }
 
+/* Card Header */
 .fileCard::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 5px;
+  height: 4px;
   background: linear-gradient(90deg, #7f37c6, #9c34d0, #7f37c6);
   background-size: 200% 100%;
   animation: gradientMove 3s linear infinite;
-}
-
-.fileCard::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 100px;
-  height: 100px;
-  background: radial-gradient(circle, rgba(127, 55, 198, 0.2) 0%, rgba(0, 0, 0, 0) 70%);
-  border-radius: 50%;
-  z-index: 0;
 }
 
 @keyframes gradientMove {
@@ -96,155 +77,174 @@
   100% { background-position: 200% 0%; }
 }
 
-.fileCard h2 {
-  font-family: 'Press Start 2P', cursive;
-  font-size: 18px;
-  color: #fff;
-  margin-bottom: 10px;
-  text-shadow: 2px 2px 0px #000, 0 0 10px rgba(127, 55, 198, 0.7);
-  letter-spacing: 1px;
-  line-height: 1.3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  height: 3em;
-  position: relative;
-  z-index: 1;
-  background: rgba(40, 20, 60, 0.5);
-  padding: 8px;
-  border-radius: 6px;
-  border-left: 3px solid #9c34d0;
+.fileCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 0 #452d57;
+  border-color: #9c34d0;
 }
 
-.fileCard p {
-  font-family: 'VT323', monospace;
-  font-size: 18px;
+/* Single Card Content Container */
+.cardContent {
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 100%;
+}
+
+.fileCard h2 {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 16px;
   color: #fff;
-  margin: 8px 0;
-  text-shadow: 1px 1px 0px #000, 0 0 5px rgba(0, 0, 0, 0.5);
+  margin: 0;
+  text-shadow: 3px 3px 0px #000;
   letter-spacing: 1px;
+  line-height: 1.5;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  height: auto;
+  min-height: 3em;
   position: relative;
   z-index: 1;
-  padding: 3px 0;
+  text-align: center;
+}
+
+/* Info Grid */
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.infoItem {
+  background: rgba(0, 0, 0, 0.7);
+  padding: 15px 18px;
+  border-radius: 8px;
+  border: 2px solid #7f37c6;
+  box-shadow: 0 4px 0 #452d57;
+}
+
+.infoItem strong {
+  color: #9c34d0;
+  font-weight: bold;
+  text-shadow: 0 0 8px rgba(156, 52, 208, 0.8);
+  font-size: 14px;
+  display: block;
+  margin-bottom: 8px;
+  font-family: 'Press Start 2P', cursive;
+  letter-spacing: 0.5px;
+}
+
+.infoItem span {
+  color: #fff;
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  text-shadow: 2px 2px 0px #000;
+  display: block;
+  font-weight: bold;
+}
+
+/* Description Section */
+.descriptionSection {
+  background: rgba(0, 0, 0, 0.7);
+  padding: 18px;
+  border-radius: 8px;
+  border: 2px solid #7f37c6;
+  flex-grow: 1;
+  box-shadow: 0 4px 0 #452d57;
+}
+
+.descriptionSection h3 {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 14px;
+  color: #9c34d0;
+  margin: 0 0 12px 0;
+  text-shadow: 2px 2px 0px #000;
+  letter-spacing: 1px;
 }
 
 .fileCard p.description {
-  -webkit-line-clamp: 2;
-  margin-bottom: 10px;
-  flex-grow: 1;
-  background: rgba(40, 20, 60, 0.5);
-  padding: 8px;
-  border-radius: 8px;
-  border-left: 3px solid #7f37c6;
-  color: #e0e0e0;
-  font-size: 20px;
-  line-height: 1.3;
-}
-
-.fileCard strong {
-  color: #9c34d0;
-  font-weight: bold;
-  text-shadow: 0 0 5px rgba(156, 52, 208, 0.7), 0 0 10px rgba(156, 52, 208, 0.4);
-  position: relative;
-  z-index: 1;
-  font-size: 20px;
-  display: inline-block;
-  margin-right: 5px;
-}
-
-.fileCard a {
   font-family: 'VT323', monospace;
-  font-size: 20px;
+  font-size: 18px;
+  color: #fff;
+  line-height: 1.6;
+  margin: 0;
+  text-shadow: 2px 2px 0px #000;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  font-weight: 500;
+}
+
+/* Button Container */
+.buttonContainer {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.fileCard a, .summaryButton {
+  font-family: 'VT323', monospace;
+  font-size: 18px;
   background: linear-gradient(45deg, #9c34d0, #4b217b);
   color: #fff;
   border: none;
-  border-radius: 5px;
-  padding: 8px 16px;
+  border-radius: 8px;
+  padding: 15px 20px;
   cursor: pointer;
   transition: all 0.3s ease;
   text-transform: uppercase;
   box-shadow: 0 4px 0 #452d57;
   text-decoration: none;
-  display: inline-block;
-  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   letter-spacing: 1px;
   position: relative;
   z-index: 1;
-  text-shadow: 1px 1px 0px #000;
+  text-shadow: 2px 2px 0px #000;
+  font-weight: bold;
+  flex: 1;
 }
 
-.fileCard a:hover {
+.summaryButton {
+  background: linear-gradient(45deg, #4b217b, #9c34d0);
+}
+
+.fileCard a:hover, .summaryButton:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 0 #452d57;
   background: linear-gradient(45deg, #a944e0, #5b318b);
 }
 
-.fileCard a:active {
-  transform: translateY(2px);
-  box-shadow: 0 2px 0 #452d57;
-}
-
-.buttonContainer {
-  display: flex;
-  justify-content: space-between;
-  margin-top: auto;
-  gap: 10px;
-  padding-top: 10px;
-  position: relative;
-  z-index: 1;
-}
-
-.summaryButton {
-  font-family: 'VT323', monospace;
-  font-size: 20px;
-  background: linear-gradient(45deg, #4b217b, #9c34d0);
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  padding: 8px 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  box-shadow: 0 4px 0 #452d57;
-  text-decoration: none;
-  display: inline-block;
-  margin-top: 10px;
-  letter-spacing: 1px;
-  position: relative;
-  z-index: 1;
-  text-shadow: 1px 1px 0px #000;
-}
-
 .summaryButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 0 #452d57;
   background: linear-gradient(45deg, #5b318b, #a944e0);
 }
 
-.summaryButton:active {
+.fileCard a:active, .summaryButton:active {
   transform: translateY(2px);
   box-shadow: 0 2px 0 #452d57;
 }
 
+/* Upload Date */
 .uploadDate {
   font-family: 'VT323', monospace;
   font-size: 16px;
-  color: #ccc;
-  margin-top: 8px;
-  text-align: right;
+  color: #e0e0e0;
+  text-align: center;
   font-style: italic;
-  position: relative;
-  z-index: 1;
-  border-top: 1px dashed rgba(127, 55, 198, 0.3);
-  padding-top: 8px;
-  text-shadow: 1px 1px 0px #000;
+  text-shadow: 2px 2px 0px #000;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: 2px solid rgba(127, 55, 198, 0.4);
+  margin: 0;
+  font-weight: 500;
 }
 
 .nofile {
@@ -253,10 +253,10 @@
   color: #fff;
   text-align: center;
   padding: 30px;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   border-radius: 12px;
-  border: 2px solid #7f37c6;
-  box-shadow: 0 0 15px rgba(127, 55, 198, 0.3);
+  border: 3px solid #7f37c6;
+  box-shadow: 0 8px 0 #452d57;
   max-width: 500px;
   margin: 0 auto;
   text-shadow: 2px 2px 0px #000;
@@ -285,43 +285,40 @@
   padding: 20px;
   text-shadow: 2px 2px 0px #000;
   letter-spacing: 2px;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   border-radius: 8px;
   border: 2px solid #7f37c6;
-  box-shadow: 0 0 10px rgba(127, 55, 198, 0.3);
+  box-shadow: 0 8px 0 #452d57;
 }
 
-/* Responsive adjustments */
+/* Responsive Design */
 @media (max-width: 768px) {
   .fileList {
     grid-template-columns: 1fr;
+    gap: 20px;
   }
   
-  .title {
-    font-size: 18px;
-    max-width: 100%;
-    padding: 8px 12px;
+  .infoGrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
   
-  .fileCard h2 {
-    font-size: 16px;
-  }
-  
-  .fileCard p {
-    font-size: 16px;
-  }
-  
-  .fileCard p.description {
-    font-size: 18px;
-  }
-  
-  .fileCard strong {
-    font-size: 18px;
+  .buttonContainer {
+    flex-direction: column;
+    gap: 10px;
   }
   
   .fileCard a, .summaryButton {
-    font-size: 18px;
-    padding: 6px 12px;
+    width: 100%;
+  }
+  
+  .cardContent {
+    padding: 15px;
+  }
+  
+  .title {
+    font-size: 24px;
+    padding: 8px 16px;
   }
 }
 
@@ -338,11 +335,11 @@
   padding: 12px 16px;
   font-family: 'VT323', monospace;
   font-size: 18px;
-  background: rgba(40, 20, 60, 0.7);
+  background: rgba(0, 0, 0, 0.7);
   border: 3px solid #7f37c6;
   border-radius: 8px;
   color: #fff;
-  box-shadow: 0 0 15px rgba(127, 55, 198, 0.3);
+  box-shadow: 0 4px 0 #452d57;
   transition: all 0.3s ease;
   text-shadow: 1px 1px 0px #000;
 }
@@ -354,6 +351,6 @@
 .searchInput:focus {
   outline: none;
   border-color: #9c34d0;
-  box-shadow: 0 0 20px rgba(156, 52, 208, 0.5);
-  background: rgba(60, 30, 80, 0.8);
+  box-shadow: 0 6px 0 #452d57;
+  background: rgba(0, 0, 0, 0.8);
 }

@@ -201,34 +201,76 @@ export default function ViewResults() {
               ) : (
                 <>
                   <div className={styles.summary}>
-                    <h2>Summary</h2>
-                    <p>Total Tests: {filteredResults.length}</p>
-                    <p>Average Score: {calculateAverage(filteredResults)}%</p>
-                    {selectedSemester && (
-                      <p>Semester: {selectedSemester}</p>
-                    )}
-                    {selectedSubject && (
-                      <p>Subject: {selectedSubject}</p>
-                    )}
+                    <div className={styles.summaryContent}>
+                      <h2>Performance Summary</h2>
+                      <div className={styles.summaryStats}>
+                        <div className={styles.statItem}>
+                          <span className={styles.statLabel}>Total Tests</span>
+                          <span className={styles.statValue}>{filteredResults.length}</span>
+                        </div>
+                        <div className={styles.statItem}>
+                          <span className={styles.statLabel}>Average Score</span>
+                          <span className={styles.statValue}>{calculateAverage(filteredResults)}%</span>
+                        </div>
+                        {selectedSemester && (
+                          <div className={styles.statItem}>
+                            <span className={styles.statLabel}>Semester</span>
+                            <span className={styles.statValue}>{selectedSemester}</span>
+                          </div>
+                        )}
+                        {selectedSubject && (
+                          <div className={styles.statItem}>
+                            <span className={styles.statLabel}>Subject</span>
+                            <span className={styles.statValue}>{selectedSubject}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                   
                   <div className={styles.resultsGrid}>
                     {filteredResults.map((result) => (
                       <div key={result.id} className={styles.resultCard}>
-                        <h3>{result.subject}</h3>
-                        <div className={styles.resultDetails}>
-                          <p><strong>Score:</strong> {result.obtainedMarks}/{result.totalMarks}</p>
-                          <p><strong>Percentage:</strong> {result.percentage}%</p>
-                          <p><strong>Date:</strong> {new Date(result.addedAt).toLocaleDateString()}</p>
-                          {result.semester && (
-                            <p><strong>Semester:</strong> {result.semester}</p>
-                          )}
+                        <div className={styles.cardHeader}>
+                          <h3>{result.subject}</h3>
+                          <div className={styles.scoreBadge}>
+                            {result.percentage}%
+                          </div>
                         </div>
-                        <div className={styles.percentageBar}>
-                          <div 
-                            className={styles.percentageFill} 
-                            style={{ width: `${result.percentage}%` }}
-                          ></div>
+                        
+                        <div className={styles.cardBody}>
+                          <div className={styles.resultDetails}>
+                            <div className={styles.detailItem}>
+                              <span className={styles.detailLabel}>Score</span>
+                              <span className={styles.detailValue}>{result.obtainedMarks}/{result.totalMarks}</span>
+                            </div>
+                            <div className={styles.detailItem}>
+                              <span className={styles.detailLabel}>Percentage</span>
+                              <span className={styles.detailValue}>{result.percentage}%</span>
+                            </div>
+                            <div className={styles.detailItem}>
+                              <span className={styles.detailLabel}>Date</span>
+                              <span className={styles.detailValue}>{new Date(result.addedAt).toLocaleDateString()}</span>
+                            </div>
+                            {result.semester && (
+                              <div className={styles.detailItem}>
+                                <span className={styles.detailLabel}>Semester</span>
+                                <span className={styles.detailValue}>{result.semester}</span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className={styles.percentageBar}>
+                            <div className={styles.percentageLabel}>
+                              Performance: {result.percentage}%
+                            </div>
+                            <div className={styles.percentageTrack}>
+                              <div 
+                                className={styles.percentageFill} 
+                                style={{ width: `${result.percentage}%` }}
+                              ></div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     ))}

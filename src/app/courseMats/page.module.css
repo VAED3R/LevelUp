@@ -12,7 +12,7 @@
     justify-content: center;
     padding: 20px;
     padding-top: 100px;
-    overflow: hidden;
+    overflow: auto;
 }
 
 /* Content wrapper */
@@ -21,9 +21,10 @@
     width: 100%;
     text-align: center;
     position: relative;
-    height: calc(100vh - 140px);
+    height: calc(110vh - 140px);
     display: flex;
     flex-direction: column;
+    padding-bottom: 50px;
 }
 
 /* Title */

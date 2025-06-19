@@ -169,22 +169,39 @@ export default function Materials() {
             <div className={styles.fileList}>
               {filteredFiles.map((file) => (
                 <div key={file.id} className={styles.fileCard}>
-                  <h2>{file.title}</h2>
-                  <p><strong>Subject:</strong> {file.subject}</p>
-                  <p><strong>Class:</strong> {file.className}</p>
-                  <p className={styles.description}>{file.description}</p>
-                  <div className={styles.buttonContainer}>
-                    <a href={file.url} target="_blank" rel="noopener noreferrer">View File</a>
-                    <button 
-                      onClick={() => handleSummary(file.url)}
-                      className={styles.summaryButton}
-                    >
-                      Summary
-                    </button>
+                  <div className={styles.cardContent}>
+                    <h2>{file.title}</h2>
+                    
+                    <div className={styles.infoGrid}>
+                      <div className={styles.infoItem}>
+                        <strong>Subject</strong>
+                        <span>{file.subject}</span>
+                      </div>
+                      <div className={styles.infoItem}>
+                        <strong>Class</strong>
+                        <span>{file.className}</span>
+                      </div>
+                    </div>
+                    
+                    <div className={styles.descriptionSection}>
+                      <h3>Description</h3>
+                      <p className={styles.description}>{file.description}</p>
+                    </div>
+                    
+                    <div className={styles.buttonContainer}>
+                      <a href={file.url} target="_blank" rel="noopener noreferrer">View File</a>
+                      <button 
+                        onClick={() => handleSummary(file.url)}
+                        className={styles.summaryButton}
+                      >
+                        Summary
+                      </button>
+                    </div>
+                    
+                    <p className={styles.uploadDate}>
+                      Uploaded: {formatDate(file.uploadedAt)}
+                    </p>
                   </div>
-                  <p className={styles.uploadDate}>
-                    Uploaded: {formatDate(file.uploadedAt)}
-                  </p>
                 </div>
               ))}
             </div>
