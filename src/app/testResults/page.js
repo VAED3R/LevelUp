@@ -456,7 +456,10 @@ export default function TestResults() {
       <div className={styles.container}>
         <Navbar />
         <div className={styles.content}>
-          <div className={styles.loading}>Loading test results...</div>
+          <div className={styles.loadingState}>
+            <div className={styles.loadingSpinner}></div>
+            <p className={styles.loadingText}>Loading test results...</p>
+          </div>
         </div>
       </div>
     );
@@ -467,8 +470,9 @@ export default function TestResults() {
       <div className={styles.container}>
         <Navbar />
         <div className={styles.content}>
-          <div className={styles.errorContainer}>
-            <h2 className={styles.title}>Error</h2>
+          <div className={styles.errorState}>
+            <div className={styles.errorIcon}>❌</div>
+            <h2 className={styles.errorTitle}>Error</h2>
             <div className={styles.error}>{error}</div>
           </div>
         </div>
@@ -480,136 +484,161 @@ export default function TestResults() {
     <div className={styles.container}>
       <Navbar />
       <div className={styles.content}>
-        <h1 className={styles.title}>Add Test Results</h1>
-        
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.filters}>
-            <div className={styles.formGroup}>
-              <label htmlFor="class" className={styles.label}>Select Class:</label>
-              <select
-                id="class"
-                value={selectedClass}
-                onChange={(e) => setSelectedClass(e.target.value)}
-                className={styles.select}
-                required
-                onKeyPress={handleKeyPress}
-              >
-                <option value="">Select Class</option>
-                {classes.map((className, index) => (
-                  <option key={index} value={className}>
-                    {className}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="semester" className={styles.label}>Select Semester:</label>
-              <select
-                id="semester"
-                value={selectedSemester}
-                onChange={(e) => setSelectedSemester(e.target.value)}
-                className={styles.select}
-                required
-                onKeyPress={handleKeyPress}
-              >
-                <option value="">Select Semester</option>
-                {semesters.map((semesterItem) => (
-                  <option key={semesterItem} value={semesterItem}>
-                    {semesterItem}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="subject" className={styles.label}>Select Subject:</label>
-              <select
-                id="subject"
-                value={selectedSubject}
-                onChange={(e) => setSelectedSubject(e.target.value)}
-                className={styles.select}
-                required
-                disabled={!selectedSemester}
-                onKeyPress={handleKeyPress}
-              >
-                <option value="">
-                  {selectedSemester ? "Select Subject" : "Select semester first"}
-                </option>
-                {subjects.map((subject) => (
-                  <option key={subject} value={subject}>
-                    {subject}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="totalScore" className={styles.label}>Total Score:</label>
-              <input
-                type="number"
-                id="totalScore"
-                value={totalScore}
-                onChange={handleTotalScoreChange}
-                onKeyPress={handleKeyPress}
-                min="0"
-                max="100"
-                className={styles.input}
-                required
-                placeholder="Enter total score"
-              />
-            </div>
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h1 className={styles.sectionTitle}>Add Test Results</h1>
+            <p className={styles.sectionSubtitle}>Enter and manage student test scores</p>
           </div>
 
-          {filteredStudents.length > 0 ? (
-            <div className={styles.marksContainer}>
-              <h2 className={styles.subtitle}>Enter Marks</h2>
-              <p className={styles.instruction}>Note: Only fill in marks for students who have taken the test. Students who haven't taken the test will automatically get 0 marks.</p>
-              {filteredStudents.map((student) => (
-                <div key={student.id} className={styles.studentMarks}>
-                  <h3 className={styles.studentName}>{student.name}</h3>
-                  <div className={styles.marksInputs}>
-                    <div className={styles.formGroup}>
-                      <label htmlFor={`${student.id}-obtained`} className={styles.label}>
-                        Obtained Marks:
-                      </label>
-                      <input
-                        type="number"
-                        id={`${student.id}-obtained`}
-                        value={marks[student.id]?.obtained || "0"}
-                        onChange={handleMarksChange(student.id, "obtained")}
-                        onKeyPress={handleKeyPress}
-                        min="0"
-                        max={totalScore}
-                        className={styles.input}
-                        placeholder="Enter marks if taken test"
-                      />
-                    </div>
-                    <div className={styles.percentageDisplay}>
-                      <span className={styles.percentageLabel}>Percentage:</span>
-                      <span className={styles.percentageValue}>
-                        {percentages[student.id] || "0"}%
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+          <form onSubmit={handleSubmit} className={styles.testForm}>
+            <div className={styles.filtersRow}>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Class</label>
+                <select
+                  key="class-select"
+                  value={selectedClass}
+                  onChange={(e) => setSelectedClass(e.target.value)}
+                  className={styles.select}
+                  required
+                >
+                  <option value="">Select Class</option>
+                  {classes.map((className, index) => (
+                    <option key={index} value={className}>
+                      {className}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Semester</label>
+                <select
+                  key="semester-select"
+                  value={selectedSemester}
+                  onChange={(e) => setSelectedSemester(e.target.value)}
+                  className={styles.select}
+                  required
+                >
+                  <option value="">Select Semester</option>
+                  {semesters.map((semesterItem) => (
+                    <option key={semesterItem} value={semesterItem}>
+                      {semesterItem}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Subject</label>
+                <select
+                  key="subject-select"
+                  value={selectedSubject}
+                  onChange={(e) => setSelectedSubject(e.target.value)}
+                  className={styles.select}
+                  required
+                  disabled={!selectedSemester}
+                >
+                  <option value="">
+                    {selectedSemester ? "Select Subject" : "Select semester first"}
+                  </option>
+                  {subjects.map((subject) => (
+                    <option key={subject} value={subject}>
+                      {subject}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Total Score</label>
+                <input
+                  key="total-score-input"
+                  type="number"
+                  value={totalScore}
+                  onChange={handleTotalScoreChange}
+                  min="0"
+                  max="100"
+                  className={styles.input}
+                  required
+                  placeholder="Enter total score"
+                />
+              </div>
             </div>
-          ) : (
-            selectedClass && selectedSubject && (
-              <p>No students found enrolled in {selectedSubject} for {selectedClass}</p>
-            )
-          )}
 
-          {error && <p className={styles.error}>{error}</p>}
-          {success && <p className={styles.success}>Marks added successfully!</p>}
+            {filteredStudents.length > 0 ? (
+              <div className={styles.studentsSection}>
+                <div className={styles.sectionHeader}>
+                  <h2 className={styles.sectionTitle}>Enter Marks</h2>
+                  <p className={styles.sectionSubtitle}>
+                    Only fill in marks for students who have taken the test. Students who haven't taken the test will automatically get 0 marks.
+                  </p>
+                </div>
 
-          {filteredStudents.length > 0 && (
-            <button type="submit" className={styles.submitButton}>
-              Add Marks
-            </button>
-          )}
-        </form>
+                <div className={styles.studentsGrid}>
+                  {filteredStudents.map((student) => (
+                    <div key={student.id} className={styles.studentCard}>
+                      <div className={styles.studentHeader}>
+                        <div className={styles.studentIcon}>👤</div>
+                        <h3 className={styles.studentName}>{student.name}</h3>
+                      </div>
+                      <div className={styles.marksInputs}>
+                        <div className={styles.formGroup}>
+                          <label className={styles.label}>Obtained Marks</label>
+                          <input
+                            key={`${student.id}-obtained`}
+                            type="number"
+                            value={marks[student.id]?.obtained || "0"}
+                            onChange={handleMarksChange(student.id, "obtained")}
+                            min="0"
+                            max={totalScore}
+                            className={styles.input}
+                            placeholder="Enter marks if taken test"
+                          />
+                        </div>
+                        <div className={styles.percentageDisplay}>
+                          <span className={styles.percentageLabel}>Percentage</span>
+                          <span className={styles.percentageValue}>
+                            {percentages[student.id] || "0"}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              selectedClass && selectedSubject && (
+                <div className={styles.emptyState}>
+                  <div className={styles.emptyIcon}>👥</div>
+                  <p className={styles.emptyText}>No students found enrolled in {selectedSubject} for {selectedClass}</p>
+                </div>
+              )
+            )}
+
+            {error && (
+              <div className={`${styles.message} ${styles.error}`}>
+                <span className={styles.messageIcon}>❌</span>
+                {error}
+              </div>
+            )}
+            
+            {success && (
+              <div className={`${styles.message} ${styles.success}`}>
+                <span className={styles.messageIcon}>✅</span>
+                Marks added successfully!
+              </div>
+            )}
+
+            {filteredStudents.length > 0 && (
+              <div className={styles.submitSection}>
+                <button type="submit" className={styles.submitButton}>
+                  <span className={styles.buttonIcon}>💾</span>
+                  Add Marks
+                </button>
+              </div>
+            )}
+          </form>
+        </div>
       </div>
     </div>
   );

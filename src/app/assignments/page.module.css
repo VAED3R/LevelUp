@@ -1,351 +1,179 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* Base Styles */
 .container {
   min-height: 100vh;
-  width: 100%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Inter', sans-serif;
   color: #ffffff;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
   position: relative;
   overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  z-index: -1;
 }
 
 .content {
-  flex: 1;
-  max-width: 1200px;
-  width: 100%;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 2rem;
-  padding-top: 6rem;
+  padding: 40px 30px;
   position: relative;
   z-index: 1;
+  margin-top: 60px;
+  box-sizing: border-box;
 }
 
-.title {
-  font-family: 'Poppins', sans-serif;
+/* Section Styles */
+.section {
+  margin-bottom: 40px;
+}
+
+.sectionHeader {
+  margin-bottom: 30px;
+}
+
+.sectionTitle {
   font-size: 2rem;
-  font-weight: 600;
-  color: #fff;
-  margin-bottom: 2rem;
-  text-align: left;
-  position: relative;
-  padding-left: 1rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
 }
 
-.title::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 4px;
-  height: 80%;
-  background: #5a35ab;
-  border-radius: 2px;
+.sectionSubtitle {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 400;
 }
 
-.form {
-  background: #ffffff;
-  padding: 2rem;
-  border-radius: 1rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 2px solid #5a35ab;
+/* Assignment Form */
+.assignmentForm {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  margin-bottom: 32px;
 }
 
-.filters {
+.filtersRow {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-  background: rgba(255, 255, 255, 0.03);
-  padding: 1.5rem;
-  border-radius: 0.75rem;
-  border: 2px solid #5a35ab;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
 }
 
 .formGroup {
-  margin-bottom: 1rem;
-  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: #1a1f3c;
-  font-weight: 500;
   font-size: 0.9rem;
-  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  color: #1f2937;
+  text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.select {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 2px solid #5a35ab;
-  border-radius: 0.5rem;
-  font-size: 0.9rem;
-  color: #1a1f3c;
-  background: #ffffff;
-  transition: all 0.2s ease;
-  cursor: pointer;
-  font-family: 'Poppins', sans-serif;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%235a35ab' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.75rem center;
-  background-size: 1rem;
-  padding-right: 2.5rem;
+.select,
+.input,
+.textarea {
+  padding: 12px 16px;
+  border: 2px solid rgba(102, 126, 234, 0.2);
+  border-radius: 12px;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  color: #1f2937;
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
 }
 
-.select:hover {
-  border-color: #5a35ab;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 8px rgba(90, 53, 171, 0.15);
-}
-
-.select:focus {
+.select:focus,
+.input:focus,
+.textarea:focus {
   outline: none;
-  border-color: #5a35ab;
-  box-shadow: 0 0 0 3px rgba(90, 53, 171, 0.2);
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.select:disabled {
+  background: rgba(156, 163, 175, 0.1);
+  color: #6b7280;
+  cursor: not-allowed;
 }
 
 .select option {
-  background-color: #ffffff;
-  color: #1a1f3c;
-  padding: 0.75rem;
-}
-
-.input {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 2px solid #5a35ab;
-  border-radius: 0.5rem;
-  font-size: 0.9rem;
-  color: #1a1f3c;
   background: #ffffff;
-  transition: all 0.2s ease;
-  font-family: 'Poppins', sans-serif;
+  color: #1f2937;
 }
 
-.input::placeholder {
-  color: rgba(26, 31, 60, 0.5);
-}
-
-.input:hover {
-  border-color: #5a35ab;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 8px rgba(90, 53, 171, 0.15);
-}
-
-.input:focus {
-  outline: none;
-  border-color: #5a35ab;
-  box-shadow: 0 0 0 3px rgba(90, 53, 171, 0.2);
-}
-
-.commonMarks {
-  background: rgba(255, 255, 255, 0.03);
-  padding: 1.5rem;
-  border-radius: 0.75rem;
-  margin: 1.5rem 0;
-  border: 2px solid #5a35ab;
-}
-
-.assignmentDetails {
-  background: rgba(255, 255, 255, 0.03);
-  padding: 1.5rem;
-  border-radius: 0.75rem;
-  margin: 1.5rem 0;
-  border: 2px solid #5a35ab;
+.input::placeholder,
+.textarea::placeholder {
+  color: #9ca3af;
 }
 
 .textarea {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 2px solid #5a35ab;
-  border-radius: 0.5rem;
-  font-size: 0.9rem;
-  color: #1a1f3c;
-  background: #ffffff;
-  transition: all 0.2s ease;
   resize: vertical;
   min-height: 100px;
-  font-family: 'Poppins', sans-serif;
 }
 
-.textarea::placeholder {
-  color: rgba(26, 31, 60, 0.5);
-}
-
-.textarea:hover {
-  border-color: #5a35ab;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 8px rgba(90, 53, 171, 0.15);
-}
-
-.textarea:focus {
-  outline: none;
-  border-color: #5a35ab;
-  box-shadow: 0 0 0 3px rgba(90, 53, 171, 0.2);
-}
-
-.marksContainer {
-  background: rgba(255, 255, 255, 0.03);
-  padding: 1.5rem;
-  border-radius: 0.75rem;
-  margin: 1.5rem 0;
-  border: 2px solid #5a35ab;
-}
-
-.subtitle {
-  color: #1a1f3c;
-  font-size: 1.25rem;
-  margin-bottom: 1rem;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  text-align: left;
-  position: relative;
-  padding-left: 0.75rem;
-}
-
-.subtitle::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 70%;
-  background: #5a35ab;
-  border-radius: 1.5px;
-}
-
-.instruction {
-  color: #1a1f3c;
-  font-size: 0.9rem;
-  margin-bottom: 1.5rem;
-  font-family: 'Poppins', sans-serif;
-  text-align: left;
-  padding: 1rem;
-  background: rgba(90, 53, 171, 0.05);
-  border-radius: 0.5rem;
-  border-left: 4px solid #5a35ab;
-}
-
-.studentMarks {
-  background: rgba(255, 255, 255, 0.03);
-  padding: 1.25rem;
-  border-radius: 0.75rem;
-  margin-bottom: 1rem;
-  border: 2px solid #5a35ab;
-  transition: all 0.2s ease;
-}
-
-.studentMarks:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(90, 53, 171, 0.3);
-  border-color: #5a35ab;
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.studentName {
-  color: #1a1f3c;
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 500;
-  text-align: left;
-}
-
-.marksInputs {
+.assignmentDetails {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 32px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
   align-items: start;
 }
 
-.submitButton {
-  width: 100%;
-  padding: 0.875rem 1.5rem;
-  background: linear-gradient(45deg, #5a35ab, #4a2a8f);
-  color: #fff;
-  border: none;
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-top: 1.5rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-family: 'Poppins', sans-serif;
-  box-shadow: 0 4px 12px rgba(90, 53, 171, 0.2);
+.assignmentDetails .formGroup {
+  margin-bottom: 0;
 }
 
-.submitButton:hover {
-  background: linear-gradient(45deg, #4a2a8f, #5a35ab);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(90, 53, 171, 0.3);
+.assignmentDetails .formGroup:last-child {
+  grid-column: 1 / -1;
 }
 
-.submitButton:active {
-  transform: translateY(0);
+.assignmentDetails .textarea {
+  min-height: 120px;
+  resize: vertical;
 }
 
-.error {
-  color: #ef4444;
-  margin-top: 1rem;
-  padding: 1rem;
-  background: rgba(239, 68, 68, 0.1);
-  border-radius: 0.5rem;
-  border: 2px solid #ef4444;
-  font-weight: 500;
-  font-family: 'Poppins', sans-serif;
-  animation: slideIn 0.3s ease;
-  text-align: left;
-}
-
-.success {
-  color: #10b981;
-  margin-top: 1rem;
-  padding: 1rem;
-  background: rgba(16, 185, 129, 0.1);
-  border-radius: 0.5rem;
-  border: 2px solid #10b981;
-  font-weight: 500;
-  font-family: 'Poppins', sans-serif;
-  animation: slideIn 0.3s ease;
-  text-align: left;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.loading {
+/* Loading State */
+.loadingState {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  min-height: 100px;
-  color: #fff;
-  font-family: 'Poppins', sans-serif;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
 }
 
-.loading::after {
-  content: "";
-  width: 30px;
-  height: 30px;
-  border: 3px solid rgba(90, 53, 171, 0.2);
-  border-top: 3px solid #5a35ab;
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(102, 126, 234, 0.2);
+  border-top: 4px solid #667eea;
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  margin-bottom: 16px;
 }
 
 @keyframes spin {
@@ -353,38 +181,272 @@
   100% { transform: rotate(360deg); }
 }
 
+.loadingText {
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* Error State */
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.errorIcon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+.errorTitle {
+  color: #ffffff;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+/* Students Section */
+.studentsSection {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  margin-bottom: 32px;
+}
+
+.studentsGrid {
+  display: grid;
+  gap: 24px;
+}
+
+.studentCard {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.3s ease;
+}
+
+.studentCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border-color: rgba(102, 126, 234, 0.4);
+}
+
+.studentHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.studentIcon {
+  font-size: 1.5rem;
+}
+
+.studentName {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.marksInputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: end;
+}
+
+.percentageDisplay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 12px;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.percentageLabel {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.percentageValue {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.emptyIcon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+.emptyText {
+  color: #6b7280;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+.message.error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #dc2626;
+}
+
+.message.success {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #16a34a;
+}
+
+.messageIcon {
+  font-size: 1.2rem;
+}
+
+.submitSection {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+.submitButton {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.submitButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.buttonIcon {
+  font-size: 1.2rem;
+}
+
+@media (max-width: 1024px) {
+  .filtersRow {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+  }
+}
+
 @media (max-width: 768px) {
   .content {
-    padding: 1rem;
-    padding-top: 5rem;
+    padding: 20px 15px;
+    margin-top: 50px;
   }
 
-  .form {
-    padding: 1.25rem;
+  .sectionTitle {
+    font-size: 1.75rem;
   }
 
-  .title {
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
+  .assignmentForm,
+  .studentsSection {
+    padding: 24px;
   }
 
-  .filters {
+  .filtersRow {
     grid-template-columns: 1fr;
-    gap: 1rem;
-    padding: 1rem;
+    gap: 16px;
   }
 
   .marksInputs {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 
-  .studentMarks {
-    padding: 1rem;
+  .percentageDisplay {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
   }
 
-  .assignmentDetails,
-  .commonMarks,
-  .marksContainer {
-    padding: 1rem;
+  .assignmentDetails {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 24px;
+  }
+  
+  .assignmentDetails .formGroup:last-child {
+    grid-column: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .content {
+    padding: 15px 10px;
+  }
+
+  .assignmentForm,
+  .studentsSection {
+    padding: 20px;
+  }
+
+  .studentCard {
+    padding: 20px;
+  }
+
+  .submitButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .assignmentDetails {
+    padding: 20px;
+    gap: 16px;
   }
 }

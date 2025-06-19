@@ -316,109 +316,143 @@ export default function CourseMapping() {
         <div className={style.container}>
             <Navbar />
             <div className={style.content}>
-                <div className={style.header}>
-                    <h1 className={style.title}>Course Mapping</h1>
-                    <p className={style.subtitle}>View students by class and semester</p>
-                </div>
-
-                <div className={style.studentsSection}>
-                    <h2>View Students by Class</h2>
-                    <div className={style.filters}>
-                        <div className={style.filterGroup}>
-                            <label htmlFor="classSelect">Select Class:</label>
-                            <select
-                                id="classSelect"
-                                value={selectedClass}
-                                onChange={(e) => setSelectedClass(e.target.value)}
-                                className={style.select}
-                            >
-                                <option value="">Choose a class</option>
-                                {classes.map((className) => (
-                                    <option key={className} value={className}>
-                                        {className}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className={style.filterGroup}>
-                            <label htmlFor="semesterSelect">Select Semester:</label>
-                            <select
-                                id="semesterSelect"
-                                value={selectedSemester}
-                                onChange={(e) => setSelectedSemester(e.target.value)}
-                                className={style.select}
-                            >
-                                <option value="">Choose a semester</option>
-                                {semesters.map((semester) => (
-                                    <option key={semester} value={semester}>
-                                        {semester}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                <div className={style.section}>
+                    <div className={style.sectionHeader}>
+                        <h1 className={style.sectionTitle}>Course Mapping</h1>
+                        <p className={style.sectionSubtitle}>Map students to courses by class and semester</p>
                     </div>
 
-                    {selectedClass && selectedSemester && (
-                        <div className={style.studentsList}>
-                            <h3>Students in {selectedClass} - {selectedSemester}</h3>
-                            {loadingStudents ? (
-                                <p className={style.loading}>Loading students...</p>
-                            ) : students.length === 0 ? (
-                                <p className={style.noStudents}>No students found for this class and semester.</p>
-                            ) : (
-                                <>
-                                    <div className={style.dataframe}>
-                                        <div className={style.headerRow}>
-                                            <div className={style.headerCell}>Name</div>
-                                            {courseTypes.map((type) => (
-                                                <div key={type} className={style.headerCell}>{type}</div>
-                                            ))}
-                                        </div>
-                                        {students.map((student) => (
-                                            <div key={student.id} className={style.dataRow}>
-                                                <div className={style.nameCell}>{student.name || 'Unknown Student'}</div>
-                                                {courseTypes.map((courseType) => (
-                                                    <div key={courseType} className={style.dropdownCell}>
-                                                        <select
-                                                            value={studentCourses[student.id]?.[courseType] || ''}
-                                                            onChange={(e) => handleCourseChange(student.id, courseType, e.target.value)}
-                                                            className={style.courseSelect}
-                                                        >
-                                                            <option value="">Select Course</option>
-                                                            {courseType.toLowerCase() !== 'core' && (
-                                                                <option value="NA">NA</option>
-                                                            )}
-                                                            {courseNamesByType[courseType]?.map((courseName) => (
-                                                                <option key={courseName} value={courseName}>
-                                                                    {courseName}
-                                                                </option>
-                                                            )) || []}
-                                                        </select>
+                    <div className={style.mappingForm}>
+                        <div className={style.filtersRow}>
+                            <div className={style.filterGroup}>
+                                <label className={style.label}>Class</label>
+                                <select
+                                    key="class-select"
+                                    value={selectedClass}
+                                    onChange={(e) => setSelectedClass(e.target.value)}
+                                    className={style.select}
+                                >
+                                    <option value="">Choose a class</option>
+                                    {classes.map((className) => (
+                                        <option key={className} value={className}>
+                                            {className}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className={style.filterGroup}>
+                                <label className={style.label}>Semester</label>
+                                <select
+                                    key="semester-select"
+                                    value={selectedSemester}
+                                    onChange={(e) => setSelectedSemester(e.target.value)}
+                                    className={style.select}
+                                >
+                                    <option value="">Choose a semester</option>
+                                    {semesters.map((semester) => (
+                                        <option key={semester} value={semester}>
+                                            {semester}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        {selectedClass && selectedSemester && (
+                            <>
+                                <div className={style.sectionHeader}>
+                                    <h2 className={style.sectionTitle}>Students in {selectedClass} - {selectedSemester}</h2>
+                                    <p className={style.sectionSubtitle}>{students.length} students found</p>
+                                </div>
+
+                                {loadingStudents ? (
+                                    <div className={style.loadingState}>
+                                        <div className={style.loadingSpinner}></div>
+                                        <p className={style.loadingText}>Loading students...</p>
+                                    </div>
+                                ) : students.length === 0 ? (
+                                    <div className={style.emptyState}>
+                                        <div className={style.emptyIcon}>👥</div>
+                                        <p className={style.emptyText}>No students found for this class and semester.</p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className={style.dataTable}>
+                                            <div className={style.tableHeader}>
+                                                <div className={style.headerCell}>Student Name</div>
+                                                {courseTypes.map((type) => (
+                                                    <div key={type} className={style.headerCell}>
+                                                        <span className={style.courseTypeIcon}>📚</span>
+                                                        {type}
                                                     </div>
                                                 ))}
                                             </div>
-                                        ))}
-                                    </div>
-                                    
-                                    <div className={style.submitSection}>
-                                        <button
-                                            onClick={handleSubmit}
-                                            disabled={submitting}
-                                            className={style.submitButton}
-                                        >
-                                            {submitting ? "Submitting..." : "Submit Course Mapping"}
-                                        </button>
-                                        {submitMessage && (
-                                            <div className={`${style.message} ${submitMessage.includes('Error') ? style.error : style.success}`}>
-                                                {submitMessage}
+                                            <div className={style.tableBody}>
+                                                {students.map((student) => (
+                                                    <div key={student.id} className={style.tableRow}>
+                                                        <div className={style.nameCell}>
+                                                            <span className={style.studentIcon}>👤</span>
+                                                            {student.name || 'Unknown Student'}
+                                                        </div>
+                                                        {courseTypes.map((courseType) => (
+                                                            <div key={courseType} className={style.dropdownCell}>
+                                                                <select
+                                                                    key={`${student.id}-${courseType}`}
+                                                                    value={studentCourses[student.id]?.[courseType] || ''}
+                                                                    onChange={(e) => handleCourseChange(student.id, courseType, e.target.value)}
+                                                                    className={style.courseSelect}
+                                                                >
+                                                                    <option value="">Select Course</option>
+                                                                    {courseType.toLowerCase() !== 'core' && (
+                                                                        <option value="NA">NA</option>
+                                                                    )}
+                                                                    {courseNamesByType[courseType]?.map((courseName) => (
+                                                                        <option key={courseName} value={courseName}>
+                                                                            {courseName}
+                                                                        </option>
+                                                                    )) || []}
+                                                                </select>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ))}
                                             </div>
-                                        )}
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    )}
+                                        </div>
+                                        
+                                        <div className={style.submitSection}>
+                                            <button
+                                                key="submit-button"
+                                                onClick={handleSubmit}
+                                                disabled={submitting}
+                                                className={style.submitButton}
+                                            >
+                                                {submitting ? (
+                                                    <>
+                                                        <span className={style.buttonIcon}>⏳</span>
+                                                        Submitting...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span className={style.buttonIcon}>💾</span>
+                                                        Submit Course Mapping
+                                                    </>
+                                                )}
+                                            </button>
+                                            {submitMessage && (
+                                                <div className={`${style.message} ${submitMessage.includes('Error') ? style.error : style.success}`}>
+                                                    <span className={style.messageIcon}>
+                                                        {submitMessage.includes('Error') ? '❌' : '✅'}
+                                                    </span>
+                                                    {submitMessage}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </>
+                                )}
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

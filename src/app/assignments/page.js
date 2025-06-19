@@ -206,52 +206,42 @@ export default function Assignments() {
             return false;
           });
 
-          console.log("Enrolled students for subject:", enrolledStudents);
+          console.log("Enrolled students:", enrolledStudents);
 
-          // Get student IDs enrolled in this subject
+          // Get the actual student data for enrolled students
           const enrolledStudentIds = enrolledStudents.map(course => course.studentId);
-
-          // Filter students by class and enrollment
-          const filtered = allStudents.filter(student => 
-            student.class === selectedClass && 
+          const filteredStudentsList = allStudents.filter(student => 
             enrolledStudentIds.includes(student.id)
           );
 
-          // Sort students alphabetically by name
-          const sortedStudents = filtered.sort((a, b) => 
-            a.name.localeCompare(b.name)
-          );
+          console.log("Filtered students:", filteredStudentsList);
+          setFilteredStudents(filteredStudentsList);
 
-          console.log("Filtered students:", sortedStudents);
-          setFilteredStudents(sortedStudents);
-
-          // Initialize marks for each student
+          // Initialize marks for filtered students with empty values
           const initialMarks = {};
-          sortedStudents.forEach(student => {
+          filteredStudentsList.forEach(student => {
             initialMarks[student.id] = {
-              obtained: "0",
-              total: commonTotalMarks || "0"
+              obtained: "",
+              total: ""
             };
           });
           setMarks(initialMarks);
         } catch (error) {
-          console.error("Error fetching coursemap data:", error);
-          setFilteredStudents([]);
-          setMarks({});
+          console.error("Error fetching students for subject:", error);
+          setError("Failed to load students for the selected subject.");
         }
       };
 
       fetchStudentsForSubject();
     } else {
       setFilteredStudents([]);
-      setMarks({});
     }
-  }, [selectedClass, selectedSubject, allStudents, commonTotalMarks]);
+  }, [selectedClass, selectedSubject, allStudents]);
 
   const handleMarksChange = (studentId, field) => (e) => {
     const value = e.target.value;
-    // Allow empty string or numbers between 0 and 100
-    if (value === "" || (/^\d+$/.test(value) && parseInt(value) >= 0 && parseInt(value) <= 100)) {
+    // Only allow numbers and empty string
+    if (value === "" || /^\d+$/.test(value)) {
       setMarks(prev => ({
         ...prev,
         [studentId]: {
@@ -264,148 +254,134 @@ export default function Assignments() {
 
   const calculatePercentage = (obtained, total) => {
     if (!obtained || !total || total === 0) return 0;
-    return ((obtained / total) * 100).toFixed(2);
+    return Math.round((parseFloat(obtained) / parseFloat(total)) * 100);
   };
 
   const handleCommonTotalMarksChange = (e) => {
     const value = e.target.value;
-    // Allow empty string or numbers between 0 and 100
-    if (value === "" || (/^\d+$/.test(value) && parseInt(value) >= 0 && parseInt(value) <= 100)) {
+    // Only allow numbers and empty string
+    if (value === "" || /^\d+$/.test(value)) {
       setCommonTotalMarks(value);
-      // Update all students' total marks
-      setMarks(prev => {
-        const newMarks = { ...prev };
-        Object.keys(newMarks).forEach(studentId => {
-          newMarks[studentId] = {
-            ...newMarks[studentId],
-            total: value
-          };
-        });
-        return newMarks;
+      
+      // Update all students' total marks with the common value
+      const updatedMarks = {};
+      filteredStudents.forEach(student => {
+        updatedMarks[student.id] = {
+          ...marks[student.id],
+          total: value
+        };
       });
+      setMarks(updatedMarks);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedClass || !selectedSubject || !selectedSemester || !assignmentTitle) {
-      setError("Please select a class, subject, semester and enter assignment title");
-      return;
-    }
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
 
     try {
-      setLoading(true);
-      const batch = writeBatch(db);
-      
-      const promises = filteredStudents.map(async (student) => {
-        const studentMarks = marks[student.id];
-        // If marks are empty or not filled, use 0 as default
-        const obtainedMarks = Number(studentMarks.obtained) || 0;
-        const totalMarks = Number(studentMarks.total) || 0;
-        const percentage = Number(calculatePercentage(obtainedMarks, totalMarks));
+      // Validate that at least one student has marks
+      const hasMarks = Object.values(marks).some(mark => 
+        mark.obtained && mark.obtained !== "" && mark.obtained !== "0"
+      );
 
-        const assignmentData = {
+      if (!hasMarks) {
+        setError("Please enter marks for at least one student.");
+        setLoading(false);
+        return;
+      }
+
+      // Create assignment document
+      const assignmentData = {
+        title: assignmentTitle,
+        description: assignmentDescription,
+        class: selectedClass,
+        subject: selectedSubject,
+        semester: selectedSemester,
+        teacherEmail: teacherEmail,
+        createdAt: new Date().toISOString(),
+        totalStudents: filteredStudents.length,
+        submittedStudents: Object.values(marks).filter(mark => 
+          mark.obtained && mark.obtained !== "" && mark.obtained !== "0"
+        ).length
+      };
+
+      const assignmentRef = await addDoc(collection(db, "assignments"), assignmentData);
+      console.log("Assignment created with ID:", assignmentRef.id);
+
+      // Add marks for each student
+      const marksPromises = filteredStudents.map(async (student) => {
+        const studentMarks = marks[student.id];
+        const obtainedMarks = parseFloat(studentMarks.obtained) || 0;
+        const totalMarks = parseFloat(studentMarks.total) || 0;
+        const percentage = calculatePercentage(obtainedMarks, totalMarks);
+
+        const markData = {
+          assignmentId: assignmentRef.id,
           studentId: student.id,
           studentName: student.name,
+          studentEmail: student.email,
           class: selectedClass,
           subject: selectedSubject,
           semester: selectedSemester,
-          assignmentTitle: assignmentTitle,
-          assignmentDescription: assignmentDescription,
           obtainedMarks: obtainedMarks,
           totalMarks: totalMarks,
           percentage: percentage,
-          addedBy: auth.currentUser.uid,
-          addedAt: new Date().toISOString(),
+          teacherEmail: teacherEmail,
+          submittedAt: new Date().toISOString()
         };
 
-        // Add assignment to the assignments collection
-        const assignmentRef = doc(collection(db, "assignments"));
-        batch.set(assignmentRef, assignmentData);
+        await addDoc(collection(db, "assignmentMarks"), markData);
 
-        // Calculate points based on percentage
-        let pointsToAdd = 0;
-        if (obtainedMarks > 5) {
-          pointsToAdd = 10;
-        }
-
-        // Only proceed if points are earned
-        if (pointsToAdd > 0) {
-          // Create a new assignment points entry
-          const newPointsEntry = {
-            points: pointsToAdd,
-            date: new Date().toISOString(),
-            subject: selectedSubject,
-            semester: selectedSemester,
-            score: percentage,
-            totalQuestions: totalMarks,
-            quizId: "assignment_" + new Date().getTime(), // Unique ID for assignment
-            topic: assignmentTitle,
-            userId: student.id,
-            type: "assignment" // Ensure type is set as assignment
-          };
-
-          // Check if student document exists in students collection
+        // Update student's total points if they submitted
+        if (obtainedMarks > 0) {
+          const pointsToAdd = Math.round(percentage / 10); // 1 point per 10%
+          
+          // Get current student document
           const studentRef = doc(db, "students", student.id);
           const studentDoc = await getDoc(studentRef);
           
           if (studentDoc.exists()) {
-            // Student exists, update points array
-            const studentData = studentDoc.data();
+            const currentData = studentDoc.data();
+            const currentPoints = currentData.points || [];
             
-            // Get the current points array or initialize an empty array
-            let currentPointsArray = [];
-            if (studentData.points && Array.isArray(studentData.points)) {
-              currentPointsArray = [...studentData.points];
-            }
-            
-            // Add the new assignment points entry to the array
-            currentPointsArray.push(newPointsEntry);
-            
-            // Calculate total points
-            const totalPoints = calculateTotalPoints(currentPointsArray);
-            
-            // Update the student document with the new points array and total points
-            batch.update(studentRef, {
-              points: currentPointsArray,
-              totalPoints: totalPoints
-            });
-            
-            console.log(`Added ${pointsToAdd} points for ${student.name} for assignment in ${selectedSubject}. Total points: ${totalPoints}`);
-          } else {
-            // Student doesn't exist, create new document
-            const newStudentData = {
-              id: student.id,
-              name: student.name,
-              email: student.email || "",
-              class: student.class,
-              createdAt: new Date().toISOString(),
-              points: [newPointsEntry],
-              totalPoints: pointsToAdd
+            // Add new points entry
+            const newPointsEntry = {
+              points: pointsToAdd,
+              source: "Assignment",
+              assignmentTitle: assignmentTitle,
+              subject: selectedSubject,
+              date: new Date().toISOString()
             };
             
-            batch.set(studentRef, newStudentData);
-            console.log(`Creating new student document for ${student.name} with ${pointsToAdd} assignment points.`);
+            const updatedPoints = [...currentPoints, newPointsEntry];
+            const newTotalPoints = calculateTotalPoints(updatedPoints);
+            
+            await updateDoc(studentRef, {
+              points: updatedPoints,
+              totalPoints: newTotalPoints,
+              lastUpdated: new Date().toISOString()
+            });
           }
         }
       });
 
-      await Promise.all(promises);
-      await batch.commit();
-      
+      await Promise.all(marksPromises);
       setSuccess(true);
-      setError(null);
       
       // Reset form
       setAssignmentTitle("");
       setAssignmentDescription("");
       setSelectedSemester("");
       setSelectedSubject("");
+      setCommonTotalMarks("");
       const resetMarks = {};
       filteredStudents.forEach(student => {
         resetMarks[student.id] = {
-          obtained: "0",
-          total: "0"
+          obtained: "",
+          total: ""
         };
       });
       setMarks(resetMarks);
@@ -427,169 +403,237 @@ export default function Assignments() {
     }, 0);
   };
 
+  if (loading) {
+    return (
+      <div className={styles.container}>
+        <Navbar />
+        <div className={styles.content}>
+          <div className={styles.loadingState}>
+            <div className={styles.loadingSpinner}></div>
+            <p className={styles.loadingText}>Loading assignments...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.container}>
+        <Navbar />
+        <div className={styles.content}>
+          <div className={styles.errorState}>
+            <div className={styles.errorIcon}>❌</div>
+            <h2 className={styles.errorTitle}>Error</h2>
+            <div className={styles.error}>{error}</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
       <Navbar />
       <div className={styles.content}>
-        <h1 className={styles.title}>Add Assignment Marks</h1>
-        
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.filters}>
-            <div className={styles.formGroup}>
-              <label htmlFor="class" className={styles.label}>Select Class:</label>
-              <select
-                id="class"
-                value={selectedClass}
-                onChange={(e) => setSelectedClass(e.target.value)}
-                className={styles.select}
-                required
-              >
-                <option value="">Select Class</option>
-                {classes.map((className, index) => (
-                  <option key={index} value={className}>
-                    {className}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="semester" className={styles.label}>Select Semester:</label>
-              <select
-                id="semester"
-                value={selectedSemester}
-                onChange={(e) => setSelectedSemester(e.target.value)}
-                className={styles.select}
-                required
-              >
-                <option value="">Select Semester</option>
-                {semesters.map((semesterItem) => (
-                  <option key={semesterItem} value={semesterItem}>
-                    {semesterItem}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="subject" className={styles.label}>Select Subject:</label>
-              <select
-                id="subject"
-                value={selectedSubject}
-                onChange={(e) => setSelectedSubject(e.target.value)}
-                className={styles.select}
-                required
-                disabled={!selectedSemester}
-              >
-                <option value="">
-                  {selectedSemester ? "Select Subject" : "Select semester first"}
-                </option>
-                {subjects.map((subject) => (
-                  <option key={subject} value={subject}>
-                    {subject}
-                  </option>
-                ))}
-              </select>
-            </div>
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h1 className={styles.sectionTitle}>Add Assignment Marks</h1>
+            <p className={styles.sectionSubtitle}>Enter and manage student assignment scores</p>
           </div>
 
-          {selectedClass && selectedSubject && (
-            <div className={styles.commonMarks}>
-              <label htmlFor="commonTotalMarks">Common Total Marks:</label>
-              <input
-                type="text"
-                id="commonTotalMarks"
-                value={commonTotalMarks}
-                onChange={handleCommonTotalMarksChange}
-                className={styles.input}
-                placeholder="Enter common total marks"
-                inputMode="numeric"
-                pattern="[0-9]*"
-              />
-            </div>
-          )}
+          <form onSubmit={handleSubmit} className={styles.assignmentForm}>
+            <div className={styles.filtersRow}>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Class</label>
+                <select
+                  key="class-select"
+                  value={selectedClass}
+                  onChange={(e) => setSelectedClass(e.target.value)}
+                  className={styles.select}
+                  required
+                >
+                  <option value="">Select Class</option>
+                  {classes.map((className, index) => (
+                    <option key={index} value={className}>
+                      {className}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          <div className={styles.assignmentDetails}>
-            <div className={styles.formGroup}>
-              <label htmlFor="assignmentTitle" className={styles.label}>Assignment Title:</label>
-              <input
-                type="text"
-                id="assignmentTitle"
-                value={assignmentTitle}
-                onChange={(e) => setAssignmentTitle(e.target.value)}
-                className={styles.input}
-                required
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="assignmentDescription" className={styles.label}>Assignment Description:</label>
-              <textarea
-                id="assignmentDescription"
-                value={assignmentDescription}
-                onChange={(e) => setAssignmentDescription(e.target.value)}
-                className={styles.textarea}
-                rows="4"
-              />
-            </div>
-          </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Semester</label>
+                <select
+                  key="semester-select"
+                  value={selectedSemester}
+                  onChange={(e) => setSelectedSemester(e.target.value)}
+                  className={styles.select}
+                  required
+                >
+                  <option value="">Select Semester</option>
+                  {semesters.map((semesterItem) => (
+                    <option key={semesterItem} value={semesterItem}>
+                      {semesterItem}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          {filteredStudents.length > 0 ? (
-            <div className={styles.marksContainer}>
-              <h2 className={styles.subtitle}>Enter Marks</h2>
-              <p className={styles.instruction}>Note: Only fill in marks for students who have submitted the assignment. Students who haven't submitted will automatically get 0 marks.</p>
-              {filteredStudents.map((student) => (
-                <div key={student.id} className={styles.studentMarks}>
-                  <h3 className={styles.studentName}>{student.name}</h3>
-                  <div className={styles.marksInputs}>
-                    <div className={styles.formGroup}>
-                      <label htmlFor={`${student.id}-obtained`} className={styles.label}>
-                        Obtained Marks:
-                      </label>
-                      <input
-                        type="text"
-                        id={`${student.id}-obtained`}
-                        value={marks[student.id]?.obtained || ""}
-                        onChange={handleMarksChange(student.id, "obtained")}
-                        className={styles.input}
-                        placeholder="Enter marks"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                      />
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label htmlFor={`${student.id}-total`} className={styles.label}>
-                        Total Marks:
-                      </label>
-                      <input
-                        type="text"
-                        id={`${student.id}-total`}
-                        value={marks[student.id]?.total || ""}
-                        onChange={handleMarksChange(student.id, "total")}
-                        className={styles.input}
-                        placeholder="Enter total marks"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                      />
-                    </div>
-                  </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Subject</label>
+                <select
+                  key="subject-select"
+                  value={selectedSubject}
+                  onChange={(e) => setSelectedSubject(e.target.value)}
+                  className={styles.select}
+                  required
+                  disabled={!selectedSemester}
+                >
+                  <option value="">
+                    {selectedSemester ? "Select Subject" : "Select semester first"}
+                  </option>
+                  {subjects.map((subject) => (
+                    <option key={subject} value={subject}>
+                      {subject}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Common Total Marks</label>
+                <input
+                  key="total-marks-input"
+                  type="text"
+                  value={commonTotalMarks}
+                  onChange={handleCommonTotalMarksChange}
+                  className={styles.input}
+                  placeholder="Enter total marks"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                />
+              </div>
+            </div>
+
+            {selectedClass && selectedSubject && (
+              <div className={styles.assignmentDetails}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Assignment Title</label>
+                  <input
+                    key="title-input"
+                    type="text"
+                    value={assignmentTitle}
+                    onChange={(e) => setAssignmentTitle(e.target.value)}
+                    className={styles.input}
+                    placeholder="Enter assignment title"
+                    required
+                  />
                 </div>
-              ))}
-            </div>
-          ) : (
-            selectedClass && selectedSubject && (
-              <p>No students found enrolled in {selectedSubject} for {selectedClass}</p>
-            )
-          )}
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Description</label>
+                  <textarea
+                    key="description-input"
+                    value={assignmentDescription}
+                    onChange={(e) => setAssignmentDescription(e.target.value)}
+                    className={styles.textarea}
+                    placeholder="Enter assignment description (optional)"
+                    rows="3"
+                  />
+                </div>
+              </div>
+            )}
 
-          {error && <p className={styles.error}>{error}</p>}
-          {success && <p className={styles.success}>Assignment marks added successfully!</p>}
+            {filteredStudents.length > 0 ? (
+              <div className={styles.studentsSection}>
+                <div className={styles.sectionHeader}>
+                  <h2 className={styles.sectionTitle}>Enter Marks</h2>
+                  <p className={styles.sectionSubtitle}>
+                    Only fill in marks for students who have submitted the assignment. Students who haven't submitted will automatically get 0 marks.
+                  </p>
+                </div>
 
-          {filteredStudents.length > 0 && (
-            <button type="submit" className={styles.submitButton}>
-              Add Assignment Marks
-            </button>
-          )}
-        </form>
+                <div className={styles.studentsGrid}>
+                  {filteredStudents.map((student) => (
+                    <div key={student.id} className={styles.studentCard}>
+                      <div className={styles.studentHeader}>
+                        <div className={styles.studentIcon}>👤</div>
+                        <h3 className={styles.studentName}>{student.name}</h3>
+                      </div>
+                      <div className={styles.marksInputs}>
+                        <div className={styles.formGroup}>
+                          <label className={styles.label}>Obtained Marks</label>
+                          <input
+                            key={`${student.id}-obtained`}
+                            type="text"
+                            value={marks[student.id]?.obtained || ""}
+                            onChange={handleMarksChange(student.id, "obtained")}
+                            className={styles.input}
+                            placeholder="Enter obtained marks"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                          />
+                        </div>
+                        <div className={styles.formGroup}>
+                          <label className={styles.label}>Total Marks</label>
+                          <input
+                            key={`${student.id}-total`}
+                            type="text"
+                            value={marks[student.id]?.total || ""}
+                            onChange={handleMarksChange(student.id, "total")}
+                            className={styles.input}
+                            placeholder="Enter total marks"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                          />
+                        </div>
+                        <div className={styles.percentageDisplay}>
+                          <span className={styles.percentageLabel}>Percentage</span>
+                          <span className={styles.percentageValue}>
+                            {marks[student.id]?.obtained && marks[student.id]?.total 
+                              ? `${calculatePercentage(marks[student.id].obtained, marks[student.id].total)}%`
+                              : "0%"
+                            }
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              selectedClass && selectedSubject && (
+                <div className={styles.emptyState}>
+                  <div className={styles.emptyIcon}>👥</div>
+                  <p className={styles.emptyText}>No students found enrolled in {selectedSubject} for {selectedClass}</p>
+                </div>
+              )
+            )}
+
+            {error && (
+              <div className={`${styles.message} ${styles.error}`}>
+                <span className={styles.messageIcon}>❌</span>
+                {error}
+              </div>
+            )}
+            
+            {success && (
+              <div className={`${styles.message} ${styles.success}`}>
+                <span className={styles.messageIcon}>✅</span>
+                Assignment marks added successfully!
+              </div>
+            )}
+
+            {filteredStudents.length > 0 && (
+              <div className={styles.submitSection}>
+                <button type="submit" className={styles.submitButton}>
+                  <span className={styles.buttonIcon}>💾</span>
+                  Add Assignment Marks
+                </button>
+              </div>
+            )}
+          </form>
+        </div>
       </div>
     </div>
   );

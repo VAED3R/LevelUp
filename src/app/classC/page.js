@@ -79,20 +79,6 @@ export default function ClassC() {
             icon: "📚",
             href: `/addNotes?class=${selectedClass?.name || ''}`,
             color: "secondary"
-        },
-        {
-            title: "Attendance",
-            description: "Track student attendance",
-            icon: "📊",
-            href: "/teacherAttendance",
-            color: "success"
-        },
-        {
-            title: "View Results",
-            description: "Check assessment results",
-            icon: "📈",
-            href: "/viewresults",
-            color: "warning"
         }
     ];
 

@@ -1,166 +1,262 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* Base Styles */
 .container {
     min-height: 100vh;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: 'Inter', sans-serif;
+    color: #ffffff;
+    position: relative;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+.container::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    z-index: -1;
 }
 
 .content {
-    padding: 2rem;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
+    padding: 40px 30px;
+    position: relative;
+    z-index: 1;
+    margin-top: 60px;
+    box-sizing: border-box;
 }
 
-.header {
-    text-align: center;
-    margin-bottom: 3rem;
+/* Section Styles */
+.section {
+    margin-bottom: 40px;
 }
 
-.title {
-    font-size: 2.5rem;
-    color: #333;
-    margin-bottom: 0.5rem;
+.sectionHeader {
+    margin-bottom: 30px;
 }
 
-.subtitle {
+.sectionTitle {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+
+.sectionSubtitle {
     font-size: 1.1rem;
-    color: #666;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 400;
 }
 
-.studentsSection {
-    background: white;
-    padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+/* Container-specific heading styles */
+.mappingForm .sectionTitle {
+    color: #1f2937;
 }
 
-.studentsSection h2 {
-    color: #333;
-    margin-bottom: 1.5rem;
+.mappingForm .sectionSubtitle {
+    color: #6b7280;
 }
 
-.filters {
-    display: flex;
-    gap: 2rem;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
+/* Mapping Form */
+.mappingForm {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    margin-bottom: 32px;
+}
+
+.filtersRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
 }
 
 .filterGroup {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 8px;
 }
 
-.filterGroup label {
+.label {
+    font-size: 0.9rem;
     font-weight: 600;
-    color: #333;
+    color: #1f2937;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .select {
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 5px;
+    padding: 12px 16px;
+    border: 2px solid rgba(102, 126, 234, 0.2);
+    border-radius: 12px;
     font-size: 1rem;
-    min-width: 200px;
+    background: rgba(255, 255, 255, 0.8);
+    color: #1f2937;
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
 }
 
 .select:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    background: rgba(255, 255, 255, 0.95);
 }
 
-.studentsList h3 {
-    color: #333;
-    margin-bottom: 1rem;
+.select option {
+    background: #ffffff;
+    color: #1f2937;
 }
 
-.loading {
+/* Loading State */
+.loadingState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
     text-align: center;
-    color: #666;
-    font-style: italic;
 }
 
-.noStudents {
+.loadingSpinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(102, 126, 234, 0.2);
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loadingText {
+    color: #6b7280;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* Empty State */
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
     text-align: center;
-    color: #666;
-    font-style: italic;
 }
 
-.dataframe {
-    border: 1px solid #ddd;
-    border-radius: 8px;
+.emptyIcon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.emptyText {
+    color: #6b7280;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* Data Table */
+.dataTable {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 16px;
     overflow: hidden;
-    background: white;
-    overflow-x: auto;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
-.headerRow {
-    display: table;
-    width: 100%;
-    background-color: #f8f9fa;
-    border-bottom: 2px solid #dee2e6;
+.tableHeader {
+    display: grid;
+    grid-template-columns: 250px repeat(auto-fit, minmax(150px, 1fr));
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
     font-weight: 600;
-    color: #333;
-    table-layout: fixed;
 }
 
 .headerCell {
-    display: table-cell;
-    padding: 1rem;
-    text-align: center;
-    border-right: 1px solid #dee2e6;
-    background-color: #e9ecef;
-    font-weight: 700;
-    vertical-align: middle;
-    min-width: 150px;
-    word-wrap: break-word;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .headerCell:first-child {
-    text-align: left;
-    min-width: 200px;
+    justify-content: flex-start;
 }
 
 .headerCell:last-child {
     border-right: none;
 }
 
-.dataRow {
-    display: table;
-    width: 100%;
-    border-bottom: 1px solid #dee2e6;
-    transition: background-color 0.2s;
-    table-layout: fixed;
+.courseTypeIcon {
+    font-size: 1rem;
 }
 
-.dataRow:hover {
-    background-color: #f8f9fa;
+.tableBody {
+    max-height: 500px;
+    overflow-y: auto;
 }
 
-.dataRow:last-child {
+.tableRow {
+    display: grid;
+    grid-template-columns: 250px repeat(auto-fit, minmax(150px, 1fr));
+    border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+    transition: all 0.3s ease;
+}
+
+.tableRow:hover {
+    background: rgba(102, 126, 234, 0.05);
+}
+
+.tableRow:last-child {
     border-bottom: none;
 }
 
 .nameCell {
-    display: table-cell;
-    padding: 1rem;
-    text-align: left;
-    border-right: 1px solid #dee2e6;
-    color: #333;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(102, 126, 234, 0.05);
     font-weight: 500;
-    background-color: #f8f9fa;
-    vertical-align: middle;
-    min-width: 200px;
-    word-wrap: break-word;
+    color: #1f2937;
+    border-right: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.studentIcon {
+    font-size: 1.1rem;
+    opacity: 0.7;
 }
 
 .dropdownCell {
-    display: table-cell;
-    padding: 1rem;
-    text-align: center;
-    border-right: 1px solid #dee2e6;
-    vertical-align: middle;
-    min-width: 150px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid rgba(102, 126, 234, 0.1);
 }
 
 .dropdownCell:last-child {
@@ -168,138 +264,175 @@
 }
 
 .courseSelect {
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    padding: 8px 12px;
+    border: 2px solid rgba(102, 126, 234, 0.2);
+    border-radius: 8px;
     font-size: 0.9rem;
-    background-color: white;
+    background: rgba(255, 255, 255, 0.9);
+    color: #1f2937;
     cursor: pointer;
+    transition: all 0.3s ease;
     min-width: 120px;
-    text-align: center;
-    color: #000;
-    width: 100%;
-    max-width: 140px;
+    font-family: 'Inter', sans-serif;
 }
 
 .courseSelect:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-    color: #000;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+    background: rgba(255, 255, 255, 1);
 }
 
 .courseSelect:hover {
-    border-color: #007bff;
-    color: #000;
+    border-color: #667eea;
+    background: rgba(255, 255, 255, 1);
 }
 
 .courseSelect option {
-    color: #000;
-    background-color: white;
+    background: #ffffff;
+    color: #1f2937;
 }
 
-@media (max-width: 768px) {
-    .filters {
-        flex-direction: column;
-        gap: 1rem;
-    }
-    
-    .select {
-        min-width: 100%;
-    }
-    
-    .headerRow {
-        display: none;
-    }
-    
-    .dataRow {
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        margin-bottom: 0.5rem;
-        padding: 1rem;
-        background: white;
-        display: block;
-    }
-    
-    .nameCell {
-        display: block;
-        border: none;
-        border-bottom: 2px solid #dee2e6;
-        background: none;
-        font-weight: 600;
-        color: #333;
-        min-width: auto;
-    }
-    
-    .dropdownCell {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border: none;
-        border-bottom: 1px solid #eee;
-        padding: 0.5rem 0;
-        text-align: left;
-        min-width: auto;
-    }
-    
-    .dropdownCell:last-child {
-        border-bottom: none;
-    }
-    
-    .dropdownCell::before {
-        content: attr(data-label);
-        font-weight: 600;
-        color: #333;
-        margin-right: 1rem;
-    }
-    
-    .courseSelect {
-        min-width: 100px;
-        font-size: 0.8rem;
-    }
-}
-
+/* Submit Section */
 .submitSection {
-    margin-top: 2rem;
-    text-align: center;
+    margin-top: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
 }
 
 .submitButton {
-    background-color: #28a745;
-    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
     border: none;
-    padding: 12px 24px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1rem;
+    border-radius: 12px;
     font-weight: 600;
-    transition: background-color 0.3s;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .submitButton:hover:not(:disabled) {
-    background-color: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
 
 .submitButton:disabled {
-    background-color: #6c757d;
+    background: rgba(156, 163, 175, 0.3);
+    color: #6b7280;
     cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
 }
 
+.buttonIcon {
+    font-size: 1.1rem;
+}
+
+/* Messages */
 .message {
-    margin-top: 1rem;
-    padding: 1rem;
-    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 24px;
+    border-radius: 12px;
     font-weight: 500;
+    font-size: 0.95rem;
+    max-width: 500px;
+    text-align: center;
 }
 
 .success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.messageIcon {
+    font-size: 1.1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .tableHeader,
+    .tableRow {
+        grid-template-columns: 200px repeat(auto-fit, minmax(120px, 1fr));
+    }
+    
+    .nameCell {
+        grid-column: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .content {
+        padding: 20px 15px;
+    }
+
+    .sectionTitle {
+        font-size: 1.5rem;
+    }
+
+    .filtersRow {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .mappingForm {
+        padding: 24px;
+    }
+
+    .tableHeader,
+    .tableRow {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .headerCell,
+    .nameCell,
+    .dropdownCell {
+        border-right: none;
+        border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+        justify-content: flex-start;
+    }
+
+    .headerCell:last-child,
+    .nameCell:last-child,
+    .dropdownCell:last-child {
+        border-bottom: none;
+    }
+
+    .courseSelect {
+        width: 100%;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .content {
+        padding: 15px 10px;
+    }
+
+    .mappingForm {
+        padding: 20px;
+    }
+
+    .submitButton {
+        width: 100%;
+        padding: 14px 24px;
+    }
 }
