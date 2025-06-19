@@ -241,205 +241,254 @@ export default function TeacherQuiz() {
         setLoading(false);
     };
 
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>{error}</div>;
+
     return (
         <div className={styles.container}>
             <Navbar />
             <div className={styles.content}>
-                <h1 className={styles.title}>Create Quiz</h1>
-
-                <div className={styles.form}>
-                    <div className={styles.formGroup}>
-                        <label>Semester:</label>
-                        <select
-                            value={semester}
-                            onChange={(e) => setSemester(e.target.value)}
-                            className={styles.select}
-                            required
-                        >
-                            <option value="">Select Semester</option>
-                            {semesters.map((semesterItem) => (
-                                <option key={semesterItem} value={semesterItem}>
-                                    {semesterItem}
-                                </option>
-                            ))}
-                        </select>
+                <div className={styles.section}>
+                    <div className={styles.sectionHeader}>
+                        <h1 className={styles.sectionTitle}>Create Quiz</h1>
+                        <p className={styles.sectionSubtitle}>Generate or manually create quizzes for your students</p>
                     </div>
 
-                    <div className={styles.formGroup}>
-                        <label>Subject:</label>
-                        <select
-                            value={subject}
-                            onChange={(e) => setSubject(e.target.value)}
-                            className={styles.select}
-                            required
-                            disabled={!semester}
-                        >
-                            <option value="">
-                                {semester ? "Select Subject" : "Select semester first"}
-                            </option>
-                            {subjects.map((subjectName) => (
-                                <option key={subjectName} value={subjectName}>
-                                    {subjectName}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label>Topic:</label>
-                        <input
-                            type="text"
-                            value={topic}
-                            onChange={(e) => setTopic(e.target.value)}
-                            placeholder="Enter topic"
-                            className={styles.input}
-                        />
-                    </div>
-
-                    <div className={styles.modeToggle}>
-                        <button
-                            className={`${styles.modeButton} ${!isManualMode ? styles.active : ''}`}
-                            onClick={() => setIsManualMode(false)}
-                        >
-                            AI Generation
-                        </button>
-                        <button
-                            className={`${styles.modeButton} ${isManualMode ? styles.active : ''}`}
-                            onClick={() => setIsManualMode(true)}
-                        >
-                            Manual Creation
-                        </button>
-                    </div>
-
-                    {!isManualMode ? (
-                        <>
+                    <div className={styles.quizForm}>
+                        <div className={styles.formRow}>
                             <div className={styles.formGroup}>
-                                <label>Number of Questions:</label>
-                                <input
-                                    type="number"
-                                    value={numQuestions}
-                                    onChange={(e) => setNumQuestions(parseInt(e.target.value))}
-                                    min="1"
-                                    max="10"
-                                    className={styles.input}
-                                />
+                                <label className={styles.label}>Semester</label>
+                                <select
+                                    key="semester-select"
+                                    value={semester}
+                                    onChange={(e) => setSemester(e.target.value)}
+                                    className={styles.select}
+                                    required
+                                >
+                                    <option value="">Select Semester</option>
+                                    {semesters.map((semesterItem) => (
+                                        <option key={semesterItem} value={semesterItem}>
+                                            {semesterItem}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
 
-                            <div className={styles.buttonGroup}>
+                            <div className={styles.formGroup}>
+                                <label className={styles.label}>Subject</label>
+                                <select
+                                    key="subject-select"
+                                    value={subject}
+                                    onChange={(e) => setSubject(e.target.value)}
+                                    className={styles.select}
+                                    required
+                                    disabled={!semester}
+                                >
+                                    <option value="">
+                                        {semester ? "Select Subject" : "Select semester first"}
+                                    </option>
+                                    {subjects.map((subjectName) => (
+                                        <option key={subjectName} value={subjectName}>
+                                            {subjectName}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>Topic</label>
+                            <input
+                                key="topic-input"
+                                type="text"
+                                value={topic}
+                                onChange={(e) => setTopic(e.target.value)}
+                                placeholder="Enter topic for the quiz"
+                                className={styles.input}
+                            />
+                        </div>
+
+                        <div className={styles.modeToggle}>
+                            <button
+                                key="ai-mode-button"
+                                className={`${styles.modeButton} ${!isManualMode ? styles.active : ''}`}
+                                onClick={() => setIsManualMode(false)}
+                            >
+                                <span className={styles.modeIcon}>🤖</span>
+                                AI Generation
+                            </button>
+                            <button
+                                key="manual-mode-button"
+                                className={`${styles.modeButton} ${isManualMode ? styles.active : ''}`}
+                                onClick={() => setIsManualMode(true)}
+                            >
+                                <span className={styles.modeIcon}>✏️</span>
+                                Manual Creation
+                            </button>
+                        </div>
+
+                        {!isManualMode ? (
+                            <div className={styles.aiSection}>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>Number of Questions</label>
+                                    <input
+                                        key="num-questions-input"
+                                        type="number"
+                                        value={numQuestions}
+                                        onChange={(e) => setNumQuestions(parseInt(e.target.value))}
+                                        min="1"
+                                        max="10"
+                                        className={styles.input}
+                                    />
+                                </div>
+
                                 <button
+                                    key="generate-button"
                                     onClick={generateQuestions}
                                     className={styles.generateButton}
                                     disabled={loading}
                                 >
-                                    {loading ? "Generating..." : "Generate Quiz"}
+                                    {loading ? (
+                                        <>
+                                            <span className={styles.buttonIcon}>⏳</span>
+                                            Generating...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span className={styles.buttonIcon}>✨</span>
+                                            Generate Quiz
+                                        </>
+                                    )}
                                 </button>
                             </div>
-                        </>
-                    ) : (
-                        <div className={styles.manualQuestionForm}>
-                            <div className={styles.formGroup}>
-                                <label>Question:</label>
-                                <input
-                                    type="text"
-                                    value={currentQuestion.question}
-                                    onChange={(e) => setCurrentQuestion({
-                                        ...currentQuestion,
-                                        question: e.target.value
-                                    })}
-                                    placeholder="Enter your question"
-                                    className={styles.input}
-                                />
-                            </div>
+                        ) : (
+                            <div className={styles.manualSection}>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>Question</label>
+                                    <input
+                                        key="current-question-input"
+                                        type="text"
+                                        value={currentQuestion.question}
+                                        onChange={(e) => setCurrentQuestion({
+                                            ...currentQuestion,
+                                            question: e.target.value
+                                        })}
+                                        placeholder="Enter your question"
+                                        className={styles.input}
+                                    />
+                                </div>
 
-                            <div className={styles.formGroup}>
-                                <label>Options:</label>
-                                {currentQuestion.options.map((option, index) => (
-                                    <div key={index} className={styles.optionInput}>
-                                        <input
-                                            type="text"
-                                            value={option}
-                                            onChange={(e) => handleOptionChange(index, e.target.value)}
-                                            placeholder={`Option ${index + 1}`}
-                                            className={styles.input}
-                                        />
-                                        <label className={styles.radioLabel}>
-                                            <input
-                                                type="radio"
-                                                name="correctAnswer"
-                                                checked={currentQuestion.correctAnswer === index}
-                                                onChange={() => setCurrentQuestion({
-                                                    ...currentQuestion,
-                                                    correctAnswer: index
-                                                })}
-                                            />
-                                            Correct
-                                        </label>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <button
-                                onClick={handleAddQuestion}
-                                className={styles.addButton}
-                            >
-                                Add Question
-                            </button>
-                        </div>
-                    )}
-
-                    {error && <div className={styles.error}>{error}</div>}
-
-                    {questions.length > 0 && (
-                        <button
-                            onClick={handleSaveQuiz}
-                            className={styles.saveButton}
-                            disabled={loading}
-                        >
-                            {loading ? "Saving..." : "Save Quiz"}
-                        </button>
-                    )}
-                </div>
-
-                {questions.length > 0 && (
-                    <div className={styles.questionsContainer}>
-                        <h2 className={styles.questionsTitle}>Questions</h2>
-                        <div className={styles.questionsGrid}>
-                            {questions.map((q, index) => (
-                                <div key={index} className={styles.questionCard}>
-                                    <div className={styles.questionHeader}>
-                                        <div className={styles.questionNumber}>Question {index + 1}</div>
-                                        {isManualMode && (
-                                            <button
-                                                onClick={() => handleRemoveQuestion(index)}
-                                                className={styles.removeButton}
-                                            >
-                                                Remove
-                                            </button>
-                                        )}
-                                    </div>
-                                    <p className={styles.questionText}>{q.question}</p>
-                                    <div className={styles.options}>
-                                        {q.options.map((option, optIndex) => (
-                                            <div
-                                                key={optIndex}
-                                                className={`${styles.option} ${
-                                                    optIndex === q.correctAnswer
-                                                        ? styles.correct
-                                                        : ""
-                                                }`}
-                                            >
-                                                <span className={styles.optionLabel}>
-                                                    {String.fromCharCode(65 + optIndex)}.
-                                                </span>
-                                                {option}
+                                <div className={styles.optionsSection}>
+                                    <label className={styles.label}>Options</label>
+                                    <div className={styles.optionsGrid}>
+                                        {currentQuestion.options.map((option, index) => (
+                                            <div key={`option-${index}`} className={styles.optionInput}>
+                                                <input
+                                                    key={`option-input-${index}`}
+                                                    type="text"
+                                                    value={option}
+                                                    onChange={(e) => handleOptionChange(index, e.target.value)}
+                                                    placeholder={`Option ${index + 1}`}
+                                                    className={styles.input}
+                                                />
+                                                <label className={styles.radioLabel}>
+                                                    <input
+                                                        key={`radio-${index}`}
+                                                        type="radio"
+                                                        name="correctAnswer"
+                                                        checked={currentQuestion.correctAnswer === index}
+                                                        onChange={() => setCurrentQuestion({
+                                                            ...currentQuestion,
+                                                            correctAnswer: index
+                                                        })}
+                                                    />
+                                                    <span className={styles.radioText}>Correct</span>
+                                                </label>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
-                            ))}
-                        </div>
+
+                                <button
+                                    key="add-question-button"
+                                    onClick={handleAddQuestion}
+                                    className={styles.addButton}
+                                >
+                                    <span className={styles.buttonIcon}>➕</span>
+                                    Add Question
+                                </button>
+                            </div>
+                        )}
+
+                        {error && <div className={styles.error}>{error}</div>}
+
+                        {questions.length > 0 && (
+                            <button
+                                key="save-quiz-button"
+                                onClick={handleSaveQuiz}
+                                className={styles.saveButton}
+                                disabled={loading}
+                            >
+                                {loading ? (
+                                    <>
+                                        <span className={styles.buttonIcon}>💾</span>
+                                        Saving...
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className={styles.buttonIcon}>💾</span>
+                                        Save Quiz
+                                    </>
+                                )}
+                            </button>
+                        )}
                     </div>
-                )}
+
+                    {questions.length > 0 && (
+                        <div className={styles.questionsSection}>
+                            <div className={styles.sectionHeader}>
+                                <h2 className={styles.sectionTitle}>Generated Questions</h2>
+                                <p className={styles.sectionSubtitle}>{questions.length} questions ready</p>
+                            </div>
+                            
+                            <div className={styles.questionsGrid}>
+                                {questions.map((q, index) => (
+                                    <div key={index} className={styles.questionCard}>
+                                        <div className={styles.questionHeader}>
+                                            <div className={styles.questionNumber}>Question {index + 1}</div>
+                                            {isManualMode && (
+                                                <button
+                                                    onClick={() => handleRemoveQuestion(index)}
+                                                    className={styles.removeButton}
+                                                >
+                                                    <span className={styles.removeIcon}>🗑️</span>
+                                                </button>
+                                            )}
+                                        </div>
+                                        <p className={styles.questionText}>{q.question}</p>
+                                        <div className={styles.options}>
+                                            {q.options.map((option, optIndex) => (
+                                                <div
+                                                    key={optIndex}
+                                                    className={`${styles.option} ${
+                                                        optIndex === q.correctAnswer
+                                                            ? styles.correct
+                                                            : ""
+                                                    }`}
+                                                >
+                                                    <span className={styles.optionLabel}>
+                                                        {String.fromCharCode(65 + optIndex)}.
+                                                    </span>
+                                                    {option}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

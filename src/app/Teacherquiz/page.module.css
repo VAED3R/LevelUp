@@ -1,455 +1,477 @@
-/* Container Styling */
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* Base Styles */
 .container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
-  font-family: 'Poppins', sans-serif;
-  color: #ffffff;
-  padding-top: 100px;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: 'Inter', sans-serif;
+    color: #ffffff;
+    position: relative;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+.container::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    z-index: -1;
 }
 
 .content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 30px;
-  background-color: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 30px;
+    position: relative;
+    z-index: 1;
+    margin-top: 60px;
+    box-sizing: border-box;
 }
 
-.title {
-  color: #ffffff;
-  text-align: center;
-  margin-bottom: 2.5rem;
-  font-size: 2.2rem;
-  font-weight: 600;
-  letter-spacing: -0.5px;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  position: relative;
-  padding-bottom: 15px;
+/* Section Styles */
+.section {
+    margin-bottom: 40px;
 }
 
-.title::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100px;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, #5a35ab, transparent);
+.sectionHeader {
+    margin-bottom: 30px;
 }
 
-.form {
-  background-color: rgba(255, 255, 255, 0.08);
-  padding: 2rem;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  margin-bottom: 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+.sectionTitle {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
 }
 
-.form:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+.sectionSubtitle {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 400;
+}
+
+/* Quiz Form */
+.quizForm {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    margin-bottom: 32px;
+}
+
+.formRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
 }
 
 .formGroup {
-  margin-bottom: 1.5rem;
+    margin-bottom: 24px;
 }
 
-.formGroup label {
-  display: block;
-  margin-bottom: 0.75rem;
-  color: #ffffff;
-  font-weight: 500;
-  font-size: 1.05rem;
-  letter-spacing: 0.5px;
+.label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .select,
 .input {
-  width: 100%;
-  padding: 0.9rem 1rem;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  font-size: 1rem;
-  background-color: rgba(255, 255, 255, 0.05);
-  color: #ffffff;
-  transition: all 0.3s ease;
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid rgba(102, 126, 234, 0.2);
+    border-radius: 12px;
+    font-size: 1rem;
+    background: rgba(255, 255, 255, 0.8);
+    color: #1f2937;
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
 }
 
 .select:focus,
 .input:focus {
-  outline: none;
-  border-color: #5a35ab;
-  box-shadow: 0 0 0 3px rgba(90, 53, 171, 0.2);
-  background-color: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    background: rgba(255, 255, 255, 0.95);
+}
+
+.select:disabled {
+    background: rgba(156, 163, 175, 0.1);
+    color: #6b7280;
+    cursor: not-allowed;
 }
 
 .select option {
-  background-color: #181e39;
-  color: #ffffff;
+    background: #ffffff;
+    color: #1f2937;
 }
 
-/* Add placeholder color styling */
 .input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+    color: #9ca3af;
 }
 
-.buttonGroup {
-  display: flex;
-  gap: 1.5rem;
-  margin-top: 2.5rem;
+/* Mode Toggle */
+.modeToggle {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    background: rgba(102, 126, 234, 0.1);
+    padding: 8px;
+    border-radius: 12px;
 }
 
+.modeButton {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #6b7280;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.modeButton.active {
+    background: #667eea;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.modeButton:hover:not(.active) {
+    background: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+}
+
+.modeIcon {
+    font-size: 1.1rem;
+}
+
+/* AI Section */
+.aiSection {
+    background: rgba(102, 126, 234, 0.05);
+    padding: 24px;
+    border-radius: 12px;
+    border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+/* Manual Section */
+.manualSection {
+    background: rgba(16, 185, 129, 0.05);
+    padding: 24px;
+    border-radius: 12px;
+    border: 1px solid rgba(16, 185, 129, 0.1);
+}
+
+.optionsSection {
+    margin-bottom: 24px;
+}
+
+.optionsGrid {
+    display: grid;
+    gap: 16px;
+}
+
+.optionInput {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.optionInput .input {
+    flex: 1;
+}
+
+.radioLabel {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 8px 12px;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.radioLabel:hover {
+    background: rgba(102, 126, 234, 0.15);
+}
+
+.radioLabel input[type="radio"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #667eea;
+}
+
+.radioText {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #1f2937;
+}
+
+/* Buttons */
 .generateButton,
-.saveButton {
-  flex: 1;
-  padding: 0.9rem 1.5rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  position: relative;
-  overflow: hidden;
+.saveButton,
+.addButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
 }
 
 .generateButton {
-  background: linear-gradient(135deg, #5a35ab, #3a1f7a);
-  color: white;
-  box-shadow: 0 4px 15px rgba(90, 53, 171, 0.4);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .generateButton:hover:not(:disabled) {
-  background: linear-gradient(135deg, #6a45bb, #4a2f8a);
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(90, 53, 171, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
 
 .saveButton {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
 }
 
 .saveButton:hover:not(:disabled) {
-  background: linear-gradient(135deg, #20c991, #15a679);
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+.addButton {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+}
+
+.addButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
 }
 
 .generateButton:disabled,
 .saveButton:disabled {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.5);
-  cursor: not-allowed;
-  box-shadow: none;
+    background: rgba(156, 163, 175, 0.3);
+    color: #6b7280;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
 }
 
+.buttonIcon {
+    font-size: 1.1rem;
+}
+
+/* Error */
 .error {
-  color: #ef4444;
-  background-color: rgba(239, 68, 68, 0.1);
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-  border-left: 4px solid #ef4444;
-  font-weight: 500;
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    margin-bottom: 24px;
+    font-weight: 500;
 }
 
-.questionsContainer {
-  background-color: rgba(255, 255, 255, 0.08);
-  padding: 2rem;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  margin-top: 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-.questionsTitle {
-  color: #ffffff;
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+/* Questions Section */
+.questionsSection {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
 }
 
 .questionsGrid {
-  display: grid;
-  gap: 1.5rem;
+    display: grid;
+    gap: 24px;
 }
 
 .questionCard {
-  background-color: rgba(255, 255, 255, 0.05);
-  padding: 1.5rem;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    border-radius: 16px;
+    padding: 24px;
+    transition: all 0.3s ease;
 }
 
 .questionCard:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-  border-color: rgba(90, 53, 171, 0.3);
-}
-
-.questionNumber {
-  display: inline-block;
-  background: linear-gradient(135deg, #5a35ab, #3a1f7a);
-  color: white;
-  font-weight: 600;
-  padding: 0.4rem 0.8rem;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-  box-shadow: 0 2px 8px rgba(90, 53, 171, 0.3);
-}
-
-.questionText {
-  color: #ffffff;
-  font-size: 1.1rem;
-  margin-bottom: 1.25rem;
-  line-height: 1.5;
-}
-
-.options {
-  display: grid;
-  gap: 0.75rem;
-}
-
-.option {
-  background-color: rgba(255, 255, 255, 0.05);
-  padding: 0.9rem 1rem;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-}
-
-.option:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  transform: translateX(5px);
-}
-
-.option.correct {
-  background-color: rgba(16, 185, 129, 0.2);
-  border-color: rgba(16, 185, 129, 0.5);
-}
-
-.optionLabel {
-  color: #ffffff;
-  font-size: 1rem;
-  margin-left: 0.75rem;
-}
-
-.option.correct .optionLabel {
-  color: #10b981;
-  font-weight: 500;
-}
-
-.cardGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2rem;
-}
-
-.card {
-  background-color: rgba(255, 255, 255, 0.08);
-  padding: 1.5rem;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  transition: all 0.3s ease;
-  text-decoration: none;
-  color: inherit;
-  cursor: pointer;
-}
-
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
-  border-color: rgba(90, 53, 171, 0.3);
-}
-
-.card h2 {
-  color: #ffffff;
-  font-size: 1.4rem;
-  margin-bottom: 1rem;
-  font-weight: 600;
-  letter-spacing: -0.3px;
-}
-
-.button {
-  display: inline-block;
-  background: linear-gradient(135deg, #5a35ab, #3a1f7a);
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  border: none;
-  cursor: pointer;
-  text-align: center;
-  box-shadow: 0 4px 15px rgba(90, 53, 171, 0.4);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-size: 0.9rem;
-}
-
-.button:hover {
-  background: linear-gradient(135deg, #6a45bb, #4a2f8a);
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(90, 53, 171, 0.5);
-}
-
-.button:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 10px rgba(90, 53, 171, 0.4);
-}
-
-.modeToggle {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 2rem;
-  gap: 1rem;
-}
-
-.modeButton {
-  padding: 0.75rem 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background-color: rgba(255, 255, 255, 0.05);
-  color: #ffffff;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 500;
-}
-
-.modeButton.active {
-  background: linear-gradient(135deg, #5a35ab, #3a1f7a);
-  border-color: transparent;
-  box-shadow: 0 4px 15px rgba(90, 53, 171, 0.4);
-}
-
-.manualQuestionForm {
-  background-color: rgba(255, 255, 255, 0.08);
-  padding: 2rem;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  margin-bottom: 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-.optionInput {
-  margin-bottom: 1rem;
-  position: relative;
-}
-
-.optionInput .input {
-  padding-right: 2.5rem;
-}
-
-.radioLabel {
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #ffffff;
-  font-size: 0.9rem;
-}
-
-.radioLabel input[type="radio"] {
-  accent-color: #5a35ab;
-}
-
-.addButton {
-  background: linear-gradient(135deg, #5a35ab, #3a1f7a);
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 1rem;
-  width: 100%;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  box-shadow: 0 4px 15px rgba(90, 53, 171, 0.4);
-}
-
-.addButton:hover {
-  background: linear-gradient(135deg, #6a45bb, #4a2f8a);
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(90, 53, 171, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
 .questionHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.questionNumber {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
 }
 
 .removeButton {
-  background-color: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
-  border: none;
-  border-radius: 6px;
-  padding: 0.5rem 0.75rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.9rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: #dc2626;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .removeButton:hover {
-  background-color: rgba(239, 68, 68, 0.3);
-  transform: translateY(-2px);
+    background: rgba(239, 68, 68, 0.2);
+    transform: translateY(-1px);
 }
 
+.removeIcon {
+    font-size: 0.9rem;
+}
+
+.questionText {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #1f2937;
+    margin-bottom: 16px;
+    line-height: 1.5;
+}
+
+.options {
+    display: grid;
+    gap: 8px;
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(102, 126, 234, 0.05);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.option:hover {
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.option.correct {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.optionLabel {
+    background: #667eea;
+    color: #ffffff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.option.correct .optionLabel {
+    background: #10b981;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-  .container {
-    padding: 1rem;
-    padding-top: 80px;
-  }
-  
-  .content {
-    padding: 1.5rem;
-  }
-  
-  .buttonGroup {
-    flex-direction: column;
-  }
-  
-  .generateButton,
-  .saveButton {
-    width: 100%;
-  }
-  
-  .title {
-    font-size: 1.8rem;
-  }
-  
-  .cardGrid {
-    grid-template-columns: 1fr;
-  }
+    .content {
+        padding: 20px 15px;
+    }
+
+    .sectionTitle {
+        font-size: 1.5rem;
+    }
+
+    .formRow {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .quizForm,
+    .questionsSection {
+        padding: 24px;
+    }
+
+    .modeToggle {
+        flex-direction: column;
+    }
+
+    .optionInput {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .radioLabel {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .content {
+        padding: 15px 10px;
+    }
+
+    .quizForm,
+    .questionsSection {
+        padding: 20px;
+    }
+
+    .questionCard {
+        padding: 20px;
+    }
+
+    .questionHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
 }

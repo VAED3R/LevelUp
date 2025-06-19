@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import styles from "./navbar.module.css";
+import TeacherChatbot from "./TeacherChatbot";
 
 export default function Navbar() {
   const router = useRouter();
@@ -21,35 +22,38 @@ export default function Navbar() {
   };
 
   return (
-    <nav className={styles.nav}>
-      <div className={styles.logoContainer}>
-        <div className={styles.logo}>Teacher</div>
-      </div>
+    <>
+      <nav className={styles.nav}>
+        <div className={styles.logoContainer}>
+          <div className={styles.logo}>Teacher</div>
+        </div>
 
-      <div className={styles.navContent}>
-        <ul className={styles.navList}>
-          <li className={styles.navItem}>
-            <Link href="/teacherDashboard" className={styles.navLink}>Dashboard</Link>
-          </li>
-          <li className={styles.navItem}>
-            <Link href="/teacherAttendance" className={styles.navLink}>Attendance</Link>
-          </li>
-          <li className={styles.navItem}>
-            <Link href="/classC" className={styles.navLink}>Class Communities</Link>
-          </li>
-          <li className={styles.navItem}>
-            <Link href="/TeacherChat"className={styles.navLink}>Assistant</Link>
-          </li>
-        </ul>
-      </div>
-      <div className={styles.buttonContainer}>
-        {/* Logout button */}
-        {user && (
-          <button onClick={handleLogout} className={styles.logoutButton}>
-            Logout
-          </button>
-        )}
-      </div>
-    </nav>
+        <div className={styles.navContent}>
+          <ul className={styles.navList}>
+            <li className={styles.navItem}>
+              <Link href="/teacherDashboard" className={styles.navLink}>Dashboard</Link>
+            </li>
+            <li className={styles.navItem}>
+              <Link href="/teacherAttendance" className={styles.navLink}>Attendance</Link>
+            </li>
+            <li className={styles.navItem}>
+              <Link href="/classC" className={styles.navLink}>Class Communities</Link>
+            </li>
+            <li className={styles.navItem}>
+              <Link href="/TeacherChat"className={styles.navLink}>Assistant</Link>
+            </li>
+          </ul>
+        </div>
+        <div className={styles.buttonContainer}>
+          {/* Logout button */}
+          {user && (
+            <button onClick={handleLogout} className={styles.logoutButton}>
+              Logout
+            </button>
+          )}
+        </div>
+      </nav>
+      <TeacherChatbot />
+    </>
   );
 }
