@@ -93,7 +93,11 @@ export default function ParentDashboard() {
       <div className={styles.container}>
         <Navbar />
         <div className={styles.content}>
-          <div className={styles.error}>Please log in to view the dashboard.</div>
+          <div className={styles.errorCard}>
+            <div className={styles.errorIcon}>⚠️</div>
+            <h3>Authentication Required</h3>
+            <p>Please log in to view the dashboard.</p>
+          </div>
         </div>
       </div>
     );
@@ -103,22 +107,74 @@ export default function ParentDashboard() {
     <div className={styles.container}>
       <Navbar />
       <div className={styles.content}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>Welcome, {parentName}</h1>
-          <p className={styles.subtitle}>Parent Dashboard</p>
+        {/* Welcome Section */}
+        <div className={styles.welcomeSection}>
+          <div className={styles.welcomeCard}>
+            <div className={styles.welcomeIcon}>👋</div>
+            <div className={styles.welcomeContent}>
+              <h1 className={styles.welcomeTitle}>Welcome back, {parentName}</h1>
+              <p className={styles.welcomeSubtitle}>Monitor your child's academic progress</p>
+            </div>
+          </div>
         </div>
 
         {loading ? (
-          <div className={styles.loading}>Loading data...</div>
+          <div className={styles.loadingSection}>
+            <div className={styles.loadingCard}>
+              <div className={styles.loadingSpinner}></div>
+              <h3>Loading your dashboard...</h3>
+              <p>Please wait while we fetch your child's information</p>
+            </div>
+          </div>
         ) : error ? (
-          <div className={styles.error}>{error}</div>
+          <div className={styles.errorSection}>
+            <div className={styles.errorCard}>
+              <div className={styles.errorIcon}>❌</div>
+              <h3>Error Loading Data</h3>
+              <p>{error}</p>
+            </div>
+          </div>
         ) : (
-          <div className={styles.studentInfo}>
-            <h2>Child Information</h2>
-            <p><strong>Name:</strong> {childData?.name}</p>
-            <p><strong>Class:</strong> {childData?.class}</p>
-            <p><strong>Email:</strong> {childData?.email}</p>
-            <p><strong>Total Points:</strong> {childData?.totalPoints || 0}</p>
+          <div className={styles.dashboardContent}>
+            {/* Child Information Card */}
+            <div className={styles.infoSection}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Child Information</h2>
+                <p className={styles.sectionSubtitle}>Personal and academic details</p>
+              </div>
+              <div className={styles.infoCard}>
+                <div className={styles.infoGrid}>
+                  <div className={styles.infoItem}>
+                    <div className={styles.infoIcon}>👤</div>
+                    <div className={styles.infoContent}>
+                      <span className={styles.infoLabel}>Full Name</span>
+                      <span className={styles.infoValue}>{childData?.name}</span>
+                    </div>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <div className={styles.infoIcon}>🎓</div>
+                    <div className={styles.infoContent}>
+                      <span className={styles.infoLabel}>Class</span>
+                      <span className={styles.infoValue}>{childData?.class}</span>
+                    </div>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <div className={styles.infoIcon}>📧</div>
+                    <div className={styles.infoContent}>
+                      <span className={styles.infoLabel}>Email</span>
+                      <span className={styles.infoValue}>{childData?.email}</span>
+                    </div>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <div className={styles.infoIcon}>⭐</div>
+                    <div className={styles.infoContent}>
+                      <span className={styles.infoLabel}>Total Points</span>
+                      <span className={styles.infoValue}>{childData?.totalPoints || 0}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
