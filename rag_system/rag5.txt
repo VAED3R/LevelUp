@@ -1,0 +1,162 @@
+
+University of Calicut
+B.Sc Applied Statistics with Data Science (Honours)
+CUFYUGP Regulations 2024
+(Implemented from 2024 admission onwards)
+
+PROGRAMME STRUCTURE:
+---------------------
+- Pathways: Single Major, Major with Minor, Major with Multiple Disciplines
+- UG Degree (3 Years): 133 Credits
+- UG Honours Degree (4 Years): 177 Credits
+- Components: Major, Minor, Foundation, Ability & Skill Enhancement, Value Added, Internship, Project
+
+PROGRAMME OUTCOMES (PO):
+-------------------------
+- PO1: Knowledge Acquisition
+- PO2: Communication, Collaboration, Inclusiveness, Leadership
+- PO3: Professional Skills
+- PO4: Digital Intelligence
+- PO5: Scientific Awareness & Critical Thinking
+- PO6: Human Values, Ethics, Societal & Environmental Responsibility
+- PO7: Research, Innovation & Entrepreneurship
+
+PROGRAMME SPECIFIC OUTCOMES (PSO):
+-----------------------------------
+- PSO1: Statistical Concepts, Principles, and Applications
+- PSO2: Descriptive & Inferential Statistics via Data Science
+- PSO3: Proficiency in Statistical Software
+- PSO4: Identify Applications of Statistical Theories
+- PSO5: Construct Models for Real-World Problems
+- PSO6: Lifelong Learning of Relevant Skills
+- PSO7: Industry-Ready Statistical Competence
+
+CREDIT DISTRIBUTION:
+---------------------
+Three-Year Program (133 Credits):
+- Major: 68 (17 courses)
+- Minor: 24 (6 courses)
+- Foundation (AEC, MDC, SEC, VAC) (Value Added, 39
+- Internship: 2
+
+Four-Year Program (177 Credits):
+- Additional Major (7th Sem): 20
+- Additional Major/Minor or Project (8th Sem): 24 or 12 (Project)
+- Total: 177
+
+SEMESTER-WISE STRUCTURE:
+==========================
+
+SEMESTER 1 (21 Credits)
+------------------------
+- ASD1CJ101: Descriptive Statistics (4 credit)
+- Minor Course 1 (4 credit)
+- Minor Course 2 (4 credit)
+- AEC 1 (English) (3 credit)
+- AEC 2 (Additional Language) (3 credit)
+- MDC 1 (e.g., Quality Control/Fundamentals of Statistics) (3 credit)
+
+SEMESTER 2 (21 Credits)
+-------------------------
+- ASD2CJ101: Probability and Random Variables (4 credit)
+- Minor Course 3 (4 credit)
+- Minor Course 4 (4 credit)
+- AEC 3 (English) (3 credit)
+- AEC 4 (Additional Language) (3 credit)
+- MDC 2 (e.g., Managerial Decision Making/Statistical Sampling) (3 credit)
+
+SEMESTER 3 (22 Credits)
+--------------------------
+- ASD3CJ201: Probability Distributions (4 credit)
+- ASD3CJ202: Bivariate RVs & Limit Theorems (4 credit)
+- Minor Course 5 (4 credit)
+- Minor Course 6 (4 credit)
+- MDC 3 (Multi-disciplinary, Kerala Knowledge System) (3 credit)
+- VAC 1 (English) (3 credit)
+
+SEMESTER 4 (21 Credits)
+-------------------------
+- ASD4CJ203: Sampling Methods (4 credit)
+- ASD4CJ204: Sampling Distributions & Estimation Theory (4 credit)
+- ASD4CJ205: Testing of Hypothesis (4 credit)
+- VAC 2 (English) (3 credit)
+- VAC 3 (Additional Language) (3 credit)
+- SEC 1 (English) (3 credit)
+
+SEMESTER 5 (23 Credits)
+------------------------
+- ASD5CJ301: Design & Analysis of Experiments (4 credit)
+- ASD5CJ302: Data Mining Techniques (4 credit)
+- ASD5CJ303: Time Series & Index Numbers (4 credit)
+- Elective 1 (from 5 options) (4 credit)
+- Elective 2 (from 5 options) (4 credit)
+- SEC 2 (Skill Enhancement, Statistical Analysis using Python (3 credit)
+
+SEMESTER 6 (25 Credits)
+-------------------------
+- ASD6CJ304: Linear Regression Analysis (4 credit)
+- ASD6CJ305: Multivariate Analysis (4 credit)
+- ASD6CJ306: Statistical Machine Learning (4 credit)
+- Elective 3 (from 5 options) (4 credit)
+- Elective 4 (from 5 options) (4 credit)
+- SEC 3 (Skill Enhancement, Basic Research Methodology (3 credit)
+- Internship (2C, 60 hours min)
+
+SEMESTER 7 – Honours Only (20 Credits)
+-----------------------------------------
+- STA7CJ401: Advanced Analytical Tools (4 credit)
+- STA7CJ402: Probability Theory (4 credit)
+- STA7CJ403: Distribution Theory (4 credit)
+- STA7CJ404: Advanced Sampling & DOE (4 credit)
+- STA7CJ405: Advanced Statistical Inference (4 credit)
+
+SEMESTER 8 – Honours Only (24 Credits)
+------------------------------------------
+Option 1 – Coursework Path:
+  - STA8CJ406: Applied Stochastic Processes (4 credit)
+  - STA8CJ407: Applied Multivariate Techniques (4 credit)
+  - STA8CJ408: Generalized Linear Models (4 credit)
+Option 2 – Project Path:
+  - STA8CJ449 / STA8CJ499: Project / Research Project (12 credit)
+
+Both Options:
+  - Elective 5 (4 credit)
+  - Elective 6 (4 credit)
+  - Elective 7 or Research Methodology (4 credit)
+
+ELECTIVES:
+----------
+Semester 5:
+  - Official Statistics, Actuarial Statistics, Psychometric Theory, Survival Analysis, Population Statistics
+
+Semester 6:
+  - Biostatistics, Econometrics, Statistical Quality Control, Operations Research, Simulation Techniques
+
+Semester 7:
+  - Machine Learning Methods, Operations Research, Queueing Models, Decision Theory, Clinical Trials,
+    Applied Algorithms & Big Data, Advanced Trends in Statistics
+
+ASSESSMENT:
+------------
+- Internal: 30% (Mid-terms, Assignments, Practicals)
+- External: 70% (Structured Exams)
+- Grading: 10-point scale (O to F), SGPA, CGPA based
+
+SPECIAL REQUIREMENTS:
+----------------------
+Internship (2 credit, min 60 hrs):
+- Supervised, report submission, viva-voce, institutional evaluation
+
+Project (12 credit, min 300 hrs):
+- Supervised individual work (theoretical/computational)
+- Evaluation: Internal 30%, Viva 50%, Report 20%
+- Honours with Research: Requires PhD faculty supervision
+
+SOFTWARE TRAINING:
+-------------------
+- R and Python integrated across practicals and coursework
+
+UNIVERSITY ORDER:
+------------------
+- UO No. 11430/2024/Admn dated 23.07.2024
+- Subject to Academic Council ratification

@@ -15,6 +15,9 @@ const StudentChatbot = () => {
   const [showWelcomePopup, setShowWelcomePopup] = useState(true);
   const [studentName, setStudentName] = useState('');
 
+  const currentSemester = 6; // Set this dynamically if available
+  const SEMESTER_SUBJECT_REGEX = /(?:subjects|courses|papers|syllabus)[^\d]*(\d+|this|current)(?:st|nd|rd|th)?\s*semester|semester\s*(\d+|this|current)[^\w]/i;
+
   useEffect(() => {
     // Show welcome popup for 5 seconds
     const timer = setTimeout(() => {
@@ -285,6 +288,38 @@ const StudentChatbot = () => {
     setIsLoading(true);
 
     try {
+      // Enhanced semester subject query detection
+      let match = inputMessage.match(SEMESTER_SUBJECT_REGEX);
+      let semesterNum = null;
+      if (match) {
+        semesterNum = match[1] || match[2];
+        if (semesterNum && (semesterNum.toLowerCase() === 'this' || semesterNum.toLowerCase() === 'current')) {
+          semesterNum = currentSemester.toString();
+        }
+      }
+      if (semesterNum) {
+        // Call the new endpoint
+        const resp = await fetch('http://localhost:8000/semester_subjects', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ semester: semesterNum })
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          let reply = `Here are your subjects for the ${semesterNum}th semester:`;
+          if (data.subjects && data.subjects.length > 0) {
+            reply += '<br />' + data.subjects.map(s => `• ${s}`).join('<br />');
+          } else {
+            reply += '<br />No subjects found for this semester.';
+          }
+          setMessages(prev => [...prev, { type: 'bot', text: reply }]);
+        } else {
+          setMessages(prev => [...prev, { type: 'bot', text: 'Sorry, I could not fetch the subjects for that semester.' }]);
+        }
+        setIsLoading(false);
+        return;
+      }
+
       let context = "";
       if (activeChat === 'study') {
         // Get relevant context from RAG system for study help

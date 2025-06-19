@@ -26,7 +26,7 @@ rag_processor = RAGProcessor()
 
 # Load the RAG text file
 try:
-    file_path = os.path.join(os.path.dirname(__file__), "rag4.txt")
+    file_path = os.path.join(os.path.dirname(__file__), "rag6.txt")
     logger.info(f"Loading RAG text from: {file_path}")
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"RAG text file not found at: {file_path}")
@@ -39,6 +39,9 @@ except Exception as e:
 class Query(BaseModel):
     text: str
     k: int = 3
+
+class SemesterQuery(BaseModel):
+    semester: str
 
 @app.post("/search")
 async def search(query: Query):
@@ -61,6 +64,17 @@ async def get_context(query: Query):
         return {"context": context}
     except Exception as e:
         logger.error(f"Error in get_context: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/semester_subjects")
+async def semester_subjects(query: SemesterQuery):
+    try:
+        logger.info(f"Getting subjects for semester: {query.semester}")
+        subjects = rag_processor.get_semester_subjects(query.semester)
+        return {"semester": query.semester, "subjects": subjects}
+    except Exception as e:
+        logger.error(f"Error in semester_subjects: {str(e)}")
         logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
