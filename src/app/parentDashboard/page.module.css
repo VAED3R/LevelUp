@@ -1,139 +1,396 @@
 /* Import Poppins Font */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
 .container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1a0033, #7f37c6, #632298);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Poppins', sans-serif;
   color: #333;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  padding-top: 100px;
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
-}
-
-/* Hide scrollbar for Chrome, Safari and Opera */
-.container::-webkit-scrollbar {
-  display: none;
+  position: relative;
+  overflow-x: hidden;
 }
 
 .content {
   max-width: 1200px;
-  width: 100%;
-  text-align: center;
-  position: relative;
-  height: calc(100vh - 140px);
+  margin: 0 auto;
+  padding: 100px 25px 30px;
+  min-height: calc(100vh - 80px);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #7f37c6 #1a0033;
 }
 
-.content::-webkit-scrollbar {
-  width: 8px;
+/* Welcome Section */
+.welcomeSection {
+  margin-bottom: 30px;
 }
 
-.content::-webkit-scrollbar-track {
-  background: #1a0033;
-  border-radius: 10px;
-}
-
-.content::-webkit-scrollbar-thumb {
-  background-color: #7f37c6;
-  border-radius: 10px;
-  border: 2px solid #1a0033;
-}
-
-.header {
-  text-align: center;
-  margin-bottom: 40px;
-  padding: 30px;
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid rgba(127, 55, 198, 0.5);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-}
-
-.title {
-  font-family: 'Poppins', sans-serif;
-  font-size: 28px;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 15px;
-  letter-spacing: 1px;
-}
-
-.subtitle {
-  font-family: 'Poppins', sans-serif;
-  color: #666;
-  font-size: 16px;
-  font-weight: 500;
-}
-
-.studentInfo {
-  background: #fff;
-  border: 1px solid rgba(127, 55, 198, 0.5);
-  border-radius: 12px;
+.welcomeCard {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
   padding: 25px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.studentInfo:hover {
+.welcomeCard:hover {
   transform: translateY(-5px);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
 }
 
-.studentInfo h2 {
-  font-family: 'Poppins', sans-serif;
-  font-size: 20px;
+.welcomeIcon {
+  font-size: 2.8rem;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.welcomeContent {
+  flex: 1;
+}
+
+.welcomeTitle {
+  font-size: 2rem;
   font-weight: 700;
-  color: #333;
-  margin-bottom: 20px;
-  letter-spacing: 1px;
-  background: #fff;
-  padding: 10px 15px;
-  border-radius: 8px;
-  border: 1px solid rgba(127, 55, 198, 0.3);
+  color: #2d3748;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.studentInfo p {
-  font-family: 'Poppins', sans-serif;
-  font-size: 14px;
-  color: #555;
-  margin: 12px 0;
+.welcomeSubtitle {
+  font-size: 1rem;
+  color: #718096;
+  font-weight: 500;
+}
+
+/* Loading Section */
+.loadingSection {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  flex: 1;
+}
+
+.loadingCard {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.loadingSpinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loadingCard h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 10px;
+}
+
+.loadingCard p {
+  color: #718096;
+  font-size: 1rem;
+}
+
+/* Error Section */
+.errorSection {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  flex: 1;
+}
+
+.errorCard {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  max-width: 500px;
+}
+
+.errorIcon {
+  font-size: 2.8rem;
+  margin-bottom: 15px;
+}
+
+.errorCard h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #e53e3e;
+  margin-bottom: 12px;
+}
+
+.errorCard p {
+  color: #718096;
+  font-size: 1rem;
   line-height: 1.5;
 }
 
-.studentInfo strong {
-  color: #7f37c6;
+/* Dashboard Content */
+.dashboardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  flex: 1;
+}
+
+/* Section Headers */
+.sectionHeader {
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.sectionSubtitle {
+  font-size: 0.95rem;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+/* Info Section */
+.infoSection {
+  margin-bottom: 25px;
+}
+
+.infoCard {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.infoCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.infoItem {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.infoItem:hover {
+  transform: none;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.infoIcon {
+  font-size: 1.8rem;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 12px;
+  color: white;
+}
+
+.infoContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.infoLabel {
+  font-size: 0.9rem;
+  color: #718096;
+  font-weight: 500;
+}
+
+.infoValue {
+  font-size: 1.1rem;
+  color: #2d3748;
   font-weight: 600;
 }
 
-.loading {
-  font-family: 'Poppins', sans-serif;
-  font-size: 16px;
-  color: #333;
-  text-align: center;
-  padding: 20px;
-  background: #fff;
-  border: 1px solid rgba(127, 55, 198, 0.5);
-  border-radius: 12px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+/* Actions Section */
+.actionsSection {
+  margin-bottom: 25px;
 }
 
-.error {
-  font-family: 'Poppins', sans-serif;
-  font-size: 16px;
-  color: #d32f2f;
+.actionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.actionCard {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 25px;
   text-align: center;
-  padding: 20px;
-  background: rgba(211, 47, 47, 0.1);
-  border-radius: 12px;
-  margin: 10px 0;
-  border: 1px solid rgba(211, 47, 47, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.actionCard:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+}
+
+.actionIcon {
+  font-size: 2.2rem;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.actionCard h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 8px;
+}
+
+.actionCard p {
+  color: #718096;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .content {
+    padding: 90px 20px 25px;
+  }
+  
+  .welcomeCard {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+    gap: 15px;
+  }
+  
+  .welcomeTitle {
+    font-size: 1.7rem;
+  }
+  
+  .welcomeSubtitle {
+    font-size: 0.95rem;
+  }
+  
+  .infoGrid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .actionsGrid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .sectionTitle {
+    font-size: 1.4rem;
+  }
+  
+  .infoCard,
+  .actionCard {
+    padding: 20px;
+  }
+  
+  .infoItem {
+    padding: 15px;
+  }
+  
+  .dashboardContent {
+    gap: 20px;
+  }
+  
+  .sectionHeader {
+    margin-bottom: 15px;
+  }
+  
+  .welcomeSection {
+    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .content {
+    padding: 85px 15px 20px;
+  }
+  
+  .welcomeTitle {
+    font-size: 1.5rem;
+  }
+  
+  .welcomeIcon {
+    font-size: 2.5rem;
+  }
+  
+  .infoItem {
+    padding: 12px;
+    gap: 12px;
+  }
+  
+  .infoIcon {
+    font-size: 1.5rem;
+    width: 45px;
+    height: 45px;
+  }
+  
+  .actionCard {
+    padding: 20px;
+  }
+  
+  .actionIcon {
+    font-size: 2rem;
+  }
+  
+  .sectionTitle {
+    font-size: 1.3rem;
+  }
 }

@@ -580,62 +580,128 @@ export default function StudentPerformance() {
       <Navbar />
       <ParentChatbot />
       <div className={styles.content}>
-        <h1 className={styles.title}>Student Performance</h1>
+        {/* Welcome Section */}
+        <div className={styles.welcomeSection}>
+          <div className={styles.welcomeCard}>
+            <div className={styles.welcomeIcon}>📊</div>
+            <div className={styles.welcomeContent}>
+              <h1 className={styles.welcomeTitle}>Student Performance Dashboard</h1>
+              <p className={styles.welcomeSubtitle}>Comprehensive analysis of academic progress</p>
+            </div>
+          </div>
+        </div>
 
         {loading ? (
-          <p className={styles.loading}>Loading...</p>
+          <div className={styles.loadingSection}>
+            <div className={styles.loadingCard}>
+              <div className={styles.loadingSpinner}></div>
+              <h3>Loading Performance Data...</h3>
+              <p>Please wait while we fetch your child's academic information</p>
+            </div>
+          </div>
         ) : error ? (
-          <div className={styles.errorContainer}>
-            <p className={styles.error}>{error}</p>
-            <button 
-              className={styles.backButton}
-              onClick={() => router.push('/dashboard')}
-            >
-              Back to Dashboard
-            </button>
+          <div className={styles.errorSection}>
+            <div className={styles.errorCard}>
+              <div className={styles.errorIcon}>❌</div>
+              <h3>Error Loading Data</h3>
+              <p>{error}</p>
+              <button 
+                className={styles.backButton}
+                onClick={() => router.push('/dashboard')}
+              >
+                Back to Dashboard
+              </button>
+            </div>
           </div>
         ) : student && metrics ? (
-          <div className={styles.performanceData}>
-            {/* Student Info */}
-            <div className={styles.studentInfo}>
-              <h2>{student.name}</h2>
-              <p>Class: {student.class}</p>
-              <p>Total Points: {student.totalPoints || 0}</p>
+          <div className={styles.dashboardContent}>
+            {/* Student Info Card */}
+            <div className={styles.infoSection}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Student Information</h2>
+                <p className={styles.sectionSubtitle}>Personal and academic details</p>
+              </div>
+              <div className={styles.infoCard}>
+                <div className={styles.infoGrid}>
+                  <div className={styles.infoItem}>
+                    <div className={styles.infoIcon}>👤</div>
+                    <div className={styles.infoContent}>
+                      <span className={styles.infoLabel}>Student Name</span>
+                      <span className={styles.infoValue}>{student.name}</span>
+                    </div>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <div className={styles.infoIcon}>🎓</div>
+                    <div className={styles.infoContent}>
+                      <span className={styles.infoLabel}>Class</span>
+                      <span className={styles.infoValue}>{student.class}</span>
+                    </div>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <div className={styles.infoIcon}>⭐</div>
+                    <div className={styles.infoContent}>
+                      <span className={styles.infoLabel}>Total Points</span>
+                      <span className={styles.infoValue}>{student.totalPoints || 0}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Performance Metrics */}
-            <div className={styles.metrics}>
-              <h2>Performance Metrics</h2>
-              <div className={styles.metricGrid}>
+            <div className={styles.metricsSection}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Performance Metrics</h2>
+                <p className={styles.sectionSubtitle}>Key academic indicators</p>
+              </div>
+              <div className={styles.metricsGrid}>
                 <div className={styles.metricCard}>
-                  <h3>Quiz Performance</h3>
-                  <p>Average Score: {metrics.avgQuizScore}%</p>
-                  <p>Total Quizzes: {metrics.totalQuizzes}</p>
+                  <div className={styles.metricIcon}>📝</div>
+                  <div className={styles.metricContent}>
+                    <h3>Quiz Performance</h3>
+                    <div className={styles.metricValue}>{metrics.avgQuizScore}%</div>
+                    <p>Average Score</p>
+                    <div className={styles.metricDetail}>Total Quizzes: {metrics.totalQuizzes}</div>
+                  </div>
                 </div>
                 <div className={styles.metricCard}>
-                  <h3>Assignment Performance</h3>
-                  <p>Average Score: {metrics.avgAssignmentScore}%</p>
-                  <p>Total Assignments: {metrics.totalAssignments}</p>
+                  <div className={styles.metricIcon}>📚</div>
+                  <div className={styles.metricContent}>
+                    <h3>Assignment Performance</h3>
+                    <div className={styles.metricValue}>{metrics.avgAssignmentScore}%</div>
+                    <p>Average Score</p>
+                    <div className={styles.metricDetail}>Total Assignments: {metrics.totalAssignments}</div>
+                  </div>
                 </div>
                 <div className={styles.metricCard}>
-                  <h3>Test Performance</h3>
-                  <p>Average Score: {metrics.avgTestScore}%</p>
-                  <p>Total Tests: {metrics.totalTests}</p>
+                  <div className={styles.metricIcon}>📋</div>
+                  <div className={styles.metricContent}>
+                    <h3>Test Performance</h3>
+                    <div className={styles.metricValue}>{metrics.avgTestScore}%</div>
+                    <p>Average Score</p>
+                    <div className={styles.metricDetail}>Total Tests: {metrics.totalTests}</div>
+                  </div>
                 </div>
                 <div className={styles.metricCard}>
-                  <h3>Attendance</h3>
-                  <p>Attendance Rate: {metrics.attendanceRate}%</p>
-                  <p>Total Days: {metrics.totalAttendance}</p>
+                  <div className={styles.metricIcon}>📅</div>
+                  <div className={styles.metricContent}>
+                    <h3>Attendance</h3>
+                    <div className={styles.metricValue}>{metrics.attendanceRate}%</div>
+                    <p>Attendance Rate</p>
+                    <div className={styles.metricDetail}>Total Days: {metrics.totalAttendance}</div>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Visualizations */}
-            <div className={styles.visualizations}>
-              <h2>Performance Visualizations</h2>
-              
-              <div className={styles.chartContainer}>
-                <div className={styles.chart}>
+            <div className={styles.visualizationsSection}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Performance Visualizations</h2>
+                <p className={styles.sectionSubtitle}>Interactive charts and graphs</p>
+              </div>
+              <div className={styles.chartsGrid}>
+                <div className={styles.chartCard}>
                   <h3>Performance Comparison</h3>
                   {chartData && (
                     <Line 
@@ -653,7 +719,7 @@ export default function StudentPerformance() {
                   )}
                 </div>
                 
-                <div className={styles.chart}>
+                <div className={styles.chartCard}>
                   <h3>Activity Distribution</h3>
                   {chartData && (
                     <Pie 
@@ -665,9 +731,9 @@ export default function StudentPerformance() {
                   )}
                 </div>
                 
-                <div className={styles.chart}>
+                <div className={styles.chartCard}>
                   <h3>Quiz Performance Over Time</h3>
-                  {chartData && performanceData.quizzes.length > 0 && (
+                  {chartData && performanceData.quizzes.length > 0 ? (
                     <Line 
                       data={chartData.quizPerformanceData} 
                       options={{
@@ -680,15 +746,17 @@ export default function StudentPerformance() {
                         }
                       }}
                     />
-                  )}
-                  {performanceData.quizzes.length === 0 && (
-                    <p className={styles.noData}>No quiz data available</p>
+                  ) : (
+                    <div className={styles.noDataCard}>
+                      <div className={styles.noDataIcon}>📊</div>
+                      <p>No quiz data available</p>
+                    </div>
                   )}
                 </div>
                 
-                <div className={styles.chart}>
+                <div className={styles.chartCard}>
                   <h3>Test Performance Over Time</h3>
-                  {chartData && performanceData.tests.length > 0 && (
+                  {chartData && performanceData.tests.length > 0 ? (
                     <Line 
                       data={chartData.testPerformanceData} 
                       options={{
@@ -701,169 +769,218 @@ export default function StudentPerformance() {
                         }
                       }}
                     />
-                  )}
-                  {performanceData.tests.length === 0 && (
-                    <p className={styles.noData}>No test data available</p>
+                  ) : (
+                    <div className={styles.noDataCard}>
+                      <div className={styles.noDataIcon}>📊</div>
+                      <p>No test data available</p>
+                    </div>
                   )}
                 </div>
               </div>
             </div>
 
             {/* Performance Analysis */}
-            <div className={styles.performanceAnalysis}>
-              {!requestStatus && (
-                
-                <button 
-                  className={styles.sendRequestButton}
-                  onClick={sendPerformanceRequest}
-                  disabled={sendingRequest}
-                >
-                  {sendingRequest ? "Sending Request..." : "Send Request to Teacher"}
-                </button>
-              )}
-              
-              {requestStatus === 'pending' && (
-                <div className={styles.requestStatus}>
-                  <p>Request sent to teacher. Waiting for response...</p>
-                </div>
-              )}
-              
-              {requestStatus === 'generated' && (
-                <div className={styles.requestStatus}>
-                  <p>Teacher has generated the summary. Waiting for submission...</p>
-                </div>
-              )}
-              
-              {requestStatus === 'submitted' && performanceDescription && (
-                <>
-                  <div className={styles.description}>
-                  <h2>Performance Analysis</h2>
-                    <h3>Teacher's Analysis</h3>
-                    <pre>{performanceDescription}</pre>
+            <div className={styles.analysisSection}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Performance Analysis</h2>
+                <p className={styles.sectionSubtitle}>Teacher insights and recommendations</p>
+              </div>
+              <div className={styles.analysisCard}>
+                {!requestStatus && (
+                  <div className={styles.requestSection}>
+                    <div className={styles.requestIcon}>📤</div>
+                    <h3>Request Teacher Analysis</h3>
+                    <p>Get personalized feedback and recommendations from your child's teachers</p>
                     <button 
-                    className={styles.sendRequestButton}
-                    onClick={sendPerformanceRequest}
-                    disabled={sendingRequest}
-                  >
-                    {sendingRequest ? "Sending Request..." : "Request New Analysis"}
-                  </button>
+                      className={styles.sendRequestButton}
+                      onClick={sendPerformanceRequest}
+                      disabled={sendingRequest}
+                    >
+                      {sendingRequest ? "Sending Request..." : "Send Request to Teacher"}
+                    </button>
                   </div>
-
-                </>
-              )}
+                )}
+                
+                {requestStatus === 'pending' && (
+                  <div className={styles.statusCard}>
+                    <div className={styles.statusIcon}>⏳</div>
+                    <h3>Request Pending</h3>
+                    <p>Request sent to teacher. Waiting for response...</p>
+                  </div>
+                )}
+                
+                {requestStatus === 'generated' && (
+                  <div className={styles.statusCard}>
+                    <div className={styles.statusIcon}>✅</div>
+                    <h3>Analysis Generated</h3>
+                    <p>Teacher has generated the summary. Waiting for submission...</p>
+                  </div>
+                )}
+                
+                {requestStatus === 'submitted' && performanceDescription && (
+                  <div className={styles.descriptionCard}>
+                    <div className={styles.descriptionHeader}>
+                      <div className={styles.descriptionIcon}>📋</div>
+                      <h3>Teacher's Analysis</h3>
+                    </div>
+                    <div className={styles.descriptionContent}>
+                      <pre>{performanceDescription}</pre>
+                    </div>
+                    <button 
+                      className={styles.sendRequestButton}
+                      onClick={sendPerformanceRequest}
+                      disabled={sendingRequest}
+                    >
+                      {sendingRequest ? "Sending Request..." : "Request New Analysis"}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Detailed Performance Data */}
-            <div className={styles.detailedData}>
-              <h2>Detailed Performance</h2>
+            <div className={styles.detailedSection}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Detailed Performance</h2>
+                <p className={styles.sectionSubtitle}>Comprehensive breakdown of all assessments</p>
+              </div>
               
               {/* Quizzes */}
-              <div className={styles.dataSection}>
-                <h3>Quizzes</h3>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Subject</th>
-                      <th>Score</th>
-                      <th>Total Questions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {performanceData.quizzes.map(quiz => (
-                      <tr key={quiz.id}>
-                        <td>{formatDate(quiz.date)}</td>
-                        <td>{quiz.subject}</td>
-                        <td>{quiz.score}%</td>
-                        <td>{quiz.totalQuestions}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Assignments */}
-              <div className={styles.dataSection}>
-                <h3>Assignments</h3>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Subject</th>
-                      <th>Title</th>
-                      <th>Score</th>
-                      <th>Total Marks</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {performanceData.assignments.map(assignment => (
-                      <tr key={assignment.id}>
-                        <td>{formatDate(assignment.addedAt)}</td>
-                        <td>{assignment.subject}</td>
-                        <td>{assignment.assignmentTitle}</td>
-                        <td>{assignment.obtainedMarks}</td>
-                        <td>{assignment.totalMarks}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Tests */}
-              <div className={styles.dataSection}>
-                <h3>Tests</h3>
-                {performanceData.tests.length > 0 ? (
+              <div className={styles.dataCard}>
+                <div className={styles.dataHeader}>
+                  <div className={styles.dataIcon}>📝</div>
+                  <h3>Quizzes</h3>
+                </div>
+                <div className={styles.tableContainer}>
                   <table className={styles.table}>
                     <thead>
                       <tr>
+                        <th>Date</th>
                         <th>Subject</th>
                         <th>Score</th>
-                        <th>Total Marks</th>
-                        <th>Percentage</th>
+                        <th>Total Questions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {performanceData.tests.map(test => (
-                        <tr key={test.id}>
-                          <td>{test.subject}</td>
-                          <td>{test.obtainedMarks}</td>
-                          <td>{test.totalMarks}</td>
-                          <td>{test.percentage}%</td>
+                      {performanceData.quizzes.map(quiz => (
+                        <tr key={quiz.id}>
+                          <td>{formatDate(quiz.date)}</td>
+                          <td>{quiz.subject}</td>
+                          <td>{quiz.score}%</td>
+                          <td>{quiz.totalQuestions}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                ) : (
-                  <p className={styles.noData}>No test data available</p>
-                )}
+                </div>
+              </div>
+
+              {/* Assignments */}
+              <div className={styles.dataCard}>
+                <div className={styles.dataHeader}>
+                  <div className={styles.dataIcon}>📚</div>
+                  <h3>Assignments</h3>
+                </div>
+                <div className={styles.tableContainer}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Subject</th>
+                        <th>Title</th>
+                        <th>Score</th>
+                        <th>Total Marks</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {performanceData.assignments.map(assignment => (
+                        <tr key={assignment.id}>
+                          <td>{formatDate(assignment.addedAt)}</td>
+                          <td>{assignment.subject}</td>
+                          <td>{assignment.assignmentTitle}</td>
+                          <td>{assignment.obtainedMarks}</td>
+                          <td>{assignment.totalMarks}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Tests */}
+              <div className={styles.dataCard}>
+                <div className={styles.dataHeader}>
+                  <div className={styles.dataIcon}>📋</div>
+                  <h3>Tests</h3>
+                </div>
+                <div className={styles.tableContainer}>
+                  {performanceData.tests.length > 0 ? (
+                    <table className={styles.table}>
+                      <thead>
+                        <tr>
+                          <th>Subject</th>
+                          <th>Score</th>
+                          <th>Total Marks</th>
+                          <th>Percentage</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {performanceData.tests.map(test => (
+                          <tr key={test.id}>
+                            <td>{test.subject}</td>
+                            <td>{test.obtainedMarks}</td>
+                            <td>{test.totalMarks}</td>
+                            <td>{test.percentage}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className={styles.noDataCard}>
+                      <div className={styles.noDataIcon}>📊</div>
+                      <p>No test data available</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Attendance */}
-              <div className={styles.dataSection}>
-                <h3>Attendance</h3>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Status</th>
-                      <th>Subject</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {performanceData.attendance.map(record => (
-                      <tr key={record.id}>
-                        <td>{formatDate(record.addedAt)}</td>
-                        <td>{record.status}</td>
-                        <td>{record.subject}</td>
+              <div className={styles.dataCard}>
+                <div className={styles.dataHeader}>
+                  <div className={styles.dataIcon}>📅</div>
+                  <h3>Attendance</h3>
+                </div>
+                <div className={styles.tableContainer}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Subject</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {performanceData.attendance.map(record => (
+                        <tr key={record.id}>
+                          <td>{formatDate(record.addedAt)}</td>
+                          <td>{record.status}</td>
+                          <td>{record.subject}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
         ) : (
-          <p className={styles.noSelection}>No student data available</p>
+          <div className={styles.noDataSection}>
+            <div className={styles.noDataCard}>
+              <div className={styles.noDataIcon}>📊</div>
+              <h3>No Data Available</h3>
+              <p>No student data available for performance analysis</p>
+            </div>
+          </div>
         )}
       </div>
     </div>
