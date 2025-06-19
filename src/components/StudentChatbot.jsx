@@ -5,30 +5,32 @@ import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where, getDoc, doc } from 'firebase/firestore';
 import { auth } from '@/lib/firebase';
 
-const StudentChatbot = () => {
+const StudentChatbot = ({ showWelcome = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeChat, setActiveChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [studentPerformance, setStudentPerformance] = useState(null);
-  const [showWelcomePopup, setShowWelcomePopup] = useState(true);
+  const [showWelcomePopup, setShowWelcomePopup] = useState(showWelcome);
   const [studentName, setStudentName] = useState('');
 
   const currentSemester = 6; // Set this dynamically if available
   const SEMESTER_SUBJECT_REGEX = /(?:subjects|courses|papers|syllabus)[^\d]*(\d+|this|current)(?:st|nd|rd|th)?\s*semester|semester\s*(\d+|this|current)[^\w]/i;
 
   useEffect(() => {
-    // Show welcome popup for 5 seconds
-    const timer = setTimeout(() => {
-      setShowWelcomePopup(false);
-    }, 5000);
+    // Show welcome popup for 5 seconds only if showWelcome is true
+    if (showWelcome) {
+      const timer = setTimeout(() => {
+        setShowWelcomePopup(false);
+      }, 5000);
 
-    // Fetch student name
-    fetchStudentName();
+      // Fetch student name
+      fetchStudentName();
 
-    return () => clearTimeout(timer);
-  }, []);
+      return () => clearTimeout(timer);
+    }
+  }, [showWelcome]);
 
   const fetchStudentName = async () => {
     try {

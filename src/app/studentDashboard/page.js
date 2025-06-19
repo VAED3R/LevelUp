@@ -419,7 +419,7 @@ export default function StudentDashboard() {
     <IntroAnimation loadingText="Loading Student Dashboard...">
       <div className={style.container}>
         <Navbar />
-        <StudentChatbot />
+        <StudentChatbot showWelcome={true} />
         <div className={style.content}>
           <div className={style.header}>
             <h1 className={style.title}>Welcome, {userData?.name}</h1>
