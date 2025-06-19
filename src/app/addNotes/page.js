@@ -152,76 +152,140 @@ export default function AddNotes() {
     }
   };
 
-  return (
-    <div className={styles.addNotesRoot}>
-      <Navbar />
+  if (loading) {
+    return (
       <div className={styles.container}>
+        <Navbar />
         <div className={styles.content}>
-          <h1>Upload Notes for {className}</h1>
+          <div className={styles.loadingState}>
+            <div className={styles.loadingSpinner}></div>
+            <p className={styles.loadingText}>Loading subjects...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-          <input
-            type="text"
-            placeholder="Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className={styles.textBox}
-          />
+  return (
+    <div className={styles.container}>
+      <Navbar />
+      <div className={styles.content}>
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h1 className={styles.sectionTitle}>Upload Course Materials</h1>
+            <p className={styles.sectionSubtitle}>Add notes and materials for {className}</p>
+          </div>
 
-          <select
-            value={semester}
-            onChange={(e) => setSemester(e.target.value)}
-            className={styles.textBox}
-            required
-          >
-            <option value="">Choose a semester</option>
-            {semesters.map((semesterItem) => (
-              <option key={semesterItem} value={semesterItem}>
-                {semesterItem}
-              </option>
-            ))}
-          </select>
+          <div className={styles.uploadForm}>
+            <div className={styles.formRow}>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Title</label>
+                <input
+                  type="text"
+                  placeholder="Enter material title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className={styles.input}
+                  required
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Semester</label>
+                <select
+                  value={semester}
+                  onChange={(e) => setSemester(e.target.value)}
+                  className={styles.select}
+                  required
+                >
+                  <option value="">Select Semester</option>
+                  {semesters.map((semesterItem) => (
+                    <option key={semesterItem} value={semesterItem}>
+                      {semesterItem}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-          <select
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            className={styles.textBox}
-            required
-            disabled={!semester}
-          >
-            <option value="">
-              {semester ? "Choose a subject" : "Select semester first"}
-            </option>
-            {subjects.map((subjectName) => (
-              <option key={subjectName} value={subjectName}>
-                {subjectName}
-              </option>
-            ))}
-          </select>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Subject</label>
+              <select
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                className={styles.select}
+                required
+                disabled={!semester}
+              >
+                <option value="">
+                  {semester ? "Select Subject" : "Select semester first"}
+                </option>
+                {subjects.map((subjectName) => (
+                  <option key={subjectName} value={subjectName}>
+                    {subjectName}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <textarea
-            placeholder="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className={styles.textArea}
-          />
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Description</label>
+              <textarea
+                placeholder="Enter material description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className={styles.textarea}
+                rows="4"
+                required
+              />
+            </div>
 
-          <input
-            id="fileInput"
-            type="file"
-            onChange={handleFileChange}
-            className={styles.fileInput}
-          />
+            <div className={styles.formGroup}>
+              <label className={styles.label}>File</label>
+              <div className={styles.fileUploadArea}>
+                <input
+                  id="fileInput"
+                  type="file"
+                  onChange={handleFileChange}
+                  className={styles.fileInput}
+                  accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.jpg,.jpeg,.png"
+                />
+                <div className={styles.fileUploadContent}>
+                  <div className={styles.fileUploadIcon}>📁</div>
+                  <p className={styles.fileUploadText}>
+                    {file ? file.name : "Click to select file or drag and drop"}
+                  </p>
+                  <p className={styles.fileUploadHint}>
+                    Supported formats: PDF, DOC, DOCX, PPT, PPTX, TXT, JPG, PNG (Max 10MB)
+                  </p>
+                </div>
+              </div>
+            </div>
 
-          <button
-            onClick={handleUpload}
-            className={styles.uploadButton}
-            disabled={uploading || loading}
-          >
-            {uploading ? "Uploading..." : "Upload"}
-          </button>
+            {error && (
+              <div className={`${styles.message} ${styles.error}`}>
+                <span className={styles.messageIcon}>❌</span>
+                {error}
+              </div>
+            )}
+            
+            {success && (
+              <div className={`${styles.message} ${styles.success}`}>
+                <span className={styles.messageIcon}>✅</span>
+                {success}
+              </div>
+            )}
 
-          {error && <p className={styles.error}>{error}</p>}
-          {success && <p className={styles.success}>{success}</p>}
+            <div className={styles.submitSection}>
+              <button
+                onClick={handleUpload}
+                className={styles.submitButton}
+                disabled={uploading}
+              >
+                <span className={styles.buttonIcon}>📤</span>
+                {uploading ? "Uploading..." : "Upload Material"}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
