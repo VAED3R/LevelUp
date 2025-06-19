@@ -332,14 +332,14 @@ const ParentChatbot = () => {
 
         if (ragResponse.ok) {
           const ragData = await ragResponse.json();
-          context = `You are a counseling assistant helping parents with their children's issues. 
+          context = `Note: The current semester is the 6th semester. Please tailor your responses accordingly.\n\nYou are a counseling assistant helping parents with their children's issues. 
           Here is some relevant context from our knowledge base:
           ${ragData.context}
           
           Based on this context and the user's question, provide a helpful and empathetic response.
           Be supportive and provide practical advice. Keep responses concise and avoid using markdown formatting.`;
         } else {
-          context = "You are a counseling assistant helping parents with their children's issues. Be empathetic and provide practical advice. Focus on understanding the parent's concerns and offering supportive guidance. Keep responses concise and avoid using markdown formatting.";
+          context = "Note: The current semester is the 6th semester. Please tailor your responses accordingly.\n\nYou are a counseling assistant helping parents with their children's issues. Be empathetic and provide practical advice. Focus on understanding the parent's concerns and offering supportive guidance. Keep responses concise and avoid using markdown formatting.";
         }
       } else if (activeChat === 'career') {
         // Create a performance summary for career guidance
@@ -381,7 +381,7 @@ const ParentChatbot = () => {
 
         if (ragResponse.ok) {
           const ragData = await ragResponse.json();
-          context = `You are a career guidance assistant helping parents understand career options for their children. 
+          context = `Note: The current semester is the 6th semester. Please tailor your responses accordingly.\n\nYou are a career guidance assistant helping parents understand career options for their children. 
           Based on the student's performance data: ${performanceSummary}
           
           Here is some relevant context from our knowledge base:
@@ -398,7 +398,7 @@ const ParentChatbot = () => {
           Avoid generic advice and ensure all suggestions are directly tied to the student's academic profile.
           Keep responses concise and avoid using markdown formatting.`;
         } else {
-          context = `You are a career guidance assistant helping parents understand career options for their children. 
+          context = `Note: The current semester is the 6th semester. Please tailor your responses accordingly.\n\nYou are a career guidance assistant helping parents understand career options for their children. 
           Based on the student's performance data: ${performanceSummary}
           
           Please provide personalized career guidance by:
@@ -427,13 +427,13 @@ const ParentChatbot = () => {
 
         if (ragResponse.ok) {
           const ragData = await ragResponse.json();
-          context = `You are a helpful assistant. Here is some relevant context from our knowledge base:
+          context = `Note: The current semester is the 6th semester. Please tailor your responses accordingly.\n\nYou are a helpful assistant. Here is some relevant context from our knowledge base:
           ${ragData.context}
           
           Based on this context and the user's question, provide a clear and helpful response.
           Keep responses concise and avoid using markdown formatting.`;
         } else {
-          context = "You are a helpful assistant. Provide clear, concise answers to the user's questions. Avoid using markdown formatting.";
+          context = "Note: The current semester is the 6th semester. Please tailor your responses accordingly.\n\nYou are a helpful assistant. Provide clear, concise answers to the user's questions. Avoid using markdown formatting.";
         }
       }
 

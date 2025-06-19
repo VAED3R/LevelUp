@@ -88,23 +88,9 @@ export default function TeacherChatbot() {
 
       if (ragResponse.ok) {
         const ragData = await ragResponse.json();
-        context = `You are Lia, LevelUp Interactive Assistant, a helpful teaching assistant. Here is some relevant context from our knowledge base:
-        ${ragData.context}
-        
-        Based on this context and the teacher's question, provide a clear and helpful response.
-        Focus on teaching strategies, classroom management, and educational resources.
-        Keep responses concise and avoid using markdown formatting.`;
+        context = `Note: The current semester is the 6th semester. Please tailor your responses accordingly.\n\nYou are Lia, LevelUp Interactive Assistant, a helpful teaching assistant. Here is some relevant context from our knowledge base:\n        ${ragData.context}\n        \n        Based on this context and the teacher's question, provide a clear and helpful response.\n        Focus on teaching strategies, classroom management, and educational resources.\n        Keep responses concise and avoid using markdown formatting.`;
       } else {
-        context = `You are Lia, LevelUp Interactive Assistant, a helpful teaching assistant. 
-        Provide clear, concise answers to the teacher's questions about:
-        - Teaching strategies and methodologies
-        - Classroom management techniques
-        - Educational resources and tools
-        - Student assessment and evaluation
-        - Professional development opportunities
-        
-        Keep responses focused on practical, actionable advice.
-        Avoid using markdown formatting.`;
+        context = `Note: The current semester is the 6th semester. Please tailor your responses accordingly.\n\nYou are Lia, LevelUp Interactive Assistant, a helpful teaching assistant. \n        Provide clear, concise answers to the teacher's questions about:\n        - Teaching strategies and methodologies\n        - Classroom management techniques\n        - Educational resources and tools\n        - Student assessment and evaluation\n        - Professional development opportunities\n        \n        Keep responses focused on practical, actionable advice.\n        Avoid using markdown formatting.`;
       }
 
       const response = await fetch('https://api.deepseek.com/v1/chat/completions', {

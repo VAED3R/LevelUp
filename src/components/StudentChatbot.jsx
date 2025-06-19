@@ -301,7 +301,7 @@ const StudentChatbot = () => {
 
         if (ragResponse.ok) {
           const ragData = await ragResponse.json();
-          context = `You are a study assistant helping students with their academic questions. 
+          context = `Note: The current semester is the 6th semester. Please tailor your responses accordingly.\n\nYou are a study assistant helping students with their academic questions. 
           Here is some relevant context from our knowledge base:
           ${ragData.context}
           
@@ -310,7 +310,7 @@ const StudentChatbot = () => {
           Include examples and practical applications where relevant.
           Keep responses concise and avoid using markdown formatting.`;
         } else {
-          context = "You are a study assistant helping students with their academic questions. Provide clear explanations and examples. Keep responses concise and avoid using markdown formatting.";
+          context = "Note: The current semester is the 6th semester. Please tailor your responses accordingly.\n\nYou are a study assistant helping students with their academic questions. Provide clear explanations and examples. Keep responses concise and avoid using markdown formatting.";
         }
       } else if (activeChat === 'performance') {
         // Create a performance summary
@@ -352,7 +352,7 @@ const StudentChatbot = () => {
 
         if (ragResponse.ok) {
           const ragData = await ragResponse.json();
-          context = `You are a performance analysis assistant helping students understand their academic progress. 
+          context = `Note: The current semester is the 6th semester. Please tailor your responses accordingly.\n\nYou are a performance analysis assistant helping students understand their academic progress. 
           Based on the student's performance data: ${performanceSummary}
           
           Here is some relevant context from our knowledge base:
@@ -369,7 +369,7 @@ const StudentChatbot = () => {
           Be encouraging and supportive while being honest about areas for improvement.
           Keep responses concise and avoid using markdown formatting.`;
         } else {
-          context = `You are a performance analysis assistant helping students understand their academic progress. 
+          context = `Note: The current semester is the 6th semester. Please tailor your responses accordingly.\n\nYou are a performance analysis assistant helping students understand their academic progress. 
           Based on the student's performance data: ${performanceSummary}
           
           Please provide personalized performance analysis by:
@@ -398,13 +398,13 @@ const StudentChatbot = () => {
 
         if (ragResponse.ok) {
           const ragData = await ragResponse.json();
-          context = `You are a helpful assistant for students. Here is some relevant context from our knowledge base:
+          context = `Note: The current semester is the 6th semester. Please tailor your responses accordingly.\n\nYou are a helpful assistant for students. Here is some relevant context from our knowledge base:
           ${ragData.context}
           
           Based on this context and the student's question, provide a clear and helpful response.
           Keep responses concise and avoid using markdown formatting.`;
         } else {
-          context = "You are a helpful assistant for students. Provide clear, concise answers to their questions. Avoid using markdown formatting.";
+          context = "Note: The current semester is the 6th semester. Please tailor your responses accordingly.\n\nYou are a helpful assistant for students. Provide clear, concise answers to their questions. Avoid using markdown formatting.";
         }
       }
 

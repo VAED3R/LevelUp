@@ -1,0 +1,254 @@
+University of Calicut
+B.Sc Applied Statistics with Data Science (Honours)
+CUFYUGP Regulations 2024
+
+This syllabus outlines the complete four-year undergraduate programme in Applied Statistics with Data Science (Honours) under the University of Calicut, implemented from the 2024 admission onwards.
+
+PROGRAMME STRUCTURE:
+---------------------
+- Three main pathways: Single Major, Major with Minor, Major with Multiple Disciplines.
+- 133 credits for a 3-year UG Degree.
+- 177 credits for a 4-year UG Honours Degree (with/without Research).
+- Components: Major Courses, Minor/Other Discipline Courses, Foundation Courses, Ability Enhancement, Skill Enhancement, Value Added Courses, Internship, Project.
+
+PROGRAMME OUTCOMES (PO):
+At the end of the graduate programme at Calicut University, a student would:
+- PO1: Knowledge Acquisition
+- PO2: Communication, Collaboration, Inclusiveness, and Leadership
+- PO3: Professional Skills
+- PO4: Digital Intelligence
+- PO5: Scientific Awareness and Critical Thinking
+- PO6: Human Values, Professional Ethics, and Societal and Environmental Responsibility
+- PO7: Research, Innovation, and Entrepreneurship
+
+PROGRAMME SPECIFIC OUTCOMES (PSO):
+At the end of the BSc Applied Statistics with Data Science (Honours) programme at Calicut University, a student would:
+- PSO1: Comprehensive understanding of concepts, principles, theories, and applications of Statistics.
+- PSO2: Apply fundamental concepts of descriptive and inferential Statistics using data science methodology.
+- PSO3: Master skills in using Statistical Software.
+- PSO4: Identify potential applications of Statistical theories.
+- PSO5: Construct Statistical models for real-world problems.
+- PSO6: Continue to acquire relevant knowledge and skills.
+- PSO7: Acquire statistical skills required to work in the data science industry.
+
+MINIMUM CREDIT REQUIREMENTS OF THE DIFFERENT PATHWAYS IN THE THREE-YEAR PROGRAMME IN CUFYUGP:
+- Single Major: 68 (17 courses), Minor/Other Disciplines: 24 (6 courses), Foundation Courses: 39 (13 courses), Total Credits: 133
+- Major with Multiple Disciplines: 68 (17 courses), 12 + 12 (3 + 3 = 6 courses), Total Credits: 133
+- Major with Minor: 68 (17 courses), Minor: 24 (6 courses), Total Credits: 133
+
+
+COURSE HIGHLIGHTS:
+------------------
+Each semester includes Core Major Courses, Electives, Foundation and Multi-disciplinary courses. Key areas covered include:
+- Descriptive Statistics, Probability Theory, Distributions
+- Sampling Methods, Estimation, Hypothesis Testing
+- Data Mining, Time Series, Regression, Machine Learning
+- Advanced Analytical Tools, Multivariate Techniques, Stochastic Processes
+- R programming and Python for data analysis
+
+EVALUATION SCHEME:
+------------------
+- Internal (30%) + External (70%) evaluations.
+- Internal: Mid-term exams, assignments, seminars, practicals.
+- Projects and Internships are assessed by internal/external panels.
+- Semester-end examinations follow structured question pattern.
+
+INTERNSHIP AND PROJECTS:
+------------------------
+- Internship mandatory in 6th semester (2 credits).
+- Project (12 credits) replaces major courses in 8th semester for Honours & Honours with Research.
+- Internships require logbooks, study tours, and evaluation reports.
+- Projects demand rigorous documentation and evaluation by internal/external panels.
+
+GRADING SYSTEM:
+----------------
+- 10-point indirect grading.
+- Grade Points mapped to letter grades (O to F).
+- SGPA and CGPA computed using credit-weighted scores.
+
+Comprehensive Guide to B.Sc. Applied Statistics with Data Science Honours Program
+Program Implementation Details
+
+    University Order No. 11430/2024/Admn dated 23.07.2024
+    Implemented with effect from 2024 admission onwards
+    Subject to ratification by the Academic Council
+    Follows CUFYUGP Regulations 2024
+
+Credit Distribution for Three-Year Program (133 Credits)
+
+    Major Courses: 68 credits (17 courses)
+    Minor Courses: 24 credits (6 courses)
+    General Foundation Courses: 39 credits (AEC: 4, MDC: 3, SEC: 3, VAC: 3)
+    Internship: 2 credits
+
+Credit Distribution for Four-Year Program (177 Credits)
+
+    Includes all credits from three-year program plus:
+    Additional Major Courses: 20 credits in 7th semester
+    Additional Major/Minor Courses: 24 credits in 8th semester OR
+    Project (Honours): 12 credits (replacing 3 major courses) + Additional electives
+
+Semester-wise Course Structure
+SEMESTER I (21 Credits)
+
+    ASD1CJ101: Descriptive Statistics (Core, 4 credits, 5 hrs/week, 75 total hrs)
+        Modules: Introduction to Statistics, Measures of Central Tendency and Dispersion, Correlation of Bivariate Data, Introduction to R, Practical Applications
+        Assessment: Internal (30 marks), External (70 marks)
+    Minor Course 1: 4 credits
+    Minor Course 2: 4 credits
+    AEC 1 (English): 3 credits
+    AEC 2 (Additional Language): 3 credits
+    MDC 1: 3 credits (Options include Quality Control or Fundamentals of Statistics)
+
+SEMESTER II (21 Credits)
+
+    ASD2CJ101: Probability and Random Variables (Core, 4 credits, 5 hrs/week, 75 total hrs)
+        Modules: Concept of Probability, Conditional Probability, Random Variables, Mathematical Expectation, Practical Applications
+        Assessment: Internal (30 marks), External (70 marks)
+    Minor Course 3: 4 credits
+    Minor Course 4: 4 credits
+    AEC 3 (English): 3 credits
+    AEC 4 (Additional Language): 3 credits
+    MDC 2: 3 credits (Options include Managerial Decision Making or Statistical Sampling and Probability Theory)
+
+SEMESTER III (22 Credits)
+
+    ASD3CJ201: Probability Distributions (Core, 4 credits, 5 hrs/week, 75 total hrs)
+        Modules: Discrete Distributions I & II, Continuous Distributions, Normal Distribution, Practical Applications
+    ASD3CJ202: Bivariate Random Variables and Limit Theorems (Core, 4 credits, 4 hrs/week, 60 total hrs)
+        Modules: Bivariate Random Variable, Bivariate Expectation, Bivariate Normal Distribution, Limit Theorems, Practical Applications
+    Minor Course 5: 4 credits
+    Minor Course 6: 4 credits
+    MDC 3 (Kerala Knowledge System): 3 credits
+    VAC 1 (English): 3 credits
+
+SEMESTER IV (21 Credits)
+
+    ASD4CJ203: Sampling Methods (Core, 4 credits, 5 hrs/week, 75 total hrs)
+        Modules: Statistical Surveys, Simple Random Sampling, Stratified Random Sampling, Systematic and Cluster Sampling, Practical Applications
+    ASD4CJ204: Sampling Distributions and Estimation Theory (Core, 4 credits, 4 hrs/week, 60 total hrs)
+        Modules: Sampling Distributions, Point Estimation, Methods of Point Estimation, Interval Estimation, Practical Applications
+    ASD4CJ205: Testing of Hypothesis (Core, 4 credits, 5 hrs/week, 75 total hrs)
+        Modules: Statistical Hypothesis, Tests of Hypothesis, Parametric Tests, Non-parametric Tests, Practical Applications
+    VAC 2 (English): 3 credits
+    VAC 3 (Additional Language): 3 credits
+    SEC 1 (English): 3 credits
+
+SEMESTER V (23 Credits)
+
+    ASD5CJ301: Design and Analysis of Experiments (Core, 4 credits, 5 hrs/week, 75 total hrs)
+        Modules: Theory of Linear Estimation, Analysis of Variance, Analysis of Covariance, Basic Designs, Practical Applications
+    ASD5CJ302: Data Mining Techniques (Core, 4 credits, 5 hrs/week, 75 total hrs)
+        Modules: Data Warehousing, Data Mining, Association Rules, Clustering Techniques, Practical Applications
+    ASD5CJ303: Introduction to Time Series and Index Numbers (Core, 4 credits, 4 hrs/week, 60 total hrs)
+        Modules: Introduction to Time Series, Seasonal and Cyclical Variations, Index Numbers, Tests for Consistency of Index Numbers
+    Elective Course 1: 4 credits (Choose from 5 options in Semester V)
+    Elective Course 2: 4 credits (Choose from 5 options in Semester V)
+    SEC 2: 3 credits (Statistical Analysis using Python)
+
+SEMESTER VI (25 Credits)
+
+    ASD6CJ304: Linear Regression Analysis (Core, 4 credits, 5 hrs/week, 75 total hrs)
+        Modules: Simple Regression, Multiple Regression, Model Adequacy Checking, Transformation and Weighting, Practical Applications
+    ASD6CJ305: Multivariate Analysis (Core, 4 credits, 5 hrs/week, 75 total hrs)
+        Modules: Multivariate Normal Distribution, T² and D² Distributions, Classification Models, Dimensionality Reduction Techniques
+    ASD6CJ306: Statistical Machine Learning (Core, 4 credits, 5 hrs/week, 75 total hrs)
+        Modules: Introduction to Statistical Machine Learning, Pattern Recognition Problem, Nearest Neighbor Rule, Neural Networks: Perceptrons
+    Elective Course 3: 4 credits (Choose from 5 options in Semester VI)
+    Elective Course 4: 4 credits (Choose from 5 options in Semester VI)
+    SEC 3: 3 credits (Basic Research Methodology)
+    Internship: 2 credits (60 hours minimum engagement)
+
+SEMESTER VII (20 Credits) - For Honours/Honours with Research
+
+    STA7CJ401: Advanced Analytical Tools (Core, 4 credits, 5 hrs/week, 75 total hrs)
+        Modules: Riemann–Stieltjes Integral, Sequences and Series of Functions, Algebra of Vectors, Algebra of Matrices
+    STA7CJ402: Probability Theory (Core, 4 credits, 5 hrs/week, 75 total hrs)
+        Modules: Measure Theory Foundations, Distribution Functions, Convergence Theorems, Modes of Convergence
+    STA7CJ403: Distribution Theory (Core, 4 credits, 5 hrs/week, 75 total hrs)
+        Modules: Multivariate Distributions, Wishart Distribution, Hotelling's T² and Mahalanobis D² Distributions
+    STA7CJ404: Advanced Sampling Methods and Design of Experiments (Core, 4 credits, 5 hrs/week, 75 total hrs)
+        Modules: Probability Proportional to Size Sampling, Incomplete Block Designs, Factorial Designs
+    STA7CJ405: Advanced Statistical Inference (Core, 4 credits, 5 hrs/week, 75 total hrs)
+        Modules: UMVUE, Consistency, UMP Tests, Sequential Tests
+
+SEMESTER VIII (24 Credits) - For Honours/Honours with Research
+
+Option 1: Course-based path
+
+    STA8CJ406: Applied Stochastic Processes and Time Series Analysis (Core, 4 credits, 5 hrs/week, 75 total hrs)
+        Modules: Markov Chains, Queuing Theory, Renewal Process, Time Series Models
+    STA8CJ407: Applied Multivariate Techniques (Core, 4 credits, 4 hrs/week, 60 total hrs)
+        Modules: Principal Component Analysis, Classification Problems, Discriminant Analysis, Cluster Analysis
+    STA8CJ408: Generalized Linear Models (Core, 4 credits, 4 hrs/week, 60 total hrs)
+        Modules: GLM Components, Model Fitting, Binary/Multinomial Models, Count Data Models
+
+        Option 2: Project-based path
+    STA8CJ449: Project (Honours) OR STA8CJ499: Research Project (Honours with Research) - 12 credits, replacing the three core courses above
+
+Plus for both options:
+
+    Elective Course 5: 4 credits
+    Elective Course 6: 4 credits
+    Elective Course 7: 4 credits OR STA8CJ489: Research Methodology (for Honours with Research)
+
+Elective Courses Options
+Semester V Electives (Choose 2)
+
+    ASD5EJ301: Official Statistics
+    ASD5EJ302: Actuarial Statistics
+    ASD5EJ303: Psychometric Theory and Methods
+    ASD5EJ304: Survival Analysis
+    ASD5EJ305: Population Statistics
+
+Semester VI Electives (Choose 2)
+
+    ASD6EJ306: Biostatistics
+    ASD6EJ307: Econometrics
+    ASD6EJ308: Statistical Quality Control
+    ASD6EJ309: Operations Research
+    ASD6EJ310: Simulation Techniques
+
+Semester VIII Electives (Choose up to 3)
+
+    STA8EJ411: Statistical Methods for Machine Learning
+    STA8EJ412: Operations Research
+    STA8EJ413: Queueing Models
+    STA8EJ414: Statistical Decision Theory
+    STA8EJ415: Analysis of Clinical Trials
+    STA8EJ416: Applied Algorithms and Big Data Techniques
+    STA8EJ417: Advanced Trends in Statistics
+
+Assessment System
+
+    Internal Assessment: 30% (Theory: 30 marks, Practical: 20 marks)
+    External Assessment: 70% (Theory: 70 marks)
+    Grading: 10-point scale with letter grades (O, A+, A, B+, B, C, P, F)
+    Outcome Computation: SGPA (Semester Grade Point Average), CGPA (Cumulative Grade Point Average)
+
+Special Requirements
+
+    Internship: 
+
+        2 credits, 60 hours minimum engagement
+        Can be done during vacations or holidays
+        Requires supervisor from host institution
+        Evaluation: 40% continuous assessment, 35% end-semester viva-voce, 15% report evaluation, 10% institute visit
+
+    Project (For Honours/Honours with Research):
+
+        12 credits, 300 hours minimum engagement
+        Individual project work (experimental/theoretical/computational)
+        Supervision by qualified faculty
+        Evaluation: 30% continuous assessment, 50% external viva-voce, 20% report evaluation
+        For Honours with Research: Must be supervised by PhD-qualified faculty
+
+This program integrates theoretical knowledge with practical applications, focusing on developing statistical reasoning, data analysis skills, and research capabilities aligned with industry and academic requirements.
+
+ELECTIVE COURSES:
+-----------------
+Include topics like Actuarial Statistics, Biostatistics, Econometrics, Simulation, Statistical Decision Theory, and Big Data.
+
+SOFTWARE TRAINING:
+------------------
+Use of R and Python for statistical analysis, visualization, and model implementation is integrated into courses and labs.
