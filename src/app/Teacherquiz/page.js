@@ -241,9 +241,6 @@ export default function TeacherQuiz() {
         setLoading(false);
     };
 
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>{error}</div>;
-
     return (
         <div className={styles.container}>
             <Navbar />
@@ -421,8 +418,20 @@ export default function TeacherQuiz() {
                         )}
 
                         {error && <div className={styles.error}>{error}</div>}
+                    </div>
 
-                        {questions.length > 0 && (
+                    {loading && (
+                        <div className={styles.loadingSection}>
+                            <div className={styles.loadingCard}>
+                                <div className={styles.loadingSpinner}></div>
+                                <h3>Generating Quiz Questions...</h3>
+                                <p>Please wait while AI creates your quiz questions</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {questions.length > 0 && (
+                        <div className={styles.saveQuizSection}>
                             <button
                                 key="save-quiz-button"
                                 onClick={handleSaveQuiz}
@@ -431,8 +440,8 @@ export default function TeacherQuiz() {
                             >
                                 {loading ? (
                                     <>
-                                        <span className={styles.buttonIcon}>💾</span>
-                                        Saving...
+                                        <span className={styles.buttonIcon}>⏳</span>
+                                        Saving Quiz...
                                     </>
                                 ) : (
                                     <>
@@ -441,8 +450,8 @@ export default function TeacherQuiz() {
                                     </>
                                 )}
                             </button>
-                        )}
-                    </div>
+                        </div>
+                    )}
 
                     {questions.length > 0 && (
                         <div className={styles.questionsSection}>

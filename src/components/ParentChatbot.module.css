@@ -1,34 +1,35 @@
+/* Import Poppins Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
 .chatbotContainer {
   position: fixed;
   bottom: 30px;
   right: 30px;
   z-index: 1000;
+  font-family: 'Poppins', sans-serif;
 }
 
 .chatbotButton {
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(45deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, #667eea, #764ba2);
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 4px 0 #1e40af;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .chatbotButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 0 #1e40af;
-  background: linear-gradient(45deg, #60a5fa, #3b82f6);
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
 }
 
 .chatbotButton:active {
-  transform: translateY(2px);
-  box-shadow: 0 2px 0 #1e40af;
+  transform: translateY(-2px);
 }
 
 .chatbotIcon {
@@ -40,45 +41,60 @@
   position: fixed;
   bottom: 100px;
   right: 30px;
-  width: 350px;
-  height: 500px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  width: 380px;
+  height: 550px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid rgba(127, 55, 198, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.chatWindow:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
 }
 
 .chatHeader {
-  background: linear-gradient(135deg, #1a0033, #7f37c6);
+  background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
-  padding: 15px;
+  padding: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .chatHeader h3 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
   letter-spacing: 0.5px;
 }
 
 .closeButton {
-  background: none;
+  background: rgba(255, 255, 255, 0.2);
   border: none;
   color: white;
   cursor: pointer;
   font-size: 1.2rem;
-  transition: transform 0.2s;
+  transition: all 0.3s ease;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .closeButton:hover {
+  background: rgba(255, 255, 255, 0.3);
   transform: scale(1.1);
 }
 
@@ -86,172 +102,170 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
-  padding: 20px;
+  padding: 25px;
   flex: 1;
   justify-content: center;
   overflow-y: auto;
-  background: #f8f9fa;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .optionButton {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 15px;
-  background: white;
-  border: 1px solid rgba(127, 55, 198, 0.3);
-  border-radius: 8px;
+  gap: 15px;
+  padding: 18px 20px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 15px;
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 1rem;
-  color: #333;
+  color: #2d3748;
   font-family: 'Poppins', sans-serif;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  font-weight: 500;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .optionButton:hover {
-  background: #f0f0f0;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-  border-color: rgba(127, 55, 198, 0.7);
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border-color: rgba(102, 126, 234, 0.3);
 }
 
 .optionButton:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
 }
 
 .optionIcon {
-  font-size: 1.2rem;
-  color: #7f37c6;
+  font-size: 1.3rem;
+  color: #667eea;
 }
 
 .chatContent {
   display: flex;
   flex-direction: column;
   flex: 1;
-  background: #f8f9fa;
+  background: rgba(255, 255, 255, 0.5);
   overflow: hidden;
 }
 
 .messagesContainer {
   flex: 1;
-  padding: 15px;
+  padding: 20px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-height: calc(100% - 70px);
+  gap: 12px;
+  max-height: calc(100% - 80px);
 }
 
 .message {
-  max-width: 80%;
-  padding: 10px 15px;
-  border-radius: 12px;
+  max-width: 85%;
+  padding: 12px 18px;
+  border-radius: 18px;
   font-size: 0.95rem;
-  line-height: 1.4;
+  line-height: 1.5;
   word-wrap: break-word;
+  font-family: 'Poppins', sans-serif;
 }
 
 .userMessage {
   align-self: flex-end;
-  background: linear-gradient(45deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
-  border-bottom-right-radius: 4px;
+  border-bottom-right-radius: 6px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .botMessage {
   align-self: flex-start;
-  background: white;
-  color: #333;
-  border: 1px solid rgba(127, 55, 198, 0.3);
-  border-bottom-left-radius: 4px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  color: #2d3748;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-bottom-left-radius: 6px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .inputContainer {
   display: flex;
-  padding: 15px;
-  background: white;
-  border-top: 1px solid rgba(127, 55, 198, 0.2);
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  gap: 12px;
 }
 
 .messageInput {
   flex: 1;
-  padding: 10px 15px;
-  border: 1px solid rgba(127, 55, 198, 0.3);
-  border-radius: 20px;
+  padding: 12px 18px;
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 25px;
   outline: none;
   font-size: 0.95rem;
-  transition: border-color 0.2s;
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.8);
 }
 
 .messageInput:focus {
-  border-color: #7f37c6;
+  border-color: #667eea;
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .sendButton {
-  background: linear-gradient(45deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
   border: none;
-  border-radius: 20px;
-  padding: 0 15px;
-  margin-left: 10px;
+  border-radius: 25px;
+  padding: 12px 20px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   font-weight: 600;
-  box-shadow: 0 2px 0 #1e40af;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
-.sendButton:hover {
-  background: linear-gradient(45deg, #60a5fa, #3b82f6);
-  transform: translateY(-1px);
-  box-shadow: 0 3px 0 #1e40af;
+.sendButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
 
 .sendButton:active {
-  transform: translateY(1px);
-  box-shadow: 0 1px 0 #1e40af;
+  transform: translateY(0);
 }
 
 .sendButton:disabled {
-  background: #ccc;
+  background: #a0aec0;
   cursor: not-allowed;
   box-shadow: none;
-}
-
-@media (max-width: 768px) {
-  .chatbotContainer {
-    bottom: 20px;
-    right: 20px;
-  }
-  
-  .chatbotButton {
-    width: 50px;
-    height: 50px;
-  }
-  
-  .chatWindow {
-    width: 90%;
-    height: 60vh;
-    bottom: 80px;
-    right: 5%;
-  }
+  transform: none;
 }
 
 .welcomePopup {
   position: fixed;
   bottom: 100px;
   right: 30px;
-  background: white;
-  border-radius: 12px;
-  padding: 25px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
   z-index: 1100;
   max-width: 400px;
   width: 90%;
-  border: 2px solid rgba(127, 55, 198, 0.7);
-  animation: slideIn 0.3s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  animation: slideIn 0.4s ease-out;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.welcomePopup:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
 }
 
 .welcomeContent {
@@ -262,38 +276,44 @@
 }
 
 .welcomeIcon {
-  font-size: 40px;
-  color: #7f37c6;
-  margin-bottom: 15px;
+  font-size: 45px;
+  color: #667eea;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .welcomeContent p {
   font-family: 'Poppins', sans-serif;
-  font-size: 16px;
-  color: #333;
-  margin-bottom: 15px;
-  line-height: 1.5;
+  font-size: 1.1rem;
+  color: #2d3748;
+  margin-bottom: 20px;
+  line-height: 1.6;
+  font-weight: 500;
 }
 
 .welcomeContent ul {
   text-align: left;
-  margin: 0 0 20px 0;
+  margin: 0 0 25px 0;
   padding-left: 20px;
 }
 
 .welcomeContent li {
   font-family: 'Poppins', sans-serif;
-  font-size: 14px;
-  color: #555;
-  margin-bottom: 8px;
+  font-size: 0.95rem;
+  color: #4a5568;
+  margin-bottom: 10px;
   position: relative;
   padding-left: 25px;
+  line-height: 1.5;
 }
 
 .welcomeContent li:before {
   content: "•";
-  color: #7f37c6;
-  font-size: 18px;
+  color: #667eea;
+  font-size: 20px;
   position: absolute;
   left: 0;
   top: -2px;
@@ -301,33 +321,113 @@
 
 .closeWelcome {
   font-family: 'Poppins', sans-serif;
-  font-size: 14px;
+  font-size: 0.95rem;
   font-weight: 600;
-  background: linear-gradient(45deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
   border: none;
-  border-radius: 8px;
-  padding: 10px 20px;
+  border-radius: 12px;
+  padding: 12px 24px;
   cursor: pointer;
   transition: all 0.3s ease;
-  text-transform: uppercase;
-  box-shadow: 0 4px 0 #1e40af;
-  letter-spacing: 1px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .closeWelcome:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 0 #1e40af;
-  background: linear-gradient(45deg, #60a5fa, #3b82f6);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
 
 @keyframes slideIn {
   from {
     opacity: 0;
-    transform: translateX(100%);
+    transform: translateX(100%) translateY(20px);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(0) translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .chatbotContainer {
+    bottom: 20px;
+    right: 20px;
+  }
+  
+  .chatbotButton {
+    width: 55px;
+    height: 55px;
+  }
+  
+  .chatWindow {
+    width: 90%;
+    height: 65vh;
+    bottom: 85px;
+    right: 5%;
+  }
+  
+  .welcomePopup {
+    bottom: 85px;
+    right: 5%;
+    width: 90%;
+    padding: 25px;
+  }
+  
+  .welcomeContent p {
+    font-size: 1rem;
+  }
+  
+  .welcomeContent li {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .chatbotButton {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .chatbotIcon {
+    font-size: 20px;
+  }
+  
+  .chatWindow {
+    width: 95%;
+    height: 70vh;
+    bottom: 80px;
+    right: 2.5%;
+  }
+  
+  .welcomePopup {
+    bottom: 80px;
+    right: 2.5%;
+    width: 95%;
+    padding: 20px;
+  }
+  
+  .optionButton {
+    padding: 15px 18px;
+    font-size: 0.9rem;
+  }
+  
+  .message {
+    font-size: 0.9rem;
+    padding: 10px 15px;
+  }
+  
+  .inputContainer {
+    padding: 15px;
+  }
+  
+  .messageInput {
+    padding: 10px 15px;
+    font-size: 0.9rem;
+  }
+  
+  .sendButton {
+    padding: 10px 16px;
+    font-size: 0.85rem;
   }
 } 
