@@ -1032,6 +1032,29 @@
   font-weight: 600;
 }
 
+.summary pre {
+  color: #1a1f3c;
+  background: white;
+  padding: 15px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+.submittedAt {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-top: 10px;
+  font-style: italic;
+}
+
 .summaryTextarea {
   width: 100%;
   min-height: 150px;
