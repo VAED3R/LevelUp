@@ -99,7 +99,6 @@ export default function ClassC() {
                                     <div className={styles.classIcon}>🏫</div>
                                     <div className={styles.classMeta}>
                                         <h3 className={styles.classTitle}>{cls.name}</h3>
-                                        <span className={styles.classType}>Computer Science</span>
                                     </div>
                                 </div>
                                 <div className={styles.classStats}>
