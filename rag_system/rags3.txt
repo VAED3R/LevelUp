@@ -1,0 +1,150 @@
+University of Calicut
+B.Sc Applied Statistics with Data Science (Honours)
+CUFYUGP Regulations 2024
+
+This syllabus outlines the complete four-year undergraduate programme in Applied Statistics with Data Science (Honours) under the University of Calicut, implemented from the 2024 admission onwards.
+
+PROGRAMME STRUCTURE:
+---------------------
+- Three main pathways: Single Major, Major with Minor, Major with Multiple Disciplines.
+- 133 credits for a 3-year UG Degree.
+- 177 credits for a 4-year UG Honours Degree (with/without Research).
+- Components: Major Courses, Minor/Other Discipline Courses, Foundation Courses, Ability Enhancement, Skill Enhancement, Value Added Courses, Internship, Project.
+
+PROGRAMME OUTCOMES (PO):
+At the end of the graduate programme at Calicut University, a student would:
+- PO1: Knowledge Acquisition
+- PO2: Communication, Collaboration, Inclusiveness, and Leadership
+- PO3: Professional Skills
+- PO4: Digital Intelligence
+- PO5: Scientific Awareness and Critical Thinking
+- PO6: Human Values, Professional Ethics, and Societal and Environmental Responsibility
+- PO7: Research, Innovation, and Entrepreneurship
+
+PROGRAMME SPECIFIC OUTCOMES (PSO):
+At the end of the BSc Applied Statistics with Data Science (Honours) programme at Calicut University, a student would:
+- PSO1: Comprehensive understanding of concepts, principles, theories, and applications of Statistics.
+- PSO2: Apply fundamental concepts of descriptive and inferential Statistics using data science methodology.
+- PSO3: Master skills in using Statistical Software.
+- PSO4: Identify potential applications of Statistical theories.
+- PSO5: Construct Statistical models for real-world problems.
+- PSO6: Continue to acquire relevant knowledge and skills.
+- PSO7: Acquire statistical skills required to work in the data science industry.
+
+MINIMUM CREDIT REQUIREMENTS OF THE DIFFERENT PATHWAYS IN THE THREE-YEAR PROGRAMME IN CUFYUGP:
+- Single Major: 68 (17 courses), Minor/Other Disciplines: 24 (6 courses), Foundation Courses: 39 (13 courses), Total Credits: 133
+- Major with Multiple Disciplines: 68 (17 courses), 12 + 12 (3 + 3 = 6 courses), Total Credits: 133
+- Major with Minor: 68 (17 courses), Minor: 24 (6 courses), Total Credits: 133
+
+
+COURSE HIGHLIGHTS:
+------------------
+Each semester includes Core Major Courses, Electives, Foundation and Multi-disciplinary courses. Key areas covered include:
+- Descriptive Statistics, Probability Theory, Distributions
+- Sampling Methods, Estimation, Hypothesis Testing
+- Data Mining, Time Series, Regression, Machine Learning
+- Advanced Analytical Tools, Multivariate Techniques, Stochastic Processes
+- R programming and Python for data analysis
+
+EVALUATION SCHEME:
+------------------
+- Internal (30%) + External (70%) evaluations.
+- Internal: Mid-term exams, assignments, seminars, practicals.
+- Projects and Internships are assessed by internal/external panels.
+- Semester-end examinations follow structured question pattern.
+
+INTERNSHIP AND PROJECTS:
+------------------------
+- Internship mandatory in 6th semester (2 credits).
+- Project (12 credits) replaces major courses in 8th semester for Honours & Honours with Research.
+- Internships require logbooks, study tours, and evaluation reports.
+- Projects demand rigorous documentation and evaluation by internal/external panels.
+
+GRADING SYSTEM:
+----------------
+- 10-point indirect grading.
+- Grade Points mapped to letter grades (O to F).
+- SGPA and CGPA computed using credit-weighted scores.
+
+Semester I:
+- Descriptive Statistics (Core)
+- Minor Courses (2 subjects)
+- English (Ability Enhancement)
+- Additional Language (Ability Enhancement)
+- Multidisciplinary Course (e.g., Fundamentals of Statistics or Quality Control)
+
+Semester II:
+- Probability and Random Variables (Core)
+- Minor Courses (2 subjects)
+- English (Ability Enhancement)
+- Additional Language (Ability Enhancement)
+- Multidisciplinary Course (e.g., Statistical Sampling and Probability Theory)
+
+Semester III:
+- Probability Distributions (Core)
+- Bivariate Random Variables and Limit Theorems (Core)
+- Minor Courses (2 subjects)
+- Kerala Knowledge System (Multidisciplinary)
+- Value-Added English Course
+
+Semester IV:
+- Sampling Methods (Core)
+- Sampling Distributions and Estimation Theory (Core)
+- Testing of Hypothesis (Core)
+- Value-Added Courses (English and Additional Language)
+- Skill Enhancement Course 1
+
+Semester V:
+- Design and Analysis of Experiments (Core)
+- Data Mining Techniques (Core)
+- Time Series and Index Numbers (Core)
+- Two Electives (e.g., Official Statistics, Actuarial Stats)
+- Skill Enhancement Course 2 (Statistical Analysis with Python)
+
+Semester VI:
+- Linear Regression Analysis (Core)
+- Multivariate Analysis (Core)
+- Statistical Machine Learning (Core)
+- Two Electives (e.g., Econometrics, Biostatistics)
+- Skill Enhancement Course 3 (Basic Research Methodology)
+- Internship (2 credits)
+
+Semester VII:
+- Advanced Analytical Tools (Core)
+- Probability Theory (Core)
+- Distribution Theory (Core)
+- Advanced Sampling & Experimental Design (Core)
+- Advanced Statistical Inference (Core)
+
+Semester VIII:
+Option A - Coursework:
+- Applied Stochastic Processes and Time Series Analysis
+- Applied Multivariate Techniques
+- Generalized Linear Models
+- Three Elective/Minor Courses (e.g., Big Data Techniques, Queueing Models)
+
+Option B - Project Track:
+- Research Project or Project (12 credits)
+- Research Methodology
+- Two Elective/Minor Courses
+
+ELECTIVE COURSES:
+-----------------
+Include topics like Actuarial Statistics, Biostatistics, Econometrics, Simulation, Statistical Decision Theory, and Big Data.
+
+SOFTWARE TRAINING:
+------------------
+Use of R and Python for statistical analysis, visualization, and model implementation is integrated into courses and labs.
+
+DETAILED SYLLABI:
+-----------------
+Each course includes:
+- Objectives and expected outcomes (COs)
+- Mapping to Programme Outcomes (POs) and Specific Outcomes (PSOs)
+- Module-wise syllabus with references and practical applications
+
+COURSE DELIVERY:
+----------------
+Courses include lectures, tutorials, hands-on practicals, open-ended modules for projects or case studies, and extensive use of statistical software.
+
+Overall, the syllabus is designed to balance theoretical depth, practical application, and employability skills with a strong emphasis on modern data science tools.
