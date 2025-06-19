@@ -12,7 +12,7 @@ import IntroAnimation from "../../components/IntroAnimation";
 
 export default function CourseMats() {
     const [semesters, setSemesters] = useState([]);
-    const [selectedSemester, setSelectedSemester] = useState("");
+    const [selectedSemester, setSelectedSemester] = useState("6");
     const [subjects, setSubjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [studentEmail, setStudentEmail] = useState("");
