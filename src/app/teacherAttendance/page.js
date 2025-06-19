@@ -35,6 +35,14 @@ export default function TeacherAttendance() {
     const [selectedSemester, setSelectedSemester] = useState("");
     const [allSubjectsData, setAllSubjectsData] = useState([]);
     const [allStudents, setAllStudents] = useState([]);
+    
+    // Real-time attendance statistics
+    const [attendanceStats, setAttendanceStats] = useState({
+        totalStudents: 0,
+        present: 0,
+        absent: 0,
+        percentage: 0
+    });
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -261,6 +269,30 @@ export default function TeacherAttendance() {
         }
     }, [selectedClass, selectedSubject, allStudents]);
 
+    // Calculate attendance statistics whenever attendance or filteredStudents change
+    useEffect(() => {
+        if (filteredStudents.length > 0) {
+            const totalStudents = filteredStudents.length;
+            const present = Object.values(attendance).filter(Boolean).length;
+            const absent = totalStudents - present;
+            const percentage = totalStudents > 0 ? Math.round((present / totalStudents) * 100) : 0;
+            
+            setAttendanceStats({
+                totalStudents,
+                present,
+                absent,
+                percentage
+            });
+        } else {
+            setAttendanceStats({
+                totalStudents: 0,
+                present: 0,
+                absent: 0,
+                percentage: 0
+            });
+        }
+    }, [attendance, filteredStudents]);
+
     const handleToggleAttendance = (studentId) => {
         setAttendance((prev) => ({
             ...prev,
@@ -445,6 +477,7 @@ export default function TeacherAttendance() {
                     <div className={styles.formGroup}>
                         <label>Class:</label>
                         <select
+                            key={`class-${selectedClass}`}
                             value={selectedClass}
                             onChange={(e) => setSelectedClass(e.target.value)}
                             required
@@ -461,6 +494,7 @@ export default function TeacherAttendance() {
                     <div className={styles.formGroup}>
                         <label>Semester:</label>
                         <select
+                            key={`semester-${selectedSemester}`}
                             value={selectedSemester}
                             onChange={(e) => setSelectedSemester(e.target.value)}
                             required
@@ -477,6 +511,7 @@ export default function TeacherAttendance() {
                     <div className={styles.formGroup}>
                         <label>Subject:</label>
                         <select
+                            key={`subject-${selectedSubject}-${selectedSemester}`}
                             value={selectedSubject}
                             onChange={(e) => setSelectedSubject(e.target.value)}
                             required
@@ -494,19 +529,56 @@ export default function TeacherAttendance() {
                     </div>
                 </div>
 
+                {/* Real-time Attendance Analyzer */}
+                {selectedClass && selectedSubject && selectedSemester && (
+                    <div className={styles.attendanceAnalyzer}>
+                        <h2 className={styles.analyzerTitle}>Attendance Overview</h2>
+                        <div className={styles.statsGrid}>
+                            <div className={styles.statCard}>
+                                <div className={styles.statIcon}>👥</div>
+                                <div className={styles.statContent}>
+                                    <h3>{attendanceStats.totalStudents}</h3>
+                                    <p>Total Students</p>
+                                </div>
+                            </div>
+                            <div className={styles.statCard}>
+                                <div className={styles.statIcon}>✅</div>
+                                <div className={styles.statContent}>
+                                    <h3>{attendanceStats.present}</h3>
+                                    <p>Present</p>
+                                </div>
+                            </div>
+                            <div className={styles.statCard}>
+                                <div className={styles.statIcon}>❌</div>
+                                <div className={styles.statContent}>
+                                    <h3>{attendanceStats.absent}</h3>
+                                    <p>Absent</p>
+                                </div>
+                            </div>
+                            <div className={styles.statCard}>
+                                <div className={styles.statIcon}>📊</div>
+                                <div className={styles.statContent}>
+                                    <h3>{attendanceStats.percentage}%</h3>
+                                    <p>Attendance Rate</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {selectedClass && selectedSubject && selectedSemester && (
                     <div className={styles.markAllContainer}>
                         <button
                             type="button"
                             onClick={handleMarkAllPresent}
-                            className={styles.markAllButton}
+                            className={`${styles.markAllButton} ${styles.markAllPresent}`}
                         >
                             Mark All Present
                         </button>
                         <button
                             type="button"
                             onClick={handleMarkAllAbsent}
-                            className={styles.markAllButton}
+                            className={`${styles.markAllButton} ${styles.markAllAbsent}`}
                         >
                             Mark All Absent
                         </button>

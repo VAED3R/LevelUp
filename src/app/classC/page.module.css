@@ -1,6 +1,6 @@
 .classContainer {
     min-height: 90vh;
-    background: radial-gradient(circle at bottom, #5a35ab, #181e39, #0a0a1a);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #ffffff;
     padding: 40px 30px;
     font-family: 'Poppins', sans-serif;
