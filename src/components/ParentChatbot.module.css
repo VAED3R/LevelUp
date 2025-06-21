@@ -208,6 +208,7 @@
   font-family: 'Poppins', sans-serif;
   transition: all 0.3s ease;
   background: rgba(255, 255, 255, 0.8);
+  color: #000;
 }
 
 .messageInput:focus {
@@ -259,13 +260,12 @@
   max-width: 400px;
   width: 90%;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  animation: slideIn 0.4s ease-out;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease, box-shadow 0.3s ease;
 }
 
-.welcomePopup:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+.welcomePopup.fadeOut {
+  animation: slideDown 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .welcomeContent {
@@ -338,14 +338,25 @@
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
 
-@keyframes slideIn {
+@keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateX(100%) translateY(20px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
-    transform: translateX(0) translateY(0);
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px);
   }
 }
 
