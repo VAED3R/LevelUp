@@ -13,6 +13,68 @@ export default function StudentQuizList() {
   const [error, setError] = useState(null);
   const router = useRouter();
 
+  // Simplified gamification helper functions
+  const calculateEstimatedTime = (quiz) => {
+    const questionCount = quiz.questions?.length || 0;
+    
+    // Use the same time calculation logic as the actual quiz
+    let secondsPerQuestion = 60; // Default 1 minute per question
+    
+    if (questionCount <= 5) {
+      secondsPerQuestion = 90; // More time for short quizzes
+    } else if (questionCount <= 10) {
+      secondsPerQuestion = 60; // Standard time
+    } else if (questionCount <= 20) {
+      secondsPerQuestion = 45; // Less time per question for longer quizzes
+    } else {
+      secondsPerQuestion = 30; // Even less time for very long quizzes
+    }
+    
+    const totalSeconds = questionCount * secondsPerQuestion;
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    
+    // Format time display in single line
+    if (minutes === 0) {
+      return `${seconds}s`;
+    } else if (seconds === 0) {
+      return `${minutes}m`;
+    } else {
+      return `${minutes}m${seconds}s`;
+    }
+  };
+
+  const calculateMaxPoints = (quiz) => {
+    // Maximum points is always 10 (for 100% score)
+    return 10;
+  };
+
+  const getSubjectIcon = (subject) => {
+    const subjectIcons = {
+      'Mathematics': '🔢',
+      'Science': '🔬',
+      'English': '📚',
+      'History': '🏛️',
+      'Geography': '🌍',
+      'Computer Science': '💻',
+      'Physics': '⚛️',
+      'Chemistry': '🧪',
+      'Biology': '🧬',
+      'Literature': '📖',
+      'Art': '🎨',
+      'Music': '🎵',
+      'Physical Education': '⚽',
+      'Economics': '💰',
+      'Psychology': '🧠',
+      'Philosophy': '🤔',
+      'Sociology': '👥',
+      'Political Science': '🏛️',
+      'Environmental Science': '🌱',
+      'Astronomy': '🌌'
+    };
+    return subjectIcons[subject] || '📝';
+  };
+
   useEffect(() => {
     const fetchQuizzes = async () => {
       try {
@@ -86,24 +148,59 @@ export default function StudentQuizList() {
                 No quizzes available at the moment.
               </div>
             ) : (
-              quizzes.map((quiz) => (
-                <div key={quiz.id} className={styles.quizCard}>
-                  <h3 className={styles.quizTitle}>{quiz.topic || "Untitled Quiz"}</h3>
-                  <p className={styles.quizSubject}>
-                    {quiz.subject ? quiz.subject.replace(/_/g, " ") : "No Subject"}
-                  </p>
-                  <div className={styles.quizDetails}>
-                    <p>Questions: {quiz.questions?.length || 0}</p>
-                    <p>Created: {new Date(quiz.createdAt).toLocaleDateString()}</p>
+              quizzes.map((quiz) => {
+                const estimatedTime = calculateEstimatedTime(quiz);
+                const subjectIcon = getSubjectIcon(quiz.subject);
+
+                return (
+                  <div key={quiz.id} className={styles.quizCard}>
+                    {/* Quiz Header */}
+                    <div className={styles.quizHeader}>
+                      <div className={styles.titleContainer}>
+                        <span className={styles.subjectIcon}>{subjectIcon}</span>
+                        <h3 className={styles.quizTitle}>{quiz.topic || "Untitled Quiz"}</h3>
+                      </div>
+                    </div>
+
+                    {/* Subject */}
+                    <p className={styles.quizSubject}>
+                      {quiz.subject ? quiz.subject.replace(/_/g, " ") : "No Subject"}
+                    </p>
+
+                    {/* Simple Stats */}
+                    <div className={styles.quizStats}>
+                      <div className={styles.statItem}>
+                        <div className={styles.statIcon}>❓</div>
+                        <span className={styles.statLabel}>Questions</span>
+                        <span className={styles.statValue}>{quiz.questions?.length || 0}</span>
+                      </div>
+                      <div className={styles.statItem}>
+                        <div className={styles.statIcon}>⏱️</div>
+                        <span className={styles.statLabel}>Time</span>
+                        <span className={styles.statValue}>{estimatedTime}</span>
+                      </div>
+                      <div className={styles.statItem}>
+                        <div className={styles.statIcon}>⭐</div>
+                        <span className={styles.statLabel}>Reward</span>
+                        <span className={styles.statValue}>{calculateMaxPoints(quiz)}</span>
+                      </div>
+                    </div>
+
+                    {/* Creation Date */}
+                    <div className={styles.quizDetails}>
+                      <p>Created: {new Date(quiz.createdAt).toLocaleDateString()}</p>
+                    </div>
+
+                    {/* Start Button */}
+                    <button
+                      className={styles.startButton}
+                      onClick={() => handleStartQuiz(quiz.id)}
+                    >
+                      Start Quiz
+                    </button>
                   </div>
-                  <button
-                    className={styles.startButton}
-                    onClick={() => handleStartQuiz(quiz.id)}
-                  >
-                    Start Quiz
-                  </button>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

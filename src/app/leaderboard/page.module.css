@@ -446,6 +446,7 @@
   align-items: center;
   z-index: 1000;
   animation: fadeIn 0.3s ease-in-out;
+  backdrop-filter: blur(5px);
 }
 
 @keyframes fadeIn {
@@ -464,6 +465,24 @@
   position: relative;
   box-shadow: 0 0 20px rgba(127, 55, 198, 0.7);
   animation: slideIn 0.3s ease-in-out;
+  overflow: hidden;
+}
+
+.modalContent::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #7f37c6, #9c34d0, #7f37c6);
+  background-size: 200% 100%;
+  animation: gradientMove 3s linear infinite;
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
 }
 
 @keyframes slideIn {
@@ -482,11 +501,13 @@
   font-size: 24px;
   cursor: pointer;
   transition: all 0.3s;
+  z-index: 10;
 }
 
 .closeButton:hover {
   color: #7f37c6;
   transform: scale(1.2);
+  text-shadow: 0 0 10px rgba(127, 55, 198, 0.8);
 }
 
 /* Modal Title */
@@ -496,6 +517,19 @@
   color: #fff;
   margin-bottom: 20px;
   text-shadow: 2px 2px 0px #000;
+  text-align: center;
+  position: relative;
+}
+
+.modalTitle::before {
+  content: '⚔️';
+  margin-right: 10px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
 }
 
 /* Student Card */
@@ -505,6 +539,25 @@
   border-radius: 8px;
   padding: 20px;
   margin-top: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.studentCard::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent, rgba(127, 55, 198, 0.1), transparent);
+  pointer-events: none;
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 /* Student Name */
@@ -514,6 +567,13 @@
   color: #fff;
   margin-bottom: 15px;
   text-shadow: 2px 2px 0px #000;
+  text-align: center;
+  position: relative;
+}
+
+.studentName::before {
+  content: '👤';
+  margin-right: 8px;
 }
 
 /* Student Info */
@@ -524,20 +584,53 @@
   margin-bottom: 20px;
   text-align: left;
   line-height: 1.8;
+  background: rgba(127, 55, 198, 0.1);
+  padding: 15px;
+  border-radius: 6px;
+  border: 1px solid rgba(127, 55, 198, 0.3);
 }
 
 .studentInfo p {
   margin: 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.studentInfo p:first-child::before {
+  content: '🎓';
+}
+
+.studentInfo p:last-child::before {
+  content: '🏆';
 }
 
 .studentInfo strong {
-  color: #7f37c6;
+  color: #9c34d0;
+  text-shadow: 0 0 5px rgba(156, 52, 208, 0.5);
 }
 
 /* Form Group */
 .formGroup {
   margin-bottom: 15px;
   text-align: left;
+  position: relative;
+}
+
+.formGroup::before {
+  position: absolute;
+  top: 0;
+  left: -5px;
+  width: 3px;
+  height: 100%;
+  background: linear-gradient(180deg, #7f37c6, #9c34d0);
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.formGroup:focus-within::before {
+  opacity: 1;
 }
 
 /* Form Label */
@@ -548,6 +641,28 @@
   display: block;
   margin-bottom: 5px;
   text-shadow: 1px 1px 0px #000;
+  position: relative;
+}
+
+.formLabel::before {
+  font-size: 12px;
+  margin-right: 5px;
+}
+
+.formLabel[for="topic"]::before {
+  content: '📚';
+}
+
+.formLabel[for="difficulty"]::before {
+  content: '⚡';
+}
+
+.formLabel[for="timeLimit"]::before {
+  content: '⏱️';
+}
+
+.formLabel[for="pointsWagered"]::before {
+  content: '💰';
 }
 
 /* Form Input */
@@ -562,11 +677,13 @@
   color: #fff;
   outline: none;
   transition: all 0.3s;
+  box-sizing: border-box;
 }
 
 .formInput:focus {
   border-color: #9c34d0;
-  box-shadow: 0 0 5px rgba(127, 55, 198, 0.7);
+  box-shadow: 0 0 10px rgba(127, 55, 198, 0.7);
+  background: rgba(0, 0, 0, 0.8);
 }
 
 /* Form Select */
@@ -582,11 +699,23 @@
   outline: none;
   transition: all 0.3s;
   cursor: pointer;
+  box-sizing: border-box;
 }
 
 .formSelect:focus {
   border-color: #9c34d0;
-  box-shadow: 0 0 5px rgba(127, 55, 198, 0.7);
+  box-shadow: 0 0 10px rgba(127, 55, 198, 0.7);
+  background: rgba(0, 0, 0, 0.8);
+}
+
+/* Help Text */
+.helpText {
+  font-family: 'VT323', monospace;
+  font-size: 14px;
+  color: #9c34d0;
+  margin-top: 5px;
+  display: block;
+  text-shadow: 0 0 5px rgba(156, 52, 208, 0.5);
 }
 
 /* Request Button */
@@ -604,12 +733,35 @@
   box-shadow: 0 4px 0 #452d57;
   width: 100%;
   margin-top: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.requestButton::before {
+  content: '⚔️';
+  margin-right: 8px;
+}
+
+.requestButton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.requestButton:hover::after {
+  left: 100%;
 }
 
 .requestButton:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 0 #452d57;
   background: linear-gradient(45deg, #a944e0, #5b318b);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
 .requestButton:active {
@@ -620,6 +772,8 @@
 .requestButton:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 4px 0 #452d57;
 }
 
 /* 1v1 Button Container */

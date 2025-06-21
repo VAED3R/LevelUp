@@ -388,21 +388,27 @@ export default function StudentAttendance() {
                     <div className={styles.semesterStatCard}>
                       <h3 className={styles.semesterTitle}>Semester {selectedOverallSemester}</h3>
                       <div className={styles.statsContainer}>
-                        <div className={styles.statCard}>
-                          <h4>Total Classes</h4>
+                        <div className={styles.statCard} data-icon="total">
+                          <h3>Total Classes</h3>
                           <p>{semesterStats[selectedOverallSemester].totalClasses}</p>
                         </div>
-                        <div className={styles.statCard}>
-                          <h4>Present</h4>
+                        <div className={styles.statCard} data-icon="present">
+                          <h3>Present</h3>
                           <p>{semesterStats[selectedOverallSemester].present}</p>
                         </div>
-                        <div className={styles.statCard}>
-                          <h4>Absent</h4>
+                        <div className={styles.statCard} data-icon="absent">
+                          <h3>Absent</h3>
                           <p>{semesterStats[selectedOverallSemester].absent}</p>
                         </div>
-                        <div className={styles.statCard}>
-                          <h4>Overall %</h4>
+                        <div className={styles.statCard} data-type="percentage" data-icon="percentage">
+                          <h3>Overall %</h3>
                           <p>{semesterStats[selectedOverallSemester].percentage}%</p>
+                          <div className={styles.progressBar}>
+                            <div 
+                              className={styles.progressFill} 
+                              style={{ width: `${semesterStats[selectedOverallSemester].percentage}%` }}
+                            ></div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -461,21 +467,27 @@ export default function StudentAttendance() {
                       {selectedSubject} Attendance (Semester {selectedSemester})
                     </h2>
                     <div className={styles.statsContainer}>
-                      <div className={styles.statCard}>
+                      <div className={styles.statCard} data-icon="total">
                         <h3>Total Classes</h3>
                         <p>{stats.totalClasses}</p>
                       </div>
-                      <div className={styles.statCard}>
+                      <div className={styles.statCard} data-icon="present">
                         <h3>Present</h3>
                         <p>{stats.present}</p>
                       </div>
-                      <div className={styles.statCard}>
+                      <div className={styles.statCard} data-icon="absent">
                         <h3>Absent</h3>
                         <p>{stats.absent}</p>
                       </div>
-                      <div className={styles.statCard}>
+                      <div className={styles.statCard} data-type="percentage" data-icon="percentage">
                         <h3>Attendance %</h3>
                         <p>{stats.percentage}%</p>
+                        <div className={styles.progressBar}>
+                          <div 
+                            className={styles.progressFill} 
+                            style={{ width: `${stats.percentage}%` }}
+                          ></div>
+                        </div>
                       </div>
                     </div>
 
@@ -485,9 +497,15 @@ export default function StudentAttendance() {
                           key={record.id}
                           className={`${styles.attendanceItem} ${styles[record.status]}`}
                         >
-                          <p>{record.date}</p>
-                          <p>{record.status.toUpperCase()}</p>
-                          {record.semester && <p>Semester: {record.semester}</p>}
+                          <div className={styles.attendanceContent}>
+                            <div className={styles.attendanceDetails}>
+                              <p className={styles.attendanceDate}>{record.date}</p>
+                              <p className={styles.attendanceStatus}>{record.status.toUpperCase()}</p>
+                              {record.semester && (
+                                <p className={styles.attendanceSemester}>Semester: {record.semester}</p>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
