@@ -529,3 +529,9 @@
     height: 1px;
     background: linear-gradient(90deg, transparent, #e0e0e0, transparent);
 }
+
+.coreNote {
+    color: #667eea;
+    font-weight: 500;
+    font-style: italic;
+}

@@ -159,12 +159,14 @@ export default function CourseMapping() {
             
             setStudents(studentsList);
             
-            // Initialize student courses state
+            // Initialize student courses state (excluding core subjects)
             const initialCourses = {};
             studentsList.forEach(student => {
                 initialCourses[student.id] = {};
                 courseTypes.forEach(type => {
-                    initialCourses[student.id][type] = '';
+                    if (type.toLowerCase() !== 'core') {
+                        initialCourses[student.id][type] = '';
+                    }
                 });
             });
             setStudentCourses(initialCourses);
@@ -251,6 +253,23 @@ export default function CourseMapping() {
                     }
                 }
 
+                // Auto-add core courses if not already selected
+                const coreCourses = courseNamesByType['Core'] || courseNamesByType['core'] || [];
+                coreCourses.forEach(coreCourse => {
+                    const isAlreadySelected = semesterCourses.some(course => course.courseName === coreCourse);
+                    if (!isAlreadySelected) {
+                        const courseDetail = courseDetails[coreCourse];
+                        if (courseDetail) {
+                            semesterCourses.push({
+                                courseName: coreCourse,
+                                courseCode: courseDetail.code,
+                                courseType: courseDetail.type,
+                                semester: courseDetail.semester
+                            });
+                        }
+                    }
+                });
+
                 if (semesterCourses.length > 0) {
                     // Check if document already exists for this student
                     const existingQuery = query(coursemapRef, where("studentId", "==", student.id));
@@ -266,13 +285,10 @@ export default function CourseMapping() {
                         const semesterIndex = updatedSemesters.findIndex(s => s.semesterName === selectedSemester);
                         
                         if (semesterIndex !== -1) {
-                            // Append new courses to existing semester
-                            const existingSemester = updatedSemesters[semesterIndex];
-                            const updatedCourses = [...existingSemester.courses, ...semesterCourses];
-                            
+                            // Replace existing semester courses
                             updatedSemesters[semesterIndex] = {
                                 semesterName: selectedSemester,
-                                courses: updatedCourses
+                                courses: semesterCourses
                             };
                         } else {
                             // Add new semester
@@ -462,6 +478,23 @@ export default function CourseMapping() {
                     }
                 }
 
+                // Auto-add core courses if not already selected
+                const coreCourses = courseNamesByType['Core'] || courseNamesByType['core'] || [];
+                coreCourses.forEach(coreCourse => {
+                    const isAlreadySelected = semesterCourses.some(course => course.courseName === coreCourse);
+                    if (!isAlreadySelected) {
+                        const courseDetail = courseDetails[coreCourse];
+                        if (courseDetail) {
+                            semesterCourses.push({
+                                courseName: coreCourse,
+                                courseCode: courseDetail.code,
+                                courseType: courseDetail.type,
+                                semester: courseDetail.semester
+                            });
+                        }
+                    }
+                });
+
                 if (semesterCourses.length > 0) {
                     // Check if document already exists for this student
                     const existingQuery = query(coursemapRef, where("studentId", "==", student.id));
@@ -567,6 +600,8 @@ export default function CourseMapping() {
                                             Upload an Excel file with course mappings. 
                                             <br />
                                             <strong>Expected format:</strong> First row should contain headers: "Student Name", "Student Email", followed by course type columns (e.g., "Core", "Elective", etc.)
+                                            <br />
+                                            <strong>Note:</strong> Core subjects will be automatically assigned to all students.
                                         </p>
                                     </div>
                                     
@@ -601,7 +636,12 @@ export default function CourseMapping() {
 
                                 <div className={style.sectionHeader}>
                                     <h2 className={style.sectionTitle}>Manual Course Mapping</h2>
-                                    <p className={style.sectionSubtitle}>{students.length} students found</p>
+                                    <p className={style.sectionSubtitle}>
+                                        {students.length} students found
+                                        {courseTypes.some(type => type.toLowerCase() === 'core') && (
+                                            <span className={style.coreNote}> • Core subjects are automatically assigned to all students</span>
+                                        )}
+                                    </p>
                                 </div>
 
                                 {loadingStudents ? (
@@ -619,12 +659,14 @@ export default function CourseMapping() {
                                         <div className={style.dataTable}>
                                             <div className={style.tableHeader}>
                                                 <div className={style.headerCell}>Student Name</div>
-                                                {courseTypes.map((type) => (
-                                                    <div key={type} className={style.headerCell}>
-                                                        <span className={style.courseTypeIcon}>📚</span>
-                                                        {type}
-                                                    </div>
-                                                ))}
+                                                {courseTypes
+                                                    .filter(type => type.toLowerCase() !== 'core')
+                                                    .map((type) => (
+                                                        <div key={type} className={style.headerCell}>
+                                                            <span className={style.courseTypeIcon}>📚</span>
+                                                            {type}
+                                                        </div>
+                                                    ))}
                                             </div>
                                             <div className={style.tableBody}>
                                                 {students.map((student) => (
@@ -633,26 +675,26 @@ export default function CourseMapping() {
                                                             <span className={style.studentIcon}>👤</span>
                                                             {student.name || 'Unknown Student'}
                                                         </div>
-                                                        {courseTypes.map((courseType) => (
-                                                            <div key={courseType} className={style.dropdownCell}>
-                                                                <select
-                                                                    key={`${student.id}-${courseType}`}
-                                                                    value={studentCourses[student.id]?.[courseType] || ''}
-                                                                    onChange={(e) => handleCourseChange(student.id, courseType, e.target.value)}
-                                                                    className={style.courseSelect}
-                                                                >
-                                                                    <option value="">Select Course</option>
-                                                                    {courseType.toLowerCase() !== 'core' && (
+                                                        {courseTypes
+                                                            .filter(type => type.toLowerCase() !== 'core')
+                                                            .map((courseType) => (
+                                                                <div key={courseType} className={style.dropdownCell}>
+                                                                    <select
+                                                                        key={`${student.id}-${courseType}`}
+                                                                        value={studentCourses[student.id]?.[courseType] || ''}
+                                                                        onChange={(e) => handleCourseChange(student.id, courseType, e.target.value)}
+                                                                        className={style.courseSelect}
+                                                                    >
+                                                                        <option value="">Select Course</option>
                                                                         <option value="NA">NA</option>
-                                                                    )}
-                                                                    {courseNamesByType[courseType]?.map((courseName) => (
-                                                                        <option key={courseName} value={courseName}>
-                                                                            {courseName}
-                                                                        </option>
-                                                                    )) || []}
-                                                                </select>
-                                                            </div>
-                                                        ))}
+                                                                        {courseNamesByType[courseType]?.map((courseName) => (
+                                                                            <option key={courseName} value={courseName}>
+                                                                                {courseName}
+                                                                            </option>
+                                                                        )) || []}
+                                                                    </select>
+                                                                </div>
+                                                            ))}
                                                     </div>
                                                 ))}
                                             </div>
