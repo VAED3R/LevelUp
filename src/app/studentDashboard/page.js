@@ -960,51 +960,6 @@ export default function StudentDashboard() {
                 </div>
                 <p className={style.progressLabel}>Excellent attendance!</p>
               </div>
-
-              <div className={style.progressCard}>
-                <div className={style.progressHeader}>
-                  <h3>Average Score</h3>
-                  <div className={style.progressIcon}>📊</div>
-                </div>
-                <div className={style.progressValue}>{studentActivity.averageScore}%</div>
-                <div className={style.progressBar}>
-                  <div 
-                    className={style.progressFill} 
-                    style={{width: `${studentActivity.averageScore}%`}}
-                  ></div>
-                </div>
-                <p className={style.progressLabel}>Great performance!</p>
-              </div>
-
-              <div className={style.progressCard}>
-                <div className={style.progressHeader}>
-                  <h3>Materials Accessed</h3>
-                  <div className={style.progressIcon}>📚</div>
-                </div>
-                <div className={style.progressValue}>{studentActivity.materialsAccessed}</div>
-                <div className={style.progressBar}>
-                  <div 
-                    className={style.progressFill} 
-                    style={{width: `${Math.min(studentActivity.materialsAccessed / 25 * 100, 100)}%`}}
-                  ></div>
-                </div>
-                <p className={style.progressLabel}>Knowledge seeker!</p>
-              </div>
-
-              <div className={style.progressCard}>
-                <div className={style.progressHeader}>
-                  <h3>Challenges Won</h3>
-                  <div className={style.progressIcon}>⚔️</div>
-                </div>
-                <div className={style.progressValue}>{studentActivity.challengesWon}</div>
-                <div className={style.progressBar}>
-                  <div 
-                    className={style.progressFill} 
-                    style={{width: `${Math.min(studentActivity.challengesWon / 5 * 100, 100)}%`}}
-                  ></div>
-                </div>
-                <p className={style.progressLabel}>Challenge champion!</p>
-              </div>
             </div>
           </div>
 
