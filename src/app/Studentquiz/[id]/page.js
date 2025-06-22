@@ -193,16 +193,24 @@ export default function StudentQuiz() {
       if (studentDoc.exists()) {
         const studentData = studentDoc.data();
         
-        // Create new points entry
+        // Create new points entry with validation
         const newPointsEntry = {
           points: Math.round(finalScore / 10), // 1 point per 10% score
           date: new Date().toISOString(),
-          subject: quiz.subject,
+          subject: quiz.subject || 'Unknown',
           score: finalScore,
           quizId: id,
-          topic: quiz.topic,
+          topic: quiz.topic || 'Unknown',
           userId: user.uid,
         };
+        
+        // Validate and clean the points entry
+        const cleanPointsEntry = {};
+        Object.entries(newPointsEntry).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            cleanPointsEntry[key] = value;
+          }
+        });
         
         // Get current points array or create empty one
         let currentPointsArray = [];
@@ -211,19 +219,30 @@ export default function StudentQuiz() {
         }
         
         // Add the new points entry
-        currentPointsArray.push(newPointsEntry);
+        currentPointsArray.push(cleanPointsEntry);
         
         // Calculate total points
         const totalPoints = currentPointsArray.reduce((total, entry) => total + (entry.points || 0), 0);
         
-        // Update the student document
-        await updateDoc(studentRef, {
+        // Create clean update data
+        const updateData = {
           points: currentPointsArray,
           totalPoints: totalPoints,
           lastUpdated: new Date().toISOString()
+        };
+        
+        // Remove any undefined values from update data
+        const cleanUpdateData = {};
+        Object.entries(updateData).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            cleanUpdateData[key] = value;
+          }
         });
         
-        console.log(`Updated student points: Added ${newPointsEntry.points} points. New total: ${totalPoints}`);
+        // Update the student document
+        await updateDoc(studentRef, cleanUpdateData);
+        
+        console.log(`Updated student points: Added ${cleanPointsEntry.points} points. New total: ${totalPoints}`);
       } else {
         console.error("Student document not found");
         setError("Failed to update points: Student record not found");

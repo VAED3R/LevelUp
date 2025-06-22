@@ -434,26 +434,28 @@ export default function StudentDashboard() {
         const user = auth.currentUser;
         if (!user) return;
 
-        // Fetch completed quizzes
-        const completedQuizzesQuery = query(
-          collection(db, "quizzes"),
-          where("studentId", "==", user.uid)
+        // 1. Fetch completed quizzes from 'marks' collection
+        // Note: Assuming 'marks' collection has a 'type' field to distinguish 'quiz' marks.
+        const quizResultsQuery = query(
+          collection(db, "marks"),
+          where("studentId", "==", user.uid),
+          where("type", "==", "quiz") 
         );
-        const completedQuizzesSnapshot = await getDocs(completedQuizzesQuery);
-        const completedQuizzes = completedQuizzesSnapshot.docs.map(doc => ({
+        const quizResultsSnapshot = await getDocs(quizResultsQuery);
+        const completedQuizzes = quizResultsSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }));
 
-        // Fetch materials accessed (from download history or access logs)
-        const materialsQuery = query(
-          collection(db, "fileAccess"),
-          where("studentId", "==", user.uid)
+        // 2. Fetch materials accessed from coursemap collection
+        const courseMapQuery = query(
+          collection(db, "coursemap"),
+          where("accessedBy", "array-contains", user.uid)
         );
-        const materialsSnapshot = await getDocs(materialsQuery);
-        const materialsAccessed = materialsSnapshot.size;
+        const courseMapSnapshot = await getDocs(courseMapQuery);
+        const materialsAccessed = courseMapSnapshot.size;
 
-        // Fetch challenge wins
+        // 3. Fetch challenge wins from onevsoneRequests
         const challengesQuery = query(
           collection(db, "onevsoneRequests"),
           where("fromUserId", "==", user.uid),
@@ -463,24 +465,80 @@ export default function StudentDashboard() {
         const challengesSnapshot = await getDocs(challengesQuery);
         const challengesWon = challengesSnapshot.size;
 
-        // Calculate statistics
+        // 4. Fetch attendance data from 'attendance' collection
+        const attendanceQuery = query(
+          collection(db, "attendance"),
+          where("studentId", "==", user.uid)
+        );
+        const attendanceSnapshot = await getDocs(attendanceQuery);
+        const attendanceRecords = attendanceSnapshot.docs.map(doc => doc.data());
+        
+        // Calculate attendance percentage
+        const totalSessions = attendanceRecords.length;
+        const presentSessions = attendanceRecords.filter(record => record.status === 'present').length;
+        const attendancePercentage = totalSessions > 0 ? Math.round((presentSessions / totalSessions) * 100) : 0;
+
+        // 5. Fetch test results from 'marks' collection
+        // Note: Assuming 'marks' collection has a 'type' field to distinguish 'test' marks.
+        const testResultsQuery = query(
+          collection(db, "marks"),
+          where("studentId", "==", user.uid),
+          where("type", "==", "test")
+        );
+        const testResultsSnapshot = await getDocs(testResultsQuery);
+        const testResults = testResultsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        // 6. Fetch assignment submissions from 'assignments' collection
+        const assignmentsQuery = query(
+          collection(db, "assignments"),
+          where("studentId", "==", user.uid)
+        );
+        const assignmentsSnapshot = await getDocs(assignmentsQuery);
+        const assignments = assignmentsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        // 7. Fetch student performance data from 'performance_requests' collection
+        const studPerformQuery = query(
+          collection(db, "performance_requests"),
+          where("studentId", "==", user.uid)
+        );
+        const studPerformSnapshot = await getDocs(studPerformQuery);
+        const performanceData = studPerformSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        // Calculate comprehensive statistics
         const totalPoints = pointsData?.totalPoints || 0;
         const perfectScores = completedQuizzes.filter(q => q.score === 100).length;
         const averageScore = completedQuizzes.length > 0 
           ? completedQuizzes.reduce((sum, q) => sum + (q.score || 0), 0) / completedQuizzes.length 
           : 0;
 
-        // Calculate login streak (simplified - you might want to implement this differently)
+        // Calculate login streak (you might want to implement this differently)
         const loginStreak = Math.floor(Math.random() * 10) + 1; // Placeholder
+
+        // Calculate additional metrics
+        const assignmentsCompleted = assignments.filter(a => a.status === 'completed').length;
+        const testsTaken = testResults.length;
 
         const activity = {
           quizzesCompleted: completedQuizzes.length,
-          materialsAccessed,
+          materialsAccessed: materialsAccessed,
           perfectScores,
           totalPoints,
           loginStreak,
           challengesWon,
-          averageScore: Math.round(averageScore)
+          averageScore: Math.round(averageScore),
+          attendancePercentage,
+          assignmentsCompleted,
+          testsTaken,
+          performanceRequests: performanceData.length,
         };
 
         setStudentActivity(activity);
@@ -493,7 +551,7 @@ export default function StudentDashboard() {
     fetchStudentActivity();
   }, [userData, pointsData]);
 
-  // Achievement checking logic
+  // Enhanced achievement checking logic
   const checkAchievements = (activity) => {
     const allAchievements = [
       {
@@ -515,6 +573,15 @@ export default function StudentDashboard() {
         maxProgress: 10
       },
       {
+        id: 'quiz_expert',
+        icon: '🎯',
+        title: 'Quiz Expert',
+        description: 'Completed 25 quizzes',
+        condition: activity.quizzesCompleted >= 25,
+        progress: Math.min(activity.quizzesCompleted, 25),
+        maxProgress: 25
+      },
+      {
         id: 'perfect_score',
         icon: '⭐',
         title: 'Perfect Score',
@@ -531,6 +598,15 @@ export default function StudentDashboard() {
         condition: activity.perfectScores >= 3,
         progress: Math.min(activity.perfectScores, 3),
         maxProgress: 3
+      },
+      {
+        id: 'perfect_master',
+        icon: '👑',
+        title: 'Perfect Master',
+        description: 'Got 10 perfect scores',
+        condition: activity.perfectScores >= 10,
+        progress: Math.min(activity.perfectScores, 10),
+        maxProgress: 10
       },
       {
         id: 'bookworm',
@@ -551,6 +627,15 @@ export default function StudentDashboard() {
         maxProgress: 25
       },
       {
+        id: 'research_scholar',
+        icon: '📖',
+        title: 'Research Scholar',
+        description: 'Accessed 50+ materials',
+        condition: activity.materialsAccessed >= 50,
+        progress: Math.min(activity.materialsAccessed, 50),
+        maxProgress: 50
+      },
+      {
         id: 'point_collector',
         icon: '💰',
         title: 'Point Collector',
@@ -569,6 +654,15 @@ export default function StudentDashboard() {
         maxProgress: 1000
       },
       {
+        id: 'point_legend',
+        icon: '💎',
+        title: 'Point Legend',
+        description: 'Earned 2500 points',
+        condition: activity.totalPoints >= 2500,
+        progress: Math.min(activity.totalPoints, 2500),
+        maxProgress: 2500
+      },
+      {
         id: 'streak_master',
         icon: '🔥',
         title: 'Streak Master',
@@ -578,6 +672,15 @@ export default function StudentDashboard() {
         maxProgress: 7
       },
       {
+        id: 'streak_legend',
+        icon: '🔥',
+        title: 'Streak Legend',
+        description: '30 days login streak',
+        condition: activity.loginStreak >= 30,
+        progress: Math.min(activity.loginStreak, 30),
+        maxProgress: 30
+      },
+      {
         id: 'challenge_champion',
         icon: '⚔️',
         title: 'Challenge Champion',
@@ -585,6 +688,15 @@ export default function StudentDashboard() {
         condition: activity.challengesWon >= 5,
         progress: Math.min(activity.challengesWon, 5),
         maxProgress: 5
+      },
+      {
+        id: 'challenge_legend',
+        icon: '⚔️',
+        title: 'Challenge Legend',
+        description: 'Won 20 challenges',
+        condition: activity.challengesWon >= 20,
+        progress: Math.min(activity.challengesWon, 20),
+        maxProgress: 20
       },
       {
         id: 'consistent_performer',
@@ -603,6 +715,42 @@ export default function StudentDashboard() {
         condition: activity.averageScore >= 90,
         progress: Math.min(activity.averageScore, 90),
         maxProgress: 90
+      },
+      {
+        id: 'attendance_star',
+        icon: '📅',
+        title: 'Attendance Star',
+        description: '95%+ attendance rate',
+        condition: activity.attendancePercentage >= 95,
+        progress: Math.min(activity.attendancePercentage, 95),
+        maxProgress: 95
+      },
+      {
+        id: 'assignment_completer',
+        icon: '📝',
+        title: 'Assignment Completer',
+        description: 'Completed 5 assignments',
+        condition: activity.assignmentsCompleted >= 5,
+        progress: Math.min(activity.assignmentsCompleted, 5),
+        maxProgress: 5
+      },
+      {
+        id: 'test_taker',
+        icon: '📊',
+        title: 'Test Taker',
+        description: 'Taken 10 tests',
+        condition: activity.testsTaken >= 10,
+        progress: Math.min(activity.testsTaken, 10),
+        maxProgress: 10
+      },
+      {
+        id: 'performance_requester',
+        icon: '📈',
+        title: 'Performance Requester',
+        description: 'Requested performance analysis 5 times',
+        condition: activity.performanceRequests >= 5,
+        progress: Math.min(activity.performanceRequests, 5),
+        maxProgress: 5
       }
     ];
 
@@ -788,11 +936,11 @@ export default function StudentDashboard() {
                   <h3>Quizzes Completed</h3>
                   <div className={style.progressIcon}>🎯</div>
                 </div>
-                <div className={style.progressValue}>{quizzes.length}</div>
+                <div className={style.progressValue}>{studentActivity.quizzesCompleted}</div>
                 <div className={style.progressBar}>
                   <div 
                     className={style.progressFill} 
-                    style={{width: `${Math.min(quizzes.length / 10 * 100, 100)}%`}}
+                    style={{width: `${Math.min(studentActivity.quizzesCompleted / 10 * 100, 100)}%`}}
                   ></div>
                 </div>
                 <p className={style.progressLabel}>Keep up the good work!</p>
@@ -803,14 +951,59 @@ export default function StudentDashboard() {
                   <h3>Attendance</h3>
                   <div className={style.progressIcon}>📅</div>
                 </div>
-                <div className={style.progressValue}>85%</div>
+                <div className={style.progressValue}>{studentActivity.attendancePercentage}%</div>
                 <div className={style.progressBar}>
                   <div 
                     className={style.progressFill} 
-                    style={{width: '85%'}}
+                    style={{width: `${studentActivity.attendancePercentage}%`}}
                   ></div>
                 </div>
                 <p className={style.progressLabel}>Excellent attendance!</p>
+              </div>
+
+              <div className={style.progressCard}>
+                <div className={style.progressHeader}>
+                  <h3>Average Score</h3>
+                  <div className={style.progressIcon}>📊</div>
+                </div>
+                <div className={style.progressValue}>{studentActivity.averageScore}%</div>
+                <div className={style.progressBar}>
+                  <div 
+                    className={style.progressFill} 
+                    style={{width: `${studentActivity.averageScore}%`}}
+                  ></div>
+                </div>
+                <p className={style.progressLabel}>Great performance!</p>
+              </div>
+
+              <div className={style.progressCard}>
+                <div className={style.progressHeader}>
+                  <h3>Materials Accessed</h3>
+                  <div className={style.progressIcon}>📚</div>
+                </div>
+                <div className={style.progressValue}>{studentActivity.materialsAccessed}</div>
+                <div className={style.progressBar}>
+                  <div 
+                    className={style.progressFill} 
+                    style={{width: `${Math.min(studentActivity.materialsAccessed / 25 * 100, 100)}%`}}
+                  ></div>
+                </div>
+                <p className={style.progressLabel}>Knowledge seeker!</p>
+              </div>
+
+              <div className={style.progressCard}>
+                <div className={style.progressHeader}>
+                  <h3>Challenges Won</h3>
+                  <div className={style.progressIcon}>⚔️</div>
+                </div>
+                <div className={style.progressValue}>{studentActivity.challengesWon}</div>
+                <div className={style.progressBar}>
+                  <div 
+                    className={style.progressFill} 
+                    style={{width: `${Math.min(studentActivity.challengesWon / 5 * 100, 100)}%`}}
+                  ></div>
+                </div>
+                <p className={style.progressLabel}>Challenge champion!</p>
               </div>
             </div>
           </div>
