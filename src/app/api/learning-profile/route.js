@@ -97,8 +97,11 @@ export async function PUT(request) {
           title: data.title,
           description: data.description,
           deadline: data.deadline,
+          priority: data.priority || 'medium',
+          category: data.category || 'academic',
           progress: 0,
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          lastUpdated: new Date().toISOString()
         };
         updates = {
           learningGoals: [...(profile.learningGoals || []), newGoal]
@@ -107,9 +110,29 @@ export async function PUT(request) {
 
       case 'updateGoal':
         const updatedGoals = profile.learningGoals.map(goal => 
-          goal.id === data.goalId ? { ...goal, ...data.updates } : goal
+          goal.id === data.goalId ? { 
+            ...goal, 
+            ...data.updates,
+            lastUpdated: new Date().toISOString()
+          } : goal
         );
         updates = { learningGoals: updatedGoals };
+        break;
+
+      case 'deleteGoal':
+        const filteredGoals = profile.learningGoals.filter(goal => goal.id !== data.goalId);
+        updates = { learningGoals: filteredGoals };
+        break;
+
+      case 'updateGoalProgress':
+        const progressUpdatedGoals = profile.learningGoals.map(goal => 
+          goal.id === data.goalId ? { 
+            ...goal, 
+            progress: data.progress,
+            lastUpdated: new Date().toISOString()
+          } : goal
+        );
+        updates = { learningGoals: progressUpdatedGoals };
         break;
 
       case 'addInterest':

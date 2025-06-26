@@ -5,11 +5,13 @@ import { useAuth } from "@/context/AuthContext";
 import { LearningProfile } from "@/lib/learningProfile";
 import Navbar from "@/components/studentNavbar";
 import StudentStats from "@/components/StudentStats";
+import GoalForm from "@/components/GoalForm";
 import styles from "./page.module.css";
 import { 
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
 } from 'recharts';
+import { getEnhancedDeepSeekRecommendations, getRecommendedContent } from "@/lib/deepseek";
 
 export default function PersonalizedLearning() {
   const { user } = useAuth();
@@ -18,6 +20,10 @@ export default function PersonalizedLearning() {
   const [studentData, setStudentData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [showGoalForm, setShowGoalForm] = useState(false);
+  const [editingGoal, setEditingGoal] = useState(null);
+  const [aiRecs, setAiRecs] = useState(null);
+  const [contentRecs, setContentRecs] = useState(null);
 
   useEffect(() => {
     if (user) {
@@ -25,12 +31,18 @@ export default function PersonalizedLearning() {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (user && learningProfile && studentData) {
+      fetchEnhancedDeepSeekRecommendations();
+      fetchRecommendedContent();
+    }
+  }, [user, learningProfile, studentData]);
+
   const loadPersonalizedData = async () => {
     if (!user) return;
     
     try {
       setLoading(true);
-      console.log('Loading personalized data for student:', user.uid);
       
       // Load student data
       let studentData = null;
@@ -38,7 +50,6 @@ export default function PersonalizedLearning() {
         const studentResponse = await fetch(`/api/student-data?studentId=${user.uid}`);
         const studentResult = await studentResponse.json();
         studentData = studentResult.data;
-        console.log('Student data loaded:', studentData);
       } catch (error) {
         console.error('Error loading student data:', error);
         studentData = {
@@ -60,7 +71,6 @@ export default function PersonalizedLearning() {
       try {
         const statsResponse = await fetch(`/api/student-stats?studentId=${user.uid}`);
         statsData = await statsResponse.json();
-        console.log('Stats data loaded:', statsData);
       } catch (error) {
         console.error('Error loading stats:', error);
         statsData = {
@@ -79,7 +89,6 @@ export default function PersonalizedLearning() {
         const profileResponse = await fetch(`/api/learning-profile?studentId=${user.uid}`);
         const profileResult = await profileResponse.json();
         profileData = profileResult.profile;
-        console.log('Profile data loaded:', profileData);
       } catch (error) {
         console.error('Error loading profile:', error);
         profileData = {
@@ -100,7 +109,6 @@ export default function PersonalizedLearning() {
       try {
         const recommendationsResponse = await fetch(`/api/recommendations?studentId=${user.uid}`);
         recommendationsData = await recommendationsResponse.json();
-        console.log('Recommendations data loaded:', recommendationsData);
       } catch (error) {
         console.error('Error loading recommendations:', error);
         recommendationsData = {
@@ -130,9 +138,43 @@ export default function PersonalizedLearning() {
     }
   };
 
+  const fetchEnhancedDeepSeekRecommendations = async () => {
+    try {
+      const recs = await getEnhancedDeepSeekRecommendations(
+        learningProfile,
+        studentData?.analytics?.academic,
+        learningProfile?.learningGoals || [],
+        studentData?.analytics?.engagement?.recentActivity || []
+      );
+      setAiRecs(recs);
+    } catch (error) {
+      setAiRecs({ error: "Could not load AI recommendations." });
+    }
+  };
+
+  const fetchRecommendedContent = async () => {
+    try {
+      console.log('Fetching content recommendations...');
+      console.log('Learning Profile:', learningProfile);
+      console.log('Academic Analytics:', studentData?.analytics?.academic);
+      console.log('Subjects:', Object.keys(studentData?.analytics?.academic?.subjectPerformance || {}));
+      
+      const content = await getRecommendedContent(
+        learningProfile,
+        studentData?.analytics?.academic,
+        Object.keys(studentData?.analytics?.academic?.subjectPerformance || {})
+      );
+      console.log('Content recommendations received:', content);
+      setContentRecs(content);
+    } catch (error) {
+      console.error('Error fetching content recommendations:', error);
+      setContentRecs({ error: "Could not load content recommendations." });
+    }
+  };
+
   const getLearningStyleIcon = (style) => {
     switch (style) {
-      case 'visual': return '👁️';
+      case 'visual': return '️';
       case 'auditory': return '👂';
       case 'kinesthetic': return '🤲';
       case 'reading': return '📖';
@@ -164,6 +206,77 @@ export default function PersonalizedLearning() {
       case 'overdue': return '#F44336';
       case 'active': return '#2196F3';
       default: return '#9E9E9E';
+    }
+  };
+
+  const handleAddGoal = () => {
+    setEditingGoal(null);
+    setShowGoalForm(true);
+  };
+
+  const handleEditGoal = (goal) => {
+    setEditingGoal(goal);
+    setShowGoalForm(true);
+  };
+
+  const handleGoalAdded = (updatedProfile) => {
+    setLearningProfile(updatedProfile);
+    setShowGoalForm(false);
+    setEditingGoal(null);
+  };
+
+  const handleCancelGoalForm = () => {
+    setShowGoalForm(false);
+    setEditingGoal(null);
+  };
+
+  const handleUpdateGoalProgress = async (goalId, newProgress) => {
+    try {
+      const response = await fetch('/api/learning-profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          studentId: user.uid,
+          action: 'updateGoalProgress',
+          data: { goalId, progress: newProgress }
+        }),
+      });
+
+      const result = await response.json();
+      if (result.profile) {
+        setLearningProfile(result.profile);
+      }
+    } catch (error) {
+      console.error('Error updating goal progress:', error);
+    }
+  };
+
+  const handleDeleteGoal = async (goalId) => {
+    if (!confirm('Are you sure you want to delete this goal?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/learning-profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          studentId: user.uid,
+          action: 'deleteGoal',
+          data: { goalId }
+        }),
+      });
+
+      const result = await response.json();
+      if (result.profile) {
+        setLearningProfile(result.profile);
+      }
+    } catch (error) {
+      console.error('Error deleting goal:', error);
     }
   };
 
@@ -206,6 +319,12 @@ export default function PersonalizedLearning() {
                   <h3>Learning Style</h3>
                   <p>{learningProfile?.learningStyle?.charAt(0).toUpperCase() + 
                       learningProfile?.learningStyle?.slice(1)} Learner</p>
+                  <div className={styles.styleDescription}>
+                    {learningProfile?.learningStyle === 'visual' && 'You learn best through images, diagrams, and visual aids'}
+                    {learningProfile?.learningStyle === 'auditory' && 'You prefer listening and verbal communication'}
+                    {learningProfile?.learningStyle === 'kinesthetic' && 'You learn through hands-on activities and movement'}
+                    {learningProfile?.learningStyle === 'reading' && 'You prefer reading and writing to process information'}
+                  </div>
                 </div>
               </div>
               <div className={styles.profileStats}>
@@ -213,19 +332,68 @@ export default function PersonalizedLearning() {
                   <span className={styles.statNumber}>
                     {studentData?.analytics?.academic?.averageScore?.toFixed(1) || 'N/A'}
                   </span>
-                  <span className={styles.statLabel}>Avg Score</span>
+                  <span className={styles.statLabel}>Overall Avg</span>
+                </div>
+                <div className={styles.stat}>
+                  <span className={styles.statNumber}>
+                    {studentData?.analytics?.academic?.totalQuizzes || 0}
+                  </span>
+                  <span className={styles.statLabel}>Quizzes</span>
+                </div>
+                <div className={styles.stat}>
+                  <span className={styles.statNumber}>
+                    {studentData?.analytics?.academic?.totalTests || 0}
+                  </span>
+                  <span className={styles.statLabel}>Tests</span>
                 </div>
                 <div className={styles.stat}>
                   <span className={styles.statNumber}>
                     {studentData?.analytics?.academic?.completedAssignments || 0}
                   </span>
-                  <span className={styles.statLabel}>Completed</span>
+                  <span className={styles.statLabel}>Assignments</span>
                 </div>
-                <div className={styles.stat}>
-                  <span className={styles.statNumber}>
-                    {studentData?.analytics?.academic?.totalAssignments || 0}
+              </div>
+            </div>
+            <div className={styles.profileDetails}>
+              <div className={styles.detailRow}>
+                <div className={styles.detailItem}>
+                  <span className={styles.detailLabel}>Quiz Average:</span>
+                  <span className={styles.detailValue}>
+                    {studentData?.analytics?.academic?.quizAverage?.toFixed(1) || 'N/A'}%
                   </span>
-                  <span className={styles.statLabel}>Total</span>
+                </div>
+                <div className={styles.detailItem}>
+                  <span className={styles.detailLabel}>Test Average:</span>
+                  <span className={styles.detailValue}>
+                    {studentData?.testAverage?.toFixed(1) || 'N/A'}%
+                  </span>
+                </div>
+                <div className={styles.detailItem}>
+                  <span className={styles.detailLabel}>Assignment Average:</span>
+                  <span className={styles.detailValue}>
+                    {studentData?.assignmentAverage?.toFixed(1) || 'N/A'}%
+                  </span>
+                </div>
+              </div>
+              <div className={styles.detailRow}>
+                <div className={styles.detailItem}>
+                  <span className={styles.detailLabel}>Study Preference:</span>
+                  <span className={styles.detailValue}>
+                    {learningProfile?.studyTimePreference?.charAt(0).toUpperCase() + 
+                     learningProfile?.studyTimePreference?.slice(1) || 'Evening'}
+                  </span>
+                </div>
+                <div className={styles.detailItem}>
+                  <span className={styles.detailLabel}>Attention Span:</span>
+                  <span className={styles.detailValue}>
+                    {learningProfile?.attentionSpan || 25} minutes
+                  </span>
+                </div>
+                <div className={styles.detailItem}>
+                  <span className={styles.detailLabel}>Active Goals:</span>
+                  <span className={styles.detailValue}>
+                    {learningProfile?.learningGoals?.filter(g => g.progress < 100).length || 0}
+                  </span>
                 </div>
               </div>
             </div>
@@ -506,10 +674,8 @@ export default function PersonalizedLearning() {
               </div>
 
               <div className={styles.assignmentsList}>
-                {console.log('Rendering assignments list with data:', studentData?.assignments)}
                 {studentData?.assignments?.map((assignment, index) => {
                   const isCompleted = (assignment.obtainedMarks || 0) > 0;
-                  console.log('Rendering assignment:', assignment, 'isCompleted:', isCompleted);
                   return (
                     <div key={index} className={styles.assignmentItem}>
                       <div className={styles.assignmentInfo}>
@@ -631,43 +797,6 @@ export default function PersonalizedLearning() {
 
           {activeTab === 'recommendations' && (
             <div className={styles.recommendationsTab}>
-              {/* Content Recommendations */}
-              <div className={styles.recommendationsSection}>
-                <h2 className={styles.sectionTitle}>Recommended Content</h2>
-                <div className={styles.recommendationsGrid}>
-                  {recommendations?.contentRecommendations?.slice(0, 6).map((content, index) => (
-                    <div key={index} className={styles.recommendationCard}>
-                      <div className={styles.recommendationHeader}>
-                        <h3>{content.title}</h3>
-                        <span 
-                          className={styles.relevanceScore}
-                          style={{ backgroundColor: getDifficultyColor(content.difficulty) }}
-                        >
-                          {Math.round(content.relevanceScore * 100)}% Match
-                        </span>
-                      </div>
-                      <p className={styles.recommendationDescription}>
-                        {content.description}
-                      </p>
-                      <div className={styles.recommendationMeta}>
-                        <span className={styles.difficulty}>
-                          {content.difficulty}
-                        </span>
-                        <span className={styles.duration}>
-                          {content.duration} min
-                        </span>
-                      </div>
-                      <p className={styles.recommendationReason}>
-                        {content.reason}
-                      </p>
-                      <button className={styles.startButton}>
-                        Start Learning
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               {/* Learning Strategies */}
               <div className={styles.strategiesSection}>
                 <h2 className={styles.sectionTitle}>Learning Strategies for You</h2>
@@ -680,6 +809,59 @@ export default function PersonalizedLearning() {
                   ))}
                 </div>
               </div>
+
+              {/* Enhanced AI-Powered Recommendations Section */}
+              <div className={styles.recommendationsSection}>
+                <h3>AI-Powered Recommendations</h3>
+                <div className={styles.recommendationCard}>
+                  {!aiRecs && <span>Loading AI recommendations...</span>}
+                  {aiRecs?.error && <div>{aiRecs.error}<pre>{aiRecs.raw}</pre></div>}
+                  {aiRecs && !aiRecs.error && (
+                    <>
+                      <h4>Study Tips</h4>
+                      <ul>{aiRecs.studyTips?.map((tip, i) => <li key={i}>{tip}</li>)}</ul>
+                      <h4>Feedback</h4>
+                      <p>{aiRecs.feedback}</p>
+                      <h4>Learning Strategies</h4>
+                      <ul>{aiRecs.learningStrategies?.map((s, i) => <li key={i}>{s}</li>)}</ul>
+                      <h4>Motivation</h4>
+                      <blockquote>{aiRecs.motivation}</blockquote>
+                      {aiRecs.goalSuggestions && (
+                        <>
+                          <h4>Goal Suggestions</h4>
+                          <ul>
+                            {Object.entries(aiRecs.goalSuggestions).map(([goal, suggestion], i) => (
+                              <li key={i}><b>{goal}:</b> {suggestion}</li>
+                            ))}
+                          </ul>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* AI-Powered Content Recommendations */}
+              <div className={styles.recommendationsSection}>
+                <h3>AI-Powered Content Recommendations</h3>
+                <div className={styles.recommendationCard}>
+                  {!contentRecs && <span>Loading content recommendations...</span>}
+                  {contentRecs?.error && <div>{contentRecs.error}</div>}
+                  {contentRecs && !contentRecs.error && (
+                    <>
+                      <h4>Topics to Focus On</h4>
+                      <ul>{contentRecs.topicsToFocus?.map((topic, i) => <li key={i}>{topic}</li>)}</ul>
+                      <h4>Recommended Resources</h4>
+                      <ul>{contentRecs.resourceTypes?.map((resource, i) => <li key={i}>{resource}</li>)}</ul>
+                      <h4>Study Plan</h4>
+                      <p><strong>Difficulty Level:</strong> {contentRecs.difficultyLevel}</p>
+                      <p><strong>Time Allocation:</strong> {contentRecs.timeAllocation} minutes per session</p>
+                      <h4>Next Steps</h4>
+                      <ul>{contentRecs.nextSteps?.map((step, i) => <li key={i}>{step}</li>)}</ul>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
@@ -689,30 +871,105 @@ export default function PersonalizedLearning() {
               <div className={styles.goalsSection}>
                 <h2 className={styles.sectionTitle}>Your Learning Goals</h2>
                 <div className={styles.goalsGrid}>
-                  {learningProfile?.learningGoals?.map((goal, index) => (
-                    <div key={index} className={styles.goalCard}>
-                      <div className={styles.goalHeader}>
-                        <h3>{goal.title}</h3>
-                        <span className={styles.goalProgress}>
-                          {goal.progress}%
-                        </span>
+                  {learningProfile?.learningGoals?.map((goal, index) => {
+                    const isOverdue = new Date(goal.deadline) < new Date() && goal.progress < 100;
+                    const daysLeft = Math.ceil((new Date(goal.deadline) - new Date()) / (1000 * 60 * 60 * 24));
+                    
+                    return (
+                      <div key={goal.id || index} className={styles.goalCard}>
+                        <div className={styles.goalHeader}>
+                          <div className={styles.goalTitleSection}>
+                            <h3>{goal.title}</h3>
+                            <div className={styles.goalMeta}>
+                              <span className={styles.goalCategory}>
+                                {goal.category === 'academic' && '📚'}
+                                {goal.category === 'skill' && '🎯'}
+                                {goal.category === 'personal' && '🌟'}
+                                {goal.category === 'career' && '💼'}
+                                {goal.category || '📚'}
+                              </span>
+                              <span 
+                                className={styles.goalPriority}
+                                style={{ 
+                                  backgroundColor: goal.priority === 'high' ? '#f44336' : 
+                                                goal.priority === 'medium' ? '#ff9800' : '#4caf50' 
+                                }}
+                              >
+                                {goal.priority || 'medium'}
+                              </span>
+                            </div>
+                          </div>
+                          <div className={styles.goalActions}>
+                            <button 
+                              className={styles.editGoalButton}
+                              onClick={() => handleEditGoal(goal)}
+                              title="Edit Goal"
+                            >
+                              ✏️
+                            </button>
+                            <button 
+                              className={styles.deleteGoalButton}
+                              onClick={() => handleDeleteGoal(goal.id)}
+                              title="Delete Goal"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </div>
+                        <p className={styles.goalDescription}>{goal.description}</p>
+                        <div className={styles.goalProgressSection}>
+                          <div className={styles.goalProgressHeader}>
+                            <span className={styles.goalProgress}>
+                              {goal.progress || 0}%
+                            </span>
+                            <span className={styles.goalDeadline}>
+                              {isOverdue ? 'Overdue' : daysLeft > 0 ? `${daysLeft} days left` : 'Due today'}
+                            </span>
+                          </div>
+                          <div className={styles.goalProgressBar}>
+                            <div 
+                              className={styles.goalProgressFill}
+                              style={{ 
+                                width: `${goal.progress || 0}%`,
+                                backgroundColor: isOverdue ? '#f44336' : 
+                                               (goal.progress || 0) >= 100 ? '#4caf50' : '#ff9800'
+                              }}
+                            ></div>
+                          </div>
+                          <div className={styles.goalProgressControls}>
+                            <button 
+                              className={styles.progressButton}
+                              onClick={() => handleUpdateGoalProgress(goal.id, Math.max(0, (goal.progress || 0) - 10))}
+                              disabled={(goal.progress || 0) <= 0}
+                            >
+                              -10%
+                            </button>
+                            <button 
+                              className={styles.progressButton}
+                              onClick={() => handleUpdateGoalProgress(goal.id, Math.min(100, (goal.progress || 0) + 10))}
+                              disabled={(goal.progress || 0) >= 100}
+                            >
+                              +10%
+                            </button>
+                          </div>
+                        </div>
+                        <div className={styles.goalDeadline}>
+                          Due: {new Date(goal.deadline).toLocaleDateString()}
+                        </div>
                       </div>
-                      <p>{goal.description}</p>
-                      <div className={styles.goalProgressBar}>
-                        <div 
-                          className={styles.goalProgressFill}
-                          style={{ width: `${goal.progress}%` }}
-                        ></div>
-                      </div>
-                      <div className={styles.goalDeadline}>
-                        Due: {new Date(goal.deadline).toLocaleDateString()}
-                      </div>
+                    );
+                  })}
+                  {(!learningProfile?.learningGoals || learningProfile.learningGoals.length === 0) && (
+                    <div className={styles.emptyGoalsState}>
+                      <div className={styles.emptyIcon}>🎯</div>
+                      <h3>No Learning Goals Yet</h3>
+                      <p>Start by adding your first learning goal to track your progress!</p>
                     </div>
-                  ))}
+                  )}
                 </div>
                 
                 {/* Add New Goal Button */}
-                <button className={styles.addGoalButton}>
+                <button className={styles.addGoalButton} onClick={handleAddGoal}>
                   + Add New Learning Goal
                 </button>
               </div>
@@ -720,6 +977,13 @@ export default function PersonalizedLearning() {
           )}
         </div>
       </div>
+      {showGoalForm && (
+        <GoalForm
+          editingGoal={editingGoal}
+          onGoalAdded={handleGoalAdded}
+          onCancel={handleCancelGoalForm}
+        />
+      )}
     </div>
   );
 } 
