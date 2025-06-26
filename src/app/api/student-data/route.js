@@ -104,26 +104,75 @@ export async function GET(request) {
       studentData.oneVsOneRequests = [];
     }
 
-    // Fetch Quizzes
+    // Fetch Quiz Data from students collection
     try {
-      const quizzesRef = collection(db, 'quizzes');
-      const quizzesQuery = query(
-        quizzesRef,
-        where('studentId', '==', studentId),
-        orderBy('completedAt', 'desc')
+      const studentsRef = collection(db, 'students');
+      const studentQuery = query(
+        studentsRef,
+        where('id', '==', studentId)
       );
-      const quizzesSnapshot = await getDocs(quizzesQuery);
-      studentData.quizzes = quizzesSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const studentSnapshot = await getDocs(studentQuery);
+      
+      if (!studentSnapshot.empty) {
+        const studentDocData = studentSnapshot.docs[0].data();
+        console.log('Student data fetched for student-data API:', studentDocData);
+        
+        // Combine points and fallPoints arrays
+        const allPoints = [
+          ...(studentDocData.points || []),
+          ...(studentDocData.fallPoints || [])
+        ];
+        
+        console.log('Total points entries for student-data:', allPoints.length);
+        
+        // Filter for actual quizzes (not attendance, assignments, or assessments)
+        studentData.quizzes = allPoints.filter(point => {
+          // Exclude attendance records
+          if (point.quizId === 'attendance') {
+            console.log('Excluding attendance from student-data:', point);
+            return false;
+          }
+          // Exclude assignments and assessments
+          if (point.type === 'assignment' || point.type === 'assessment') {
+            console.log('Excluding assignment/assessment from student-data:', point);
+            return false;
+          }
+          // Include quizzes with unknown subject and score > 0 as completed
+          if (point.subject === 'unknown' && (point.score || 0) > 0) {
+            console.log('Including unknown subject quiz with score > 0 from student-data:', point);
+            return true;
+          }
+          // Include other quizzes with valid subjects (not unknown)
+          if (point.subject && point.subject !== 'unknown' && point.subject !== 'Unknown') {
+            console.log('Including valid subject quiz from student-data:', point);
+            return true;
+          }
+          console.log('Excluding other entry from student-data:', point);
+          return false;
+        }).map(quiz => ({
+          id: quiz.quizId,
+          score: quiz.score || 0,
+          subject: (quiz.subject === 'unknown' || quiz.subject === 'Unknown') ? 'General' : quiz.subject,
+          topic: quiz.topic || 'Quiz',
+          completedAt: quiz.date,
+          totalQuestions: quiz.totalQuestions || 0,
+          points: quiz.points || 0
+        }));
+        
+        console.log('Filtered quizzes for student-data:', studentData.quizzes);
+      } else {
+        studentData.quizzes = [];
+      }
     } catch (error) {
-      console.error('Error fetching quizzes:', error);
+      console.error('Error fetching quiz data from students collection:', error);
       studentData.quizzes = [];
     }
 
     // Calculate analytics
     studentData.analytics = calculateAnalytics(studentData);
+    
+    // Add assignment average to main studentData for easy access
+    studentData.assignmentAverage = studentData.analytics.academic.assignmentAverage;
 
     return NextResponse.json({ data: studentData });
   } catch (error) {
@@ -140,6 +189,7 @@ function calculateAnalytics(studentData) {
       completedAssignments: studentData.assignments.filter(a => (a.obtainedMarks || 0) > 0).length, // Only completed if obtained marks > 0
       totalQuizzes: studentData.quizzes.length,
       quizAverage: 0,
+      assignmentAverage: 0,
       subjectPerformance: {}
     },
     engagement: {
@@ -150,68 +200,64 @@ function calculateAnalytics(studentData) {
     }
   };
 
+  // Calculate assignment average
+  const completedAssignments = studentData.assignments.filter(a => (a.obtainedMarks || 0) > 0);
+  if (completedAssignments.length > 0) {
+    const totalAssignmentScore = completedAssignments.reduce((sum, assignment) => sum + (assignment.percentage || 0), 0);
+    analytics.academic.assignmentAverage = totalAssignmentScore / completedAssignments.length;
+  }
+
   // Calculate quiz average
   if (analytics.academic.totalQuizzes > 0) {
     const totalQuizScore = studentData.quizzes.reduce((sum, quiz) => sum + (quiz.score || 0), 0);
     analytics.academic.quizAverage = totalQuizScore / analytics.academic.totalQuizzes;
   }
 
-  // Calculate subject performance from marks
-  const subjectMarks = {};
-  studentData.marks.forEach(mark => {
-    if (!subjectMarks[mark.subject]) {
-      subjectMarks[mark.subject] = { total: 0, count: 0 };
+  // Calculate subject performance from quizzes
+  const quizSubjects = {};
+  studentData.quizzes.forEach(quiz => {
+    if (!quizSubjects[quiz.subject]) {
+      quizSubjects[quiz.subject] = { total: 0, count: 0 };
     }
-    subjectMarks[mark.subject].total += mark.score || 0;
-    subjectMarks[mark.subject].count += 1;
+    quizSubjects[quiz.subject].total += quiz.score || 0;
+    quizSubjects[quiz.subject].count += 1;
   });
 
-  // Calculate subject performance from assignments
-  const assignmentSubjects = {};
-  studentData.assignments.forEach(assignment => {
-    // Only include completed assignments (obtainedMarks > 0)
-    if ((assignment.obtainedMarks || 0) > 0) {
-      if (!assignmentSubjects[assignment.subject]) {
-        assignmentSubjects[assignment.subject] = { total: 0, count: 0 };
-      }
-      assignmentSubjects[assignment.subject].total += assignment.percentage || 0;
-      assignmentSubjects[assignment.subject].count += 1;
-    }
-  });
-
-  // Combine marks and assignment performance
-  Object.keys(subjectMarks).forEach(subject => {
-    analytics.academic.subjectPerformance[subject] = 
-      subjectMarks[subject].total / subjectMarks[subject].count;
-  });
-
-  // Add assignment subjects if not already present
-  Object.keys(assignmentSubjects).forEach(subject => {
-    if (!analytics.academic.subjectPerformance[subject]) {
-      analytics.academic.subjectPerformance[subject] = 
-        assignmentSubjects[subject].total / assignmentSubjects[subject].count;
-    } else {
-      // Average both marks and assignment performance
-      const marksAvg = analytics.academic.subjectPerformance[subject];
-      const assignmentAvg = assignmentSubjects[subject].total / assignmentSubjects[subject].count;
-      analytics.academic.subjectPerformance[subject] = (marksAvg + assignmentAvg) / 2;
-    }
+  // Calculate subject averages
+  Object.keys(quizSubjects).forEach(subject => {
+    analytics.academic.subjectPerformance[subject] = {
+      average: quizSubjects[subject].total / quizSubjects[subject].count,
+      total: quizSubjects[subject].total,
+      count: quizSubjects[subject].count
+    };
   });
 
   // Calculate overall average score
   const allScores = Object.values(analytics.academic.subjectPerformance);
   if (allScores.length > 0) {
-    analytics.academic.averageScore = allScores.reduce((sum, score) => sum + score, 0) / allScores.length;
+    analytics.academic.averageScore = allScores.reduce((sum, scoreData) => sum + scoreData.average, 0) / allScores.length;
+  } else {
+    // Fallback: calculate average from completed assignments
+    const completedAssignments = studentData.assignments.filter(a => (a.obtainedMarks || 0) > 0);
+    if (completedAssignments.length > 0) {
+      const totalAssignmentScore = completedAssignments.reduce((sum, assignment) => sum + (assignment.percentage || 0), 0);
+      analytics.academic.averageScore = totalAssignmentScore / completedAssignments.length;
+    }
   }
 
   // Generate recent activity
   const allActivities = [
     ...studentData.assignments.map(a => ({ ...a, type: 'assignment', date: a.addedAt })),
-    ...studentData.challenges.map(c => ({ ...c, type: 'challenge', date: c.createdAt })),
-    ...studentData.quizzes.map(q => ({ ...q, type: 'quiz', date: q.completedAt })),
+    ...studentData.challenges.map(c => ({ ...c, type: 'challenge', date: c.createdAt }))
   ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  analytics.engagement.recentActivity = allActivities.slice(0, 10);
+  analytics.engagement.recentActivity = allActivities.slice(0, 10).map(activity => ({
+    type: activity.type,
+    title: activity.type === 'assignment' ? activity.assignmentTitle : (activity.title || 'Activity'),
+    date: activity.date,
+    score: activity.type === 'assignment' ? activity.percentage : (activity.score || 0),
+    subject: activity.subject
+  }));
 
   return analytics;
 } 

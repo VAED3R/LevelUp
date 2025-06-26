@@ -103,13 +103,13 @@ export default function StudentStats() {
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
             <span className={styles.statIcon}>📝</span>
-            <h3>Quiz Performance</h3>
+            <h3>Quiz Progress</h3>
           </div>
           <div className={styles.statValue}>
             {stats?.totalQuizzes || 0}
           </div>
           <div className={styles.statDetails}>
-            <p>Total quizzes completed</p>
+            <p>Quizzes completed</p>
             {stats?.totalQuizzes > 0 && (
               <div className={styles.quizProgress}>
                 <div className={styles.progressBar}>
@@ -202,49 +202,6 @@ export default function StudentStats() {
                 </span>
                 <span className={styles.scoreDate}>
                   {new Date(assignment.addedAt).toLocaleDateString()}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Subject Performance */}
-      {Object.keys(stats?.scoreDetails?.subjects || {}).length > 0 && (
-        <div className={styles.subjectSection}>
-          <h3 className={styles.sectionTitle}>Quiz/Marks Performance by Subject</h3>
-          <div className={styles.subjectGrid}>
-            {Object.entries(stats.scoreDetails.subjects).map(([subject, data]) => (
-              <div key={subject} className={styles.subjectCard}>
-                <h4>{subject}</h4>
-                <div className={styles.subjectScore} style={{ color: getScoreColor(data.average) }}>
-                  {data.average.toFixed(1)}%
-                </div>
-                <div className={styles.subjectDetails}>
-                  <span>{data.count} assessments</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Recent Scores */}
-      {stats?.scoreDetails?.recentScores?.length > 0 && (
-        <div className={styles.recentSection}>
-          <h3 className={styles.sectionTitle}>Recent Quiz/Marks Scores</h3>
-          <div className={styles.recentScores}>
-            {stats.scoreDetails.recentScores.slice(0, 5).map((score, index) => (
-              <div key={index} className={styles.recentScore}>
-                <span className={styles.scoreSubject}>{score.subject}</span>
-                <span 
-                  className={styles.scoreValue}
-                  style={{ color: getScoreColor(score.score) }}
-                >
-                  {score.score}%
-                </span>
-                <span className={styles.scoreDate}>
-                  {new Date(score.date).toLocaleDateString()}
                 </span>
               </div>
             ))}

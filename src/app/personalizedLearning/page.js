@@ -217,15 +217,15 @@ export default function PersonalizedLearning() {
                 </div>
                 <div className={styles.stat}>
                   <span className={styles.statNumber}>
-                    {studentData?.analytics?.academic?.totalQuizzes || 0}
-                  </span>
-                  <span className={styles.statLabel}>Quizzes</span>
-                </div>
-                <div className={styles.stat}>
-                  <span className={styles.statNumber}>
                     {studentData?.analytics?.academic?.completedAssignments || 0}
                   </span>
                   <span className={styles.statLabel}>Completed</span>
+                </div>
+                <div className={styles.stat}>
+                  <span className={styles.statNumber}>
+                    {studentData?.analytics?.academic?.totalAssignments || 0}
+                  </span>
+                  <span className={styles.statLabel}>Total</span>
                 </div>
               </div>
             </div>
@@ -274,28 +274,31 @@ export default function PersonalizedLearning() {
               <div className={styles.performanceSection}>
                 <h2 className={styles.sectionTitle}>Academic Performance</h2>
                 <div className={styles.performanceGrid}>
-                  {Object.entries(studentData?.analytics?.academic?.subjectPerformance || {}).map(([subject, score], index) => (
-                    <div key={index} className={styles.performanceCard}>
-                      <div className={styles.performanceHeader}>
-                        <h3>{subject}</h3>
-                        <span 
-                          className={styles.performanceScore}
-                          style={{ color: getPerformanceColor(score) }}
-                        >
-                          {score.toFixed(1)}%
-                        </span>
+                  {Object.entries(studentData?.analytics?.academic?.subjectPerformance || {}).map(([subject, scoreData], index) => {
+                    const score = typeof scoreData === 'number' ? scoreData : (scoreData?.average || 0);
+                    return (
+                      <div key={index} className={styles.performanceCard}>
+                        <div className={styles.performanceHeader}>
+                          <h3>{subject}</h3>
+                          <span 
+                            className={styles.performanceScore}
+                            style={{ color: getPerformanceColor(score) }}
+                          >
+                            {score.toFixed(1)}%
+                          </span>
+                        </div>
+                        <div className={styles.progressBar}>
+                          <div 
+                            className={styles.progressFill}
+                            style={{ 
+                              width: `${score}%`,
+                              backgroundColor: getPerformanceColor(score)
+                            }}
+                          ></div>
+                        </div>
                       </div>
-                      <div className={styles.progressBar}>
-                        <div 
-                          className={styles.progressFill}
-                          style={{ 
-                            width: `${score}%`,
-                            backgroundColor: getPerformanceColor(score)
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
@@ -307,9 +310,7 @@ export default function PersonalizedLearning() {
                     <div key={index} className={styles.activityCard}>
                       <div className={styles.activityHeader}>
                         <span className={styles.activityType}>
-                          {activity.type === 'quiz' && '📝'}
                           {activity.type === 'assignment' && '📋'}
-                          {activity.type === 'attendance' && '✅'}
                           {activity.type === 'challenge' && '🏆'}
                         </span>
                         <span className={styles.activityTitle}>
@@ -386,13 +387,14 @@ export default function PersonalizedLearning() {
               <div className={styles.chartsSection}>
                 <h2 className={styles.sectionTitle}>Learning Progress</h2>
                 <div className={styles.chartsGrid}>
-                  {/* Quiz Performance Over Time */}
+                  {/* Assignment Performance Over Time */}
                   <div className={styles.chartCard}>
-                    <h3>Quiz Performance Trend</h3>
+                    <h3>Assignment Performance Trend</h3>
                     <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={studentData?.quizzes?.slice(0, 10).reverse().map(quiz => ({
-                        date: new Date(quiz.completedAt).toLocaleDateString(),
-                        score: quiz.score
+                      <LineChart data={studentData?.assignments?.slice(0, 10).reverse().map(assignment => ({
+                        date: new Date(assignment.addedAt).toLocaleDateString(),
+                        score: assignment.percentage || 0,
+                        title: assignment.assignmentTitle
                       }))}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="date" />
@@ -407,9 +409,9 @@ export default function PersonalizedLearning() {
                   <div className={styles.chartCard}>
                     <h3>Subject Performance</h3>
                     <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={Object.entries(studentData?.analytics?.academic?.subjectPerformance || {}).map(([subject, score]) => ({
+                      <BarChart data={Object.entries(studentData?.analytics?.academic?.subjectPerformance || {}).map(([subject, data]) => ({
                         subject,
-                        score: score.toFixed(1)
+                        score: typeof data === 'number' ? data : (data?.average || 0)
                       }))}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="subject" />

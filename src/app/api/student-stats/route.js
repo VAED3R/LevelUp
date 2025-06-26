@@ -106,85 +106,110 @@ export async function GET(request) {
       console.error('Error fetching assignments:', error);
     }
 
-    // Fetch Marks/Quiz Data for Average Score
+    // Fetch Quiz Data from students collection
     try {
-      const marksRef = collection(db, 'marks');
-      const marksQuery = query(
-        marksRef,
-        where('studentId', '==', studentId),
-        orderBy('date', 'desc')
+      const studentsRef = collection(db, 'students');
+      const studentQuery = query(
+        studentsRef,
+        where('id', '==', studentId)
       );
-      const marksSnapshot = await getDocs(marksQuery);
-      const marksData = marksSnapshot.docs.map(doc => doc.data());
-
-      // Calculate subject-wise scores
-      const subjectScores = {};
-      marksData.forEach(mark => {
-        if (!subjectScores[mark.subject]) {
-          subjectScores[mark.subject] = { total: 0, count: 0, scores: [] };
-        }
-        subjectScores[mark.subject].total += mark.score || 0;
-        subjectScores[mark.subject].count += 1;
-        subjectScores[mark.subject].scores.push(mark.score || 0);
-      });
-
-      // Calculate average scores per subject
-      Object.keys(subjectScores).forEach(subject => {
-        stats.scoreDetails.subjects[subject] = {
-          average: subjectScores[subject].total / subjectScores[subject].count,
-          total: subjectScores[subject].total,
-          count: subjectScores[subject].count,
-          scores: subjectScores[subject].scores
-        };
-      });
-
-      // Calculate overall average score
-      const allScores = marksData.map(mark => mark.score || 0).filter(score => score > 0);
-      if (allScores.length > 0) {
-        stats.averageScore = allScores.reduce((sum, score) => sum + score, 0) / allScores.length;
-      }
-
-      // Get recent scores for trend analysis
-      stats.scoreDetails.recentScores = marksData.slice(0, 10).map(mark => ({
-        subject: mark.subject,
-        score: mark.score || 0,
-        date: mark.date
-      }));
-
-      // Calculate improvement (comparing recent vs older scores)
-      if (allScores.length >= 10) {
-        const recentScores = allScores.slice(0, 5);
-        const olderScores = allScores.slice(-5);
-        const recentAvg = recentScores.reduce((sum, score) => sum + score, 0) / recentScores.length;
-        const olderAvg = olderScores.reduce((sum, score) => sum + score, 0) / olderScores.length;
-        stats.scoreDetails.improvement = recentAvg - olderAvg;
-      }
-    } catch (error) {
-      console.error('Error fetching marks:', error);
-    }
-
-    // Fetch Quiz Data
-    try {
-      const quizzesRef = collection(db, 'quizzes');
-      const quizzesQuery = query(
-        quizzesRef,
-        where('studentId', '==', studentId),
-        orderBy('completedAt', 'desc')
-      );
-      const quizzesSnapshot = await getDocs(quizzesQuery);
-      const quizzesData = quizzesSnapshot.docs.map(doc => doc.data());
-
-      stats.totalQuizzes = quizzesData.length;
+      const studentSnapshot = await getDocs(studentQuery);
       
-      // If no marks data, use quiz scores for average
-      if (stats.averageScore === 0 && quizzesData.length > 0) {
-        const quizScores = quizzesData.map(quiz => quiz.score || 0).filter(score => score > 0);
-        if (quizScores.length > 0) {
-          stats.averageScore = quizScores.reduce((sum, score) => sum + score, 0) / quizScores.length;
+      if (!studentSnapshot.empty) {
+        const studentData = studentSnapshot.docs[0].data();
+        console.log('Student data fetched:', studentData);
+        
+        // Combine points and fallPoints arrays
+        const allPoints = [
+          ...(studentData.points || []),
+          ...(studentData.fallPoints || [])
+        ];
+        
+        console.log('Total points entries:', allPoints.length);
+        console.log('Points array length:', studentData.points?.length || 0);
+        console.log('FallPoints array length:', studentData.fallPoints?.length || 0);
+        
+        // Filter for actual quizzes (not attendance, assignments, or assessments)
+        const quizData = allPoints.filter(point => {
+          // Exclude attendance records
+          if (point.quizId === 'attendance') {
+            console.log('Excluding attendance:', point);
+            return false;
+          }
+          // Exclude assignments and assessments
+          if (point.type === 'assignment' || point.type === 'assessment') {
+            console.log('Excluding assignment/assessment:', point);
+            return false;
+          }
+          // Include quizzes with unknown subject and score > 0 as completed
+          if (point.subject === 'unknown' && (point.score || 0) > 0) {
+            console.log('Including unknown subject quiz with score > 0:', point);
+            return true;
+          }
+          // Include other quizzes with valid subjects (not unknown)
+          if (point.subject && point.subject !== 'unknown' && point.subject !== 'Unknown') {
+            console.log('Including valid subject quiz:', point);
+            return true;
+          }
+          console.log('Excluding other entry:', point);
+          return false;
+        });
+
+        console.log('Filtered quiz data:', quizData);
+        stats.totalQuizzes = quizData.length;
+        
+        // Calculate quiz statistics
+        if (quizData.length > 0) {
+          const quizScores = quizData.map(quiz => quiz.score || 0).filter(score => score > 0);
+          if (quizScores.length > 0) {
+            stats.averageScore = quizScores.reduce((sum, score) => sum + score, 0) / quizScores.length;
+          }
+          
+          // Group by subject for subject performance
+          const quizSubjects = {};
+          quizData.forEach(quiz => {
+            const subject = (quiz.subject === 'unknown' || quiz.subject === 'Unknown') ? 'General' : quiz.subject;
+            if (!quizSubjects[subject]) {
+              quizSubjects[subject] = { total: 0, count: 0, scores: [] };
+            }
+            quizSubjects[subject].total += quiz.score || 0;
+            quizSubjects[subject].count += 1;
+            quizSubjects[subject].scores.push(quiz.score || 0);
+          });
+
+          // Calculate subject averages
+          Object.keys(quizSubjects).forEach(subject => {
+            stats.scoreDetails.subjects[subject] = {
+              average: quizSubjects[subject].total / quizSubjects[subject].count,
+              total: quizSubjects[subject].total,
+              count: quizSubjects[subject].count,
+              scores: quizSubjects[subject].scores
+            };
+          });
+
+          // Get recent scores for trend analysis
+          stats.scoreDetails.recentScores = quizData
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(0, 10)
+            .map(quiz => ({
+              subject: (quiz.subject === 'unknown' || quiz.subject === 'Unknown') ? 'General' : quiz.subject,
+              score: quiz.score || 0,
+              date: quiz.date,
+              topic: quiz.topic || 'Quiz'
+            }));
+
+          // Calculate improvement (comparing recent vs older scores)
+          if (quizScores.length >= 10) {
+            const recentScores = quizScores.slice(0, 5);
+            const olderScores = quizScores.slice(-5);
+            const recentAvg = recentScores.reduce((sum, score) => sum + score, 0) / recentScores.length;
+            const olderAvg = olderScores.reduce((sum, score) => sum + score, 0) / olderScores.length;
+            stats.scoreDetails.improvement = recentAvg - olderAvg;
+          }
         }
       }
     } catch (error) {
-      console.error('Error fetching quizzes:', error);
+      console.error('Error fetching quiz data from students collection:', error);
     }
 
     // Calculate overall average including assignments
