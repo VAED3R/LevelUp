@@ -919,7 +919,251 @@
 }
 
 .scoreBar {
-  width: 60px;
   height: 4px;
   border-radius: 2px;
+  margin-top: 8px;
+  transition: all 0.3s ease;
+}
+
+/* Test Results Tab */
+.testResultsTab {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.testStats {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.testResultsList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.testItem {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 25px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.testItem:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.testInfo {
+  flex: 1;
+}
+
+.testInfo h3 {
+  margin: 0 0 10px 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.testInfo p {
+  margin: 0 0 15px 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+}
+
+.testMeta {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.testScore {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 150px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.emptyIcon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.emptyText {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* Responsive adjustments for test results */
+@media (max-width: 768px) {
+  .testItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  
+  .testScore {
+    align-items: flex-start;
+    width: 100%;
+  }
+  
+  .testStats {
+    gap: 20px;
+  }
+}
+
+.assignmentsPreview {
+  margin-top: 30px;
+}
+
+.assignmentsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.assignmentCard {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.assignmentCard:hover {
+  transform: translateY(-5px);
+}
+
+.assignmentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.assignmentHeader h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.assignmentStatus {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #fff;
+}
+
+.assignmentDescription {
+  margin: 0 0 15px 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.assignmentMeta {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.assignmentSubject, .assignmentDue {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 8px;
+  border-radius: 10px;
+}
+
+.assignmentScore {
+  font-weight: 600;
+  color: #4CAF50;
+}
+
+.assignmentPending {
+  font-weight: 500;
+  color: #FF9800;
+}
+
+/* Test Results Preview */
+.testResultsPreview {
+  margin-top: 30px;
+}
+
+.testResultsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.testResultCard {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.testResultCard:hover {
+  transform: translateY(-5px);
+}
+
+.testResultHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.testResultHeader h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.testResultStatus {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #fff;
+}
+
+.testResultMeta {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.testResultSubject, .testResultDate {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 8px;
+  border-radius: 10px;
+}
+
+.testResultScore {
+  font-weight: 600;
+  color: #4CAF50;
+}
+
+.testResultPending {
+  font-weight: 500;
+  color: #FF9800;
 } 

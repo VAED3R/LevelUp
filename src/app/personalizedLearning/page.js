@@ -253,6 +253,12 @@ export default function PersonalizedLearning() {
             📝 Assignments
           </button>
           <button 
+            className={`${styles.tabButton} ${activeTab === 'testResults' ? styles.active : ''}`}
+            onClick={() => setActiveTab('testResults')}
+          >
+            📋 Test Results
+          </button>
+          <button 
             className={`${styles.tabButton} ${activeTab === 'recommendations' ? styles.active : ''}`}
             onClick={() => setActiveTab('recommendations')}
           >
@@ -311,6 +317,7 @@ export default function PersonalizedLearning() {
                       <div className={styles.activityHeader}>
                         <span className={styles.activityType}>
                           {activity.type === 'assignment' && '📋'}
+                          {activity.type === 'test' && '📋'}
                           {activity.type === 'challenge' && '🏆'}
                         </span>
                         <span className={styles.activityTitle}>
@@ -370,6 +377,53 @@ export default function PersonalizedLearning() {
                           ) : (
                             <div className={styles.assignmentPending}>
                               Not yet graded
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Test Results Preview */}
+              {studentData?.testResults?.length > 0 && (
+                <div className={styles.testResultsPreview}>
+                  <h2 className={styles.sectionTitle}>Recent Test Results</h2>
+                  <div className={styles.testResultsGrid}>
+                    {studentData.testResults.slice(0, 3).map((test, index) => {
+                      const isCompleted = (test.obtainedMarks || 0) > 0;
+                      const percentage = isCompleted ? (test.percentage || ((test.obtainedMarks / test.totalMarks) * 100).toFixed(1)) : 0;
+                      return (
+                        <div key={index} className={styles.testResultCard}>
+                          <div className={styles.testResultHeader}>
+                            <h3>Test - {test.subject}</h3>
+                            <span 
+                              className={styles.testResultStatus}
+                              style={{ 
+                                backgroundColor: isCompleted 
+                                  ? getPerformanceColor(percentage) 
+                                  : '#9E9E9E'
+                              }}
+                            >
+                              {isCompleted ? `${percentage}%` : 'Not Taken'}
+                            </span>
+                          </div>
+                          <div className={styles.testResultMeta}>
+                            <span className={styles.testResultSubject}>
+                              {test.subject} - Semester {test.semester}
+                            </span>
+                            <span className={styles.testResultDate}>
+                              Taken: {new Date(test.addedAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          {isCompleted ? (
+                            <div className={styles.testResultScore}>
+                              Score: {test.obtainedMarks}/{test.totalMarks} marks
+                            </div>
+                          ) : (
+                            <div className={styles.testResultPending}>
+                              Test not yet taken
                             </div>
                           )}
                         </div>
@@ -494,6 +548,83 @@ export default function PersonalizedLearning() {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* Test Results Tab */}
+          {activeTab === 'testResults' && (
+            <div className={styles.testResultsTab}>
+              <div className={styles.tabHeader}>
+                <h2>Test Results Performance</h2>
+                <div className={styles.testStats}>
+                  <div className={styles.statItem}>
+                    <span className={styles.statLabel}>Total Tests:</span>
+                    <span className={styles.statValue}>{studentData?.testResults?.length || 0}</span>
+                  </div>
+                  <div className={styles.statItem}>
+                    <span className={styles.statLabel}>Completed:</span>
+                    <span className={styles.statValue}>
+                      {studentData?.testResults?.filter(t => (t.obtainedMarks || 0) > 0).length || 0}
+                    </span>
+                  </div>
+                  <div className={styles.statItem}>
+                    <span className={styles.statLabel}>Average:</span>
+                    <span className={styles.statValue}>
+                      {studentData?.testAverage ? `${studentData.testAverage.toFixed(1)}%` : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.testResultsList}>
+                {studentData?.testResults?.map((test, index) => {
+                  const isCompleted = (test.obtainedMarks || 0) > 0;
+                  const percentage = isCompleted ? (test.percentage || ((test.obtainedMarks / test.totalMarks) * 100).toFixed(1)) : 0;
+                  return (
+                    <div key={index} className={styles.testItem}>
+                      <div className={styles.testInfo}>
+                        <h3>Test - {test.subject}</h3>
+                        <p>Semester: {test.semester}</p>
+                        <div className={styles.testMeta}>
+                          <span className={styles.subject}>{test.subject}</span>
+                          <span className={styles.date}>
+                            Taken: {new Date(test.addedAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                      <div className={styles.testScore}>
+                        {isCompleted ? (
+                          <>
+                            <div className={styles.scoreDisplay}>
+                              <span className={styles.percentage}>
+                                {percentage}%
+                              </span>
+                              <span className={styles.marks}>
+                                {test.obtainedMarks}/{test.totalMarks} marks
+                              </span>
+                            </div>
+                            <div 
+                              className={styles.scoreBar}
+                              style={{ backgroundColor: getPerformanceColor(percentage) }}
+                            ></div>
+                          </>
+                        ) : (
+                          <div className={styles.pendingStatus}>
+                            <span className={styles.pendingText}>Not Taken</span>
+                            <div className={styles.pendingBar}></div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+                {(!studentData?.testResults || studentData.testResults.length === 0) && (
+                  <div className={styles.emptyState}>
+                    <div className={styles.emptyIcon}>📋</div>
+                    <p className={styles.emptyText}>No test results available yet</p>
+                  </div>
+                )}
               </div>
             </div>
           )}

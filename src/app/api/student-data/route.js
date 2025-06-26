@@ -86,6 +86,34 @@ export async function GET(request) {
       studentData.marks = [];
     }
 
+    // Fetch Test Results from marks collection
+    try {
+      const marksRef = collection(db, 'marks');
+      const testResultsQuery = query(
+        marksRef,
+        where('studentId', '==', studentId),
+        orderBy('addedAt', 'desc')
+      );
+      const testResultsSnapshot = await getDocs(testResultsQuery);
+      
+      // Filter for test results (exclude assignments and other types)
+      studentData.testResults = testResultsSnapshot.docs
+        .map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        .filter(mark => {
+          // Include marks that have subject, semester, and are not assignments
+          // Check if it's a test result by looking for subject, semester, and absence of assignmentId
+          return mark.subject && mark.semester && !mark.assignmentId && mark.obtainedMarks !== undefined;
+        });
+      
+      console.log('Test results fetched:', studentData.testResults.length);
+    } catch (error) {
+      console.error('Error fetching test results:', error);
+      studentData.testResults = [];
+    }
+
     // Fetch One vs One Requests
     try {
       const oneVsOneRef = collection(db, 'onevsoneRequests');
@@ -173,6 +201,9 @@ export async function GET(request) {
     
     // Add assignment average to main studentData for easy access
     studentData.assignmentAverage = studentData.analytics.academic.assignmentAverage;
+    
+    // Add test average to main studentData for easy access
+    studentData.testAverage = studentData.analytics.academic.testAverage;
 
     return NextResponse.json({ data: studentData });
   } catch (error) {
@@ -190,6 +221,9 @@ function calculateAnalytics(studentData) {
       totalQuizzes: studentData.quizzes.length,
       quizAverage: 0,
       assignmentAverage: 0,
+      totalTests: studentData.testResults.length,
+      completedTests: studentData.testResults.filter(t => (t.obtainedMarks || 0) > 0).length,
+      testAverage: 0,
       subjectPerformance: {}
     },
     engagement: {
@@ -213,6 +247,16 @@ function calculateAnalytics(studentData) {
     analytics.academic.quizAverage = totalQuizScore / analytics.academic.totalQuizzes;
   }
 
+  // Calculate test average
+  const completedTests = studentData.testResults.filter(t => (t.obtainedMarks || 0) > 0);
+  if (completedTests.length > 0) {
+    const totalTestScore = completedTests.reduce((sum, test) => {
+      const percentage = test.percentage || (test.totalMarks > 0 ? ((test.obtainedMarks / test.totalMarks) * 100) : 0);
+      return sum + percentage;
+    }, 0);
+    analytics.academic.testAverage = totalTestScore / completedTests.length;
+  }
+
   // Calculate subject performance from quizzes
   const quizSubjects = {};
   studentData.quizzes.forEach(quiz => {
@@ -221,6 +265,18 @@ function calculateAnalytics(studentData) {
     }
     quizSubjects[quiz.subject].total += quiz.score || 0;
     quizSubjects[quiz.subject].count += 1;
+  });
+
+  // Calculate subject performance from test results
+  studentData.testResults.forEach(test => {
+    if (test.subject) {
+      if (!quizSubjects[test.subject]) {
+        quizSubjects[test.subject] = { total: 0, count: 0 };
+      }
+      const percentage = test.percentage || (test.totalMarks > 0 ? ((test.obtainedMarks / test.totalMarks) * 100) : 0);
+      quizSubjects[test.subject].total += percentage;
+      quizSubjects[test.subject].count += 1;
+    }
   });
 
   // Calculate subject averages
@@ -248,14 +304,19 @@ function calculateAnalytics(studentData) {
   // Generate recent activity
   const allActivities = [
     ...studentData.assignments.map(a => ({ ...a, type: 'assignment', date: a.addedAt })),
+    ...studentData.testResults.map(t => ({ ...t, type: 'test', date: t.addedAt })),
     ...studentData.challenges.map(c => ({ ...c, type: 'challenge', date: c.createdAt }))
   ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   analytics.engagement.recentActivity = allActivities.slice(0, 10).map(activity => ({
     type: activity.type,
-    title: activity.type === 'assignment' ? activity.assignmentTitle : (activity.title || 'Activity'),
+    title: activity.type === 'assignment' ? activity.assignmentTitle : 
+           activity.type === 'test' ? `Test - ${activity.subject}` :
+           (activity.title || 'Activity'),
     date: activity.date,
-    score: activity.type === 'assignment' ? activity.percentage : (activity.score || 0),
+    score: activity.type === 'assignment' ? activity.percentage : 
+           activity.type === 'test' ? (activity.percentage || ((activity.obtainedMarks / activity.totalMarks) * 100).toFixed(1)) :
+           (activity.score || 0),
     subject: activity.subject
   }));
 

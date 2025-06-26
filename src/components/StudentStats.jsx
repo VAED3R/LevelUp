@@ -160,6 +160,40 @@ export default function StudentStats() {
             )}
           </div>
         </div>
+
+        {/* Test Results Card */}
+        <div className={styles.statCard}>
+          <div className={styles.statHeader}>
+            <span className={styles.statIcon}>📋</span>
+            <h3>Test Results</h3>
+          </div>
+          <div className={styles.statValue}>
+            {stats?.completedTests || 0}/{stats?.totalTests || 0}
+          </div>
+          <div className={styles.statDetails}>
+            <p>Completed tests</p>
+            {stats?.totalTests > 0 && (
+              <div className={styles.testProgress}>
+                <div className={styles.progressBar}>
+                  <div 
+                    className={styles.progressFill}
+                    style={{ 
+                      width: `${(stats.completedTests / stats.totalTests) * 100}%`,
+                      backgroundColor: '#FF9800'
+                    }}
+                  ></div>
+                </div>
+                <span>Completion: {((stats.completedTests / stats.totalTests) * 100).toFixed(0)}%</span>
+              </div>
+            )}
+            {stats?.testDetails?.totalMarks > 0 && (
+              <div className={styles.testMarks}>
+                <span>Average: {stats?.testAverage?.toFixed(1) || 'N/A'}%</span>
+                <span>Marks: {stats.testDetails.obtainedMarks}/{stats.testDetails.totalMarks}</span>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Assignment Performance */}
@@ -186,6 +220,30 @@ export default function StudentStats() {
         </div>
       )}
 
+      {/* Test Performance by Subject */}
+      {Object.keys(stats?.testDetails?.subjects || {}).length > 0 && (
+        <div className={styles.subjectSection}>
+          <h3 className={styles.sectionTitle}>Test Performance by Subject</h3>
+          <div className={styles.subjectGrid}>
+            {Object.entries(stats.testDetails.subjects).map(([subject, data]) => {
+              const subjectAverage = data.total > 0 ? (data.obtained / data.total) * 100 : 0;
+              return (
+                <div key={subject} className={styles.subjectCard}>
+                  <h4>{subject}</h4>
+                  <div className={styles.subjectScore} style={{ color: getScoreColor(subjectAverage) }}>
+                    {subjectAverage.toFixed(1)}%
+                  </div>
+                  <div className={styles.subjectDetails}>
+                    <span>{data.count} tests</span>
+                    <span>{data.obtained}/{data.total} marks</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Recent Assignments */}
       {stats?.assignmentDetails?.recentAssignments?.length > 0 && (
         <div className={styles.recentSection}>
@@ -202,6 +260,29 @@ export default function StudentStats() {
                 </span>
                 <span className={styles.scoreDate}>
                   {new Date(assignment.addedAt).toLocaleDateString()}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Recent Test Results */}
+      {stats?.testDetails?.recentTests?.length > 0 && (
+        <div className={styles.recentSection}>
+          <h3 className={styles.sectionTitle}>Recent Test Results</h3>
+          <div className={styles.recentScores}>
+            {stats.testDetails.recentTests.map((test, index) => (
+              <div key={index} className={styles.recentScore}>
+                <span className={styles.scoreSubject}>{test.subject} (Sem {test.semester})</span>
+                <span 
+                  className={styles.scoreValue}
+                  style={{ color: getScoreColor(parseFloat(test.percentage)) }}
+                >
+                  {test.percentage}%
+                </span>
+                <span className={styles.scoreDate}>
+                  {new Date(test.addedAt).toLocaleDateString()}
                 </span>
               </div>
             ))}

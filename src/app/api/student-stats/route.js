@@ -212,10 +212,107 @@ export async function GET(request) {
       console.error('Error fetching quiz data from students collection:', error);
     }
 
+    // Fetch Test Results from marks collection
+    try {
+      const marksRef = collection(db, 'marks');
+      const testResultsQuery = query(
+        marksRef,
+        where('studentId', '==', studentId),
+        orderBy('addedAt', 'desc')
+      );
+      const testResultsSnapshot = await getDocs(testResultsQuery);
+      
+      // Filter for test results (exclude assignments and other types)
+      const testResultsData = testResultsSnapshot.docs
+        .map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        .filter(mark => {
+          // Include marks that have subject, semester, and are not assignments
+          // Check if it's a test result by looking for subject, semester, and absence of assignmentId
+          return mark.subject && mark.semester && !mark.assignmentId && mark.obtainedMarks !== undefined;
+        });
+
+      stats.totalTests = testResultsData.length;
+      stats.completedTests = testResultsData.filter(t => (t.obtainedMarks || 0) > 0).length;
+
+      // Calculate test statistics
+      let totalTestMarks = 0;
+      let totalObtainedTestMarks = 0;
+      const testSubjects = {};
+
+      testResultsData.forEach(test => {
+        // Only include tests that have been completed (obtainedMarks > 0)
+        if ((test.obtainedMarks || 0) > 0) {
+          // Calculate total and obtained marks
+          totalTestMarks += test.totalMarks || 0;
+          totalObtainedTestMarks += test.obtainedMarks || 0;
+
+          // Group by subject
+          if (!testSubjects[test.subject]) {
+            testSubjects[test.subject] = {
+              total: 0,
+              obtained: 0,
+              count: 0,
+              tests: []
+            };
+          }
+          testSubjects[test.subject].total += test.totalMarks || 0;
+          testSubjects[test.subject].obtained += test.obtainedMarks || 0;
+          testSubjects[test.subject].count += 1;
+          testSubjects[test.subject].tests.push({
+            subject: test.subject,
+            semester: test.semester,
+            percentage: test.percentage || (test.totalMarks > 0 ? ((test.obtainedMarks / test.totalMarks) * 100).toFixed(1) : 0),
+            obtainedMarks: test.obtainedMarks,
+            totalMarks: test.totalMarks,
+            addedAt: test.addedAt
+          });
+        }
+      });
+
+      // Calculate test average
+      if (totalTestMarks > 0) {
+        stats.testAverage = (totalObtainedTestMarks / totalTestMarks) * 100;
+      }
+
+      // Store test details
+      stats.testDetails = {
+        totalMarks: totalTestMarks,
+        obtainedMarks: totalObtainedTestMarks,
+        subjects: testSubjects,
+        recentTests: testResultsData
+          .filter(test => (test.obtainedMarks || 0) > 0) // Only completed tests
+          .slice(0, 5)
+          .map(test => ({
+            subject: test.subject,
+            semester: test.semester,
+            percentage: test.percentage || (test.totalMarks > 0 ? ((test.obtainedMarks / test.totalMarks) * 100).toFixed(1) : 0),
+            obtainedMarks: test.obtainedMarks,
+            totalMarks: test.totalMarks,
+            addedAt: test.addedAt
+          }))
+      };
+
+    } catch (error) {
+      console.error('Error fetching test results:', error);
+      stats.totalTests = 0;
+      stats.completedTests = 0;
+      stats.testAverage = 0;
+      stats.testDetails = {
+        totalMarks: 0,
+        obtainedMarks: 0,
+        subjects: {},
+        recentTests: []
+      };
+    }
+
     // Calculate overall average including assignments
     const allAverages = [];
     if (stats.averageScore > 0) allAverages.push(stats.averageScore);
     if (stats.assignmentAverage > 0) allAverages.push(stats.assignmentAverage);
+    if (stats.testAverage > 0) allAverages.push(stats.testAverage);
     
     if (allAverages.length > 0) {
       stats.averageScore = allAverages.reduce((sum, avg) => sum + avg, 0) / allAverages.length;
@@ -244,7 +341,8 @@ export async function GET(request) {
       stats: {
         ...stats,
         averageScore: Math.round(stats.averageScore * 10) / 10, // Round to 1 decimal
-        assignmentAverage: Math.round(stats.assignmentAverage * 10) / 10 // Round to 1 decimal
+        assignmentAverage: Math.round(stats.assignmentAverage * 10) / 10, // Round to 1 decimal
+        testAverage: Math.round(stats.testAverage * 10) / 10, // Round to 1 decimal
       }
     });
   } catch (error) {
@@ -258,7 +356,14 @@ export async function GET(request) {
         completedAssignments: 0,
         assignmentAverage: 0,
         scoreDetails: { subjects: {}, recentScores: [], improvement: 0 },
-        assignmentDetails: { subjects: {}, recentAssignments: [], totalMarks: 0, obtainedMarks: 0 }
+        assignmentDetails: { subjects: {}, recentAssignments: [], totalMarks: 0, obtainedMarks: 0 },
+        testAverage: 0,
+        testDetails: {
+          totalMarks: 0,
+          obtainedMarks: 0,
+          subjects: {},
+          recentTests: []
+        }
       }
     }, { status: 500 });
   }

@@ -254,25 +254,32 @@ export default function TestResults() {
 
   const handleMarksChange = (studentId, field) => (e) => {
     const value = e.target.value;
-    if (value === "" || (value >= 0 && value <= Number(totalScore))) {
-      setMarks(prev => ({
-        ...prev,
-        [studentId]: {
-          ...prev[studentId],
-          [field]: value
-        }
-      }));
-
-      // Calculate percentage when obtained marks change
-      if (field === "obtained" && totalScore) {
-        const percentage = calculatePercentage(
-          Number(value),
-          Number(totalScore)
-        );
-        setPercentages(prev => ({
+    // Allow empty string or valid numbers
+    if (value === "" || /^\d+(\.\d+)?$/.test(value)) {
+      const numValue = Number(value);
+      const maxScore = Number(totalScore);
+      
+      // Check if the value is within valid range
+      if (value === "" || (numValue >= 0 && numValue <= maxScore)) {
+        setMarks(prev => ({
           ...prev,
-          [studentId]: percentage
+          [studentId]: {
+            ...prev[studentId],
+            [field]: value
+          }
         }));
+
+        // Calculate percentage when obtained marks change
+        if (field === "obtained" && totalScore) {
+          const percentage = calculatePercentage(
+            numValue,
+            Number(totalScore)
+          );
+          setPercentages(prev => ({
+            ...prev,
+            [studentId]: percentage
+          }));
+        }
       }
     }
   };
@@ -291,18 +298,22 @@ export default function TestResults() {
 
   const handleTotalScoreChange = (e) => {
     const value = e.target.value;
-    if (value === "" || (value >= 0 && value <= 100)) {
-      setTotalScore(value);
-      // Reset all obtained marks when total score changes
-      const resetMarks = {};
-      filteredStudents.forEach(student => {
-        resetMarks[student.id] = {
-          obtained: "0",
-          total: value
-        };
-      });
-      setMarks(resetMarks);
-      setPercentages({});
+    // Allow empty string or valid numbers
+    if (value === "" || /^\d+(\.\d+)?$/.test(value)) {
+      const numValue = Number(value);
+      if (value === "" || numValue >= 0) {
+        setTotalScore(value);
+        // Reset all obtained marks when total score changes
+        const resetMarks = {};
+        filteredStudents.forEach(student => {
+          resetMarks[student.id] = {
+            obtained: "0",
+            total: value
+          };
+        });
+        setMarks(resetMarks);
+        setPercentages({});
+      }
     }
   };
 
@@ -319,9 +330,9 @@ export default function TestResults() {
       
       const promises = filteredStudents.map(async (student) => {
         const studentMarks = marks[student.id];
-        // If marks are empty or not filled, use 0 as default
-        const obtainedMarks = Number(studentMarks.obtained) || 0;
-        const totalMarks = Number(studentMarks.total) || 0;
+        // Fix: Use the actual total score from state, not from marks
+        const obtainedMarks = Number(studentMarks?.obtained) || 0;
+        const totalMarks = Number(totalScore) || 0; // Use totalScore from state
         const percentage = Number(calculatePercentage(obtainedMarks, totalMarks));
 
         const marksData = {
@@ -429,10 +440,11 @@ export default function TestResults() {
       filteredStudents.forEach(student => {
         resetMarks[student.id] = {
           obtained: "0",
-          total: "0"
+          total: totalScore || "0" // Keep the total score when resetting
         };
       });
       setMarks(resetMarks);
+      setPercentages({}); // Reset percentages as well
     } catch (error) {
       console.error("Error adding test results:", error);
       setError("Failed to add test results");
@@ -553,11 +565,9 @@ export default function TestResults() {
                 <label className={styles.label}>Total Score</label>
                 <input
                   key="total-score-input"
-                  type="number"
+                  type="text"
                   value={totalScore}
                   onChange={handleTotalScoreChange}
-                  min="0"
-                  max="100"
                   className={styles.input}
                   required
                   placeholder="Enter total score"
@@ -586,11 +596,9 @@ export default function TestResults() {
                           <label className={styles.label}>Obtained Marks</label>
                           <input
                             key={`${student.id}-obtained`}
-                            type="number"
+                            type="text"
                             value={marks[student.id]?.obtained || "0"}
                             onChange={handleMarksChange(student.id, "obtained")}
-                            min="0"
-                            max={totalScore}
                             className={styles.input}
                             placeholder="Enter marks if taken test"
                           />
