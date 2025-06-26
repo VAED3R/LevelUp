@@ -384,7 +384,7 @@ export default function StudentStats() {
           <div className={styles.recentScores}>
             {stats.testDetails.recentTests.map((test, index) => (
               <div key={index} className={styles.recentScore}>
-                <span className={styles.scoreSubject}>{test.subject} (Sem {test.semester})</span>
+                <span className={styles.scoreSubject}>{test.subject} (Sem {typeof test.semester === 'string' ? test.semester : String(test.semester || 'N/A')})</span>
                 <span 
                   className={styles.scoreValue}
                   style={{ color: getScoreColor(parseFloat(test.percentage)) }}

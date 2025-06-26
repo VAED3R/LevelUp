@@ -638,7 +638,7 @@ export default function PersonalizedLearning() {
                           </div>
                           <div className={styles.testResultMeta}>
                             <span className={styles.testResultSubject}>
-                              {test.subject} - Semester {test.semester}
+                              {test.subject} - Semester {typeof test.semester === 'string' ? test.semester : String(test.semester || 'N/A')}
                             </span>
                             <span className={styles.testResultDate}>
                               Taken: {new Date(test.addedAt).toLocaleDateString()}
@@ -810,7 +810,7 @@ export default function PersonalizedLearning() {
                     <div key={index} className={styles.testItem}>
                       <div className={styles.testInfo}>
                         <h3>Test - {test.subject}</h3>
-                        <p>Semester: {test.semester}</p>
+                        <p>Semester: {typeof test.semester === 'string' ? test.semester : String(test.semester || 'N/A')}</p>
                         <div className={styles.testMeta}>
                           <span className={styles.subject}>{test.subject}</span>
                           <span className={styles.date}>
@@ -874,7 +874,7 @@ export default function PersonalizedLearning() {
                 <h3>AI-Powered Recommendations</h3>
                 <div className={styles.recommendationCard}>
                   {!aiRecs && <span>Loading AI recommendations...</span>}
-                  {aiRecs?.error && <div>{aiRecs.error}<pre>{aiRecs.raw}</pre></div>}
+                  {aiRecs?.error && <div>{typeof aiRecs.error === 'string' ? aiRecs.error : JSON.stringify(aiRecs.error)}<pre>{typeof aiRecs.raw === 'string' ? aiRecs.raw : JSON.stringify(aiRecs.raw)}</pre></div>}
                   {aiRecs && !aiRecs.error && (
                     <>
                       <h4>Study Tips</h4>
@@ -897,16 +897,21 @@ export default function PersonalizedLearning() {
                           <ul>{aiRecs.resourceRecommendations?.map((resource, i) => <li key={i}>{typeof resource === 'string' ? resource : JSON.stringify(resource)}</li>)}</ul>
                         </>
                       )}
-                      {aiRecs.goalSuggestions && (
+                      {aiRecs.goalSuggestions && typeof aiRecs.goalSuggestions === 'object' && (
                         <>
                           <h4>Goal Suggestions</h4>
                           <ul>
-                            {Object.entries(aiRecs.goalSuggestions).map(([goal, suggestion], i) => (
-                              <li key={i}>
-                                <b>{typeof goal === 'string' ? goal : JSON.stringify(goal)}:</b> 
-                                {typeof suggestion === 'string' ? suggestion : JSON.stringify(suggestion)}
-                              </li>
-                            ))}
+                            {Object.entries(aiRecs.goalSuggestions).map(([goal, suggestion], i) => {
+                              // Ensure both goal and suggestion are strings
+                              const goalText = typeof goal === 'string' ? goal : String(goal);
+                              const suggestionText = typeof suggestion === 'string' ? suggestion : String(suggestion);
+                              
+                              return (
+                                <li key={i}>
+                                  <b>{goalText}:</b> {suggestionText}
+                                </li>
+                              );
+                            })}
                           </ul>
                         </>
                       )}
@@ -920,7 +925,7 @@ export default function PersonalizedLearning() {
                 <h3>AI-Powered Content Recommendations</h3>
                 <div className={styles.recommendationCard}>
                   {!contentRecs && <span>Loading content recommendations...</span>}
-                  {contentRecs?.error && <div>{contentRecs.error}</div>}
+                  {contentRecs?.error && <div>{typeof contentRecs.error === 'string' ? contentRecs.error : JSON.stringify(contentRecs.error)}</div>}
                   {contentRecs && !contentRecs.error && (
                     <>
                       <h4>Topics to Focus On</h4>
@@ -929,7 +934,7 @@ export default function PersonalizedLearning() {
                       <ul>{contentRecs.resourceTypes?.map((resource, i) => <li key={i}>{typeof resource === 'string' ? resource : JSON.stringify(resource)}</li>)}</ul>
                       <h4>Study Plan</h4>
                       <p><strong>Difficulty Level:</strong> {typeof contentRecs.difficultyLevel === 'string' ? contentRecs.difficultyLevel : JSON.stringify(contentRecs.difficultyLevel)}</p>
-                      <p><strong>Time Allocation:</strong> {contentRecs.timeAllocation} minutes per session</p>
+                      <p><strong>Time Allocation:</strong> {typeof contentRecs.timeAllocation === 'string' ? contentRecs.timeAllocation : String(contentRecs.timeAllocation || 0)} minutes per session</p>
                       {contentRecs.studySessionFormat && (
                         <p><strong>Session Format:</strong> {typeof contentRecs.studySessionFormat === 'string' ? contentRecs.studySessionFormat : JSON.stringify(contentRecs.studySessionFormat)}</p>
                       )}
