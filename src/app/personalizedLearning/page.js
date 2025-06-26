@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import { getEnhancedDeepSeekRecommendations, getRecommendedContent } from "@/lib/deepseek";
 import AttentionSpanSettings from "@/components/AttentionSpanSettings";
+import LearningAssessment from "@/components/LearningAssessment";
 
 export default function PersonalizedLearning() {
   const { user } = useAuth();
@@ -26,146 +27,103 @@ export default function PersonalizedLearning() {
   const [aiRecs, setAiRecs] = useState(null);
   const [contentRecs, setContentRecs] = useState(null);
   const [showAttentionSpanSettings, setShowAttentionSpanSettings] = useState(false);
+  const [error, setError] = useState(null);
+  const [subjects, setSubjects] = useState([]);
 
   useEffect(() => {
     if (user) {
-      loadPersonalizedData();
+      fetchData();
     }
   }, [user]);
 
   useEffect(() => {
     if (user && learningProfile && studentData) {
-      fetchEnhancedDeepSeekRecommendations();
-      fetchRecommendedContent();
+      generateRecommendations();
     }
   }, [user, learningProfile, studentData]);
 
-  const loadPersonalizedData = async () => {
-    if (!user) return;
-    
+  const fetchData = async () => {
     try {
       setLoading(true);
       
-      // Load student data
-      let studentData = null;
-      try {
-        const studentResponse = await fetch(`/api/student-data?studentId=${user.uid}`);
-        const studentResult = await studentResponse.json();
-        studentData = studentResult.data;
-      } catch (error) {
-        console.error('Error loading student data:', error);
-        studentData = {
-          assignments: [],
-          challenges: [],
-          courseMap: [],
-          marks: [],
-          oneVsOneRequests: [],
-          quizzes: [],
-          analytics: {
-            academic: { averageScore: 0, totalAssignments: 0, completedAssignments: 0, totalQuizzes: 0, quizAverage: 0, subjectPerformance: {} },
-            engagement: { totalChallenges: 0, activeChallenges: 0, oneVsOneRequests: 0, recentActivity: [] }
-          }
-        };
+      // Fetch learning profile from learningProfiles collection
+      const profileResponse = await fetch(`/api/learning-profile?studentId=${user.uid}`);
+      if (profileResponse.ok) {
+        const profileData = await profileResponse.json();
+        console.log('Fetched learning profile from database:', profileData.profile);
+        setLearningProfile(profileData.profile);
+      } else {
+        console.error('Failed to fetch learning profile:', profileResponse.status);
       }
-      
-      // Load student stats
-      let statsData = null;
-      try {
-        const statsResponse = await fetch(`/api/student-stats?studentId=${user.uid}`);
-        statsData = await statsResponse.json();
-      } catch (error) {
-        console.error('Error loading stats:', error);
-        statsData = {
-          averageScore: 0,
-          attendanceRate: 0,
-          totalQuizzes: 0,
-          totalAssignments: 0,
-          completedAssignments: 0,
-          assignmentAverage: 0
-        };
+
+      // Fetch student data
+      const studentResponse = await fetch(`/api/student-data?studentId=${user.uid}`);
+      if (studentResponse.ok) {
+        const studentData = await studentResponse.json();
+        console.log('Fetched student data:', studentData);
+        setStudentData(studentData);
+      } else {
+        console.error('Failed to fetch student data:', studentResponse.status);
       }
-      
-      // Load learning profile
-      let profileData = null;
-      try {
-        const profileResponse = await fetch(`/api/learning-profile?studentId=${user.uid}`);
-        const profileResult = await profileResponse.json();
-        profileData = profileResult.profile;
-      } catch (error) {
-        console.error('Error loading profile:', error);
-        profileData = {
-          learningStyle: 'visual',
-          preferredDifficulty: 'medium',
-          studyTimePreference: 'evening',
-          attentionSpan: 25,
-          subjects: {},
-          learningGoals: [],
-          strengths: [],
-          weaknesses: [],
-          interests: []
-        };
+
+      // Fetch subjects
+      const subjectsResponse = await fetch('/api/getSubjects');
+      if (subjectsResponse.ok) {
+        const subjectsData = await subjectsResponse.json();
+        setSubjects(subjectsData.subjects || []);
       }
-      
-      // Load recommendations
-      let recommendationsData = null;
-      try {
-        const recommendationsResponse = await fetch(`/api/recommendations?studentId=${user.uid}`);
-        recommendationsData = await recommendationsResponse.json();
-      } catch (error) {
-        console.error('Error loading recommendations:', error);
-        recommendationsData = {
-          studySchedule: {
-            recommendedTime: 'evening',
-            sessionDuration: 25,
-            breaks: 5
-          },
-          contentRecommendations: [],
-          learningStrategies: [
-            'Take regular breaks every 25 minutes',
-            'Use visual aids when studying',
-            'Practice active recall techniques',
-            'Review material before bedtime'
-          ],
-          focusAreas: []
-        };
-      }
-      
-      setStudentData(studentData);
-      setLearningProfile(profileData);
-      setRecommendations(recommendationsData);
+
     } catch (error) {
-      console.error('Error loading personalized data:', error);
+      console.error('Error fetching data:', error);
+      setError('Failed to load data');
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchEnhancedDeepSeekRecommendations = async () => {
+  const generateRecommendations = async () => {
     try {
-      const recs = await getEnhancedDeepSeekRecommendations(
-        learningProfile,
-        studentData?.analytics?.academic,
+      // Ensure we have the complete learning profile data
+      if (!learningProfile) {
+        console.warn('Learning profile not available for AI recommendations');
+        return;
+      }
+
+      console.log('Generating AI recommendations with learning profile:', {
+        learningStyle: learningProfile.learningStyle,
+        studyPreference: learningProfile.studyPreference,
+        attentionSpan: learningProfile.attentionSpan,
+        preferredDifficulty: learningProfile.preferredDifficulty,
+        studyTimePreference: learningProfile.studyTimePreference,
+        interests: learningProfile.interests,
+        strengths: learningProfile.strengths,
+        weaknesses: learningProfile.weaknesses,
+        learningGoals: learningProfile.learningGoals,
+        subjects: learningProfile.subjects
+      });
+
+      const personalizedRecs = await getEnhancedDeepSeekRecommendations(
+        learningProfile, // Complete learning profile from learningProfiles collection
+        studentData?.data?.analytics?.academic,
         learningProfile?.learningGoals || [],
-        studentData?.analytics?.engagement?.recentActivity || []
+        studentData?.data?.analytics?.engagement?.recentActivity || []
       );
-      setAiRecs(recs);
+      setAiRecs(personalizedRecs);
+
+      const contentRecs = await getRecommendedContent(
+        learningProfile, // Complete learning profile from learningProfiles collection
+        studentData?.data?.analytics?.academic,
+        Object.keys(studentData?.data?.analytics?.academic?.subjectPerformance || {})
+      );
+      setContentRecs(contentRecs);
     } catch (error) {
-      setAiRecs({ error: "Could not load AI recommendations." });
+      console.error('Error generating recommendations:', error);
     }
   };
 
-  const fetchRecommendedContent = async () => {
-    try {
-      const content = await getRecommendedContent(
-        learningProfile,
-        studentData?.analytics?.academic,
-        Object.keys(studentData?.analytics?.academic?.subjectPerformance || {})
-      );
-      setContentRecs(content);
-    } catch (error) {
-      console.error('Error fetching content recommendations:', error);
-      setContentRecs({ error: "Could not load content recommendations." });
-    }
+  const handleProfileUpdate = async (updatedProfile) => {
+    setLearningProfile(updatedProfile);
+    await generateRecommendations();
   };
 
   const getLearningStyleIcon = (style) => {
@@ -206,7 +164,7 @@ export default function PersonalizedLearning() {
   };
 
   const calculateOverallAverage = () => {
-    const analytics = studentData?.analytics?.academic;
+    const analytics = studentData?.data?.analytics?.academic;
     if (!analytics) return 0;
 
     const averages = [];
@@ -217,13 +175,13 @@ export default function PersonalizedLearning() {
     }
     
     // Add test average if available
-    if (studentData?.testAverage > 0) {
-      averages.push(studentData.testAverage);
+    if (studentData?.data?.testAverage > 0) {
+      averages.push(studentData.data.testAverage);
     }
     
     // Add assignment average if available
-    if (studentData?.assignmentAverage > 0) {
-      averages.push(studentData.assignmentAverage);
+    if (studentData?.data?.assignmentAverage > 0) {
+      averages.push(studentData.data.assignmentAverage);
     }
     
     // If no averages available, try to calculate from subject performance
@@ -243,9 +201,9 @@ export default function PersonalizedLearning() {
 
   const getAcademicStrategies = () => {
     const overallAvg = calculateOverallAverage();
-    const quizAvg = studentData?.analytics?.academic?.quizAverage || 0;
-    const testAvg = studentData?.testAverage || 0;
-    const assignmentAvg = studentData?.assignmentAverage || 0;
+    const quizAvg = studentData?.data?.analytics?.academic?.quizAverage || 0;
+    const testAvg = studentData?.data?.testAverage || 0;
+    const assignmentAvg = studentData?.data?.assignmentAverage || 0;
     
     const strategies = [];
     
@@ -366,6 +324,18 @@ export default function PersonalizedLearning() {
     );
   }
 
+  if (error) {
+    return (
+      <div className={styles.errorContainer}>
+        <h2>Error</h2>
+        <p>{error}</p>
+        <button onClick={fetchData} className={styles.retryButton}>
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
       <Navbar />
@@ -403,48 +373,53 @@ export default function PersonalizedLearning() {
               <div className={styles.profileStats}>
                 <div className={styles.stat}>
                   <span className={styles.statNumber}>
-                    {calculateOverallAverage().toFixed(1)}
+                    {studentData?.data ? calculateOverallAverage().toFixed(1) : '0.0'}
                   </span>
                   <span className={styles.statLabel}>Overall Avg</span>
                 </div>
                 <div className={styles.stat}>
                   <span className={styles.statNumber}>
-                    {studentData?.analytics?.academic?.totalQuizzes || 0}
+                    {studentData?.data?.analytics?.academic?.totalQuizzes || 0}
                   </span>
                   <span className={styles.statLabel}>Quizzes</span>
                 </div>
                 <div className={styles.stat}>
                   <span className={styles.statNumber}>
-                    {studentData?.analytics?.academic?.totalTests || 0}
+                    {studentData?.data?.analytics?.academic?.totalTests || 0}
                   </span>
                   <span className={styles.statLabel}>Tests</span>
                 </div>
                 <div className={styles.stat}>
                   <span className={styles.statNumber}>
-                    {studentData?.analytics?.academic?.completedAssignments || 0}
+                    {studentData?.data?.analytics?.academic?.completedAssignments || 0}
                   </span>
                   <span className={styles.statLabel}>Assignments</span>
                 </div>
               </div>
+              {!studentData?.data && (
+                <div className={styles.noDataMessage}>
+                  <p>No academic data available yet. Complete some quizzes, tests, or assignments to see your performance metrics here!</p>
+                </div>
+              )}
             </div>
             <div className={styles.profileDetails}>
               <div className={styles.detailRow}>
                 <div className={styles.detailItem}>
                   <span className={styles.detailLabel}>Quiz Average:</span>
                   <span className={styles.detailValue}>
-                    {studentData?.analytics?.academic?.quizAverage?.toFixed(1) || 'N/A'}%
+                    {studentData?.data?.analytics?.academic?.quizAverage?.toFixed(1) || 'N/A'}%
                   </span>
                 </div>
                 <div className={styles.detailItem}>
                   <span className={styles.detailLabel}>Test Average:</span>
                   <span className={styles.detailValue}>
-                    {studentData?.testAverage?.toFixed(1) || 'N/A'}%
+                    {studentData?.data?.testAverage?.toFixed(1) || 'N/A'}%
                   </span>
                 </div>
                 <div className={styles.detailItem}>
                   <span className={styles.detailLabel}>Assignment Average:</span>
                   <span className={styles.detailValue}>
-                    {studentData?.assignmentAverage?.toFixed(1) || 'N/A'}%
+                    {studentData?.data?.assignmentAverage?.toFixed(1) || 'N/A'}%
                   </span>
                 </div>
               </div>
@@ -452,8 +427,11 @@ export default function PersonalizedLearning() {
                 <div className={styles.detailItem}>
                   <span className={styles.detailLabel}>Study Preference:</span>
                   <span className={styles.detailValue}>
-                    {learningProfile?.studyTimePreference?.charAt(0).toUpperCase() + 
-                     learningProfile?.studyTimePreference?.slice(1) || 'Evening'}
+                    {learningProfile?.studyTimePreference ? 
+                      learningProfile.studyTimePreference.charAt(0).toUpperCase() + 
+                      learningProfile.studyTimePreference.slice(1) : 
+                      'Evening'
+                    }
                   </span>
                 </div>
                 <div className={styles.detailItem}>
@@ -527,7 +505,7 @@ export default function PersonalizedLearning() {
               <div className={styles.performanceSection}>
                 <h2 className={styles.sectionTitle}>Academic Performance</h2>
                 <div className={styles.performanceGrid}>
-                  {Object.entries(studentData?.analytics?.academic?.subjectPerformance || {}).map(([subject, scoreData], index) => {
+                  {Object.entries(studentData?.data?.analytics?.academic?.subjectPerformance || {}).map(([subject, scoreData], index) => {
                     const score = typeof scoreData === 'number' ? scoreData : (scoreData?.average || 0);
                     return (
                       <div key={index} className={styles.performanceCard}>
@@ -559,7 +537,7 @@ export default function PersonalizedLearning() {
               <div className={styles.activitySection}>
                 <h2 className={styles.sectionTitle}>Recent Activity</h2>
                 <div className={styles.activityGrid}>
-                  {studentData?.analytics?.engagement?.recentActivity?.slice(0, 6).map((activity, index) => (
+                  {studentData?.data?.analytics?.engagement?.recentActivity?.slice(0, 6).map((activity, index) => (
                     <div key={index} className={styles.activityCard}>
                       <div className={styles.activityHeader}>
                         <span className={styles.activityType}>
@@ -596,11 +574,11 @@ export default function PersonalizedLearning() {
               </div>
 
               {/* Assignments Preview */}
-              {studentData?.assignments?.length > 0 && (
+              {studentData?.data?.assignments?.length > 0 && (
                 <div className={styles.assignmentsPreview}>
                   <h2 className={styles.sectionTitle}>Recent Assignments</h2>
                   <div className={styles.assignmentsGrid}>
-                    {studentData.assignments.slice(0, 3).map((assignment, index) => {
+                    {studentData.data.assignments.slice(0, 3).map((assignment, index) => {
                       const isCompleted = (assignment.obtainedMarks || 0) > 0;
                       return (
                         <div key={index} className={styles.assignmentCard}>
@@ -628,15 +606,6 @@ export default function PersonalizedLearning() {
                               Added: {new Date(assignment.addedAt).toLocaleDateString()}
                             </span>
                           </div>
-                          {isCompleted ? (
-                            <div className={styles.assignmentScore}>
-                              Score: {assignment.obtainedMarks}/{assignment.totalMarks} marks
-                            </div>
-                          ) : (
-                            <div className={styles.assignmentPending}>
-                              Not yet graded
-                            </div>
-                          )}
                         </div>
                       );
                     })}
@@ -703,7 +672,7 @@ export default function PersonalizedLearning() {
                   <div className={styles.chartCard}>
                     <h3>Assignment Performance Trend</h3>
                     <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={studentData?.assignments?.slice(0, 10).reverse().map(assignment => ({
+                      <LineChart data={studentData?.data?.assignments?.slice(0, 10).reverse().map(assignment => ({
                         date: new Date(assignment.addedAt).toLocaleDateString(),
                         score: assignment.percentage || 0,
                         title: assignment.assignmentTitle
@@ -721,7 +690,7 @@ export default function PersonalizedLearning() {
                   <div className={styles.chartCard}>
                     <h3>Subject Performance</h3>
                     <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={Object.entries(studentData?.analytics?.academic?.subjectPerformance || {}).map(([subject, data]) => ({
+                      <BarChart data={Object.entries(studentData?.data?.analytics?.academic?.subjectPerformance || {}).map(([subject, data]) => ({
                         subject,
                         score: typeof data === 'number' ? data : (data?.average || 0)
                       }))}>
@@ -746,25 +715,25 @@ export default function PersonalizedLearning() {
                 <div className={styles.assignmentStats}>
                   <div className={styles.statItem}>
                     <span className={styles.statLabel}>Total:</span>
-                    <span className={styles.statValue}>{studentData?.assignments?.length || 0}</span>
+                    <span className={styles.statValue}>{studentData?.data?.assignments?.length || 0}</span>
                   </div>
                   <div className={styles.statItem}>
                     <span className={styles.statLabel}>Completed:</span>
                     <span className={styles.statValue}>
-                      {studentData?.assignments?.filter(a => (a.obtainedMarks || 0) > 0).length || 0}
+                      {studentData?.data?.assignments?.filter(a => (a.obtainedMarks || 0) > 0).length || 0}
                     </span>
                   </div>
                   <div className={styles.statItem}>
                     <span className={styles.statLabel}>Average:</span>
                     <span className={styles.statValue}>
-                      {studentData?.assignmentAverage ? `${studentData.assignmentAverage.toFixed(1)}%` : 'N/A'}
+                      {studentData?.data?.assignmentAverage ? `${studentData.data.assignmentAverage.toFixed(1)}%` : 'N/A'}
                     </span>
                   </div>
                 </div>
               </div>
 
               <div className={styles.assignmentsList}>
-                {studentData?.assignments?.map((assignment, index) => {
+                {studentData?.data?.assignments?.map((assignment, index) => {
                   const isCompleted = (assignment.obtainedMarks || 0) > 0;
                   return (
                     <div key={index} className={styles.assignmentItem}>
@@ -816,25 +785,25 @@ export default function PersonalizedLearning() {
                 <div className={styles.testStats}>
                   <div className={styles.statItem}>
                     <span className={styles.statLabel}>Total Tests:</span>
-                    <span className={styles.statValue}>{studentData?.testResults?.length || 0}</span>
+                    <span className={styles.statValue}>{studentData?.data?.testResults?.length || 0}</span>
                   </div>
                   <div className={styles.statItem}>
                     <span className={styles.statLabel}>Completed:</span>
                     <span className={styles.statValue}>
-                      {studentData?.testResults?.filter(t => (t.obtainedMarks || 0) > 0).length || 0}
+                      {studentData?.data?.testResults?.filter(t => (t.obtainedMarks || 0) > 0).length || 0}
                     </span>
                   </div>
                   <div className={styles.statItem}>
                     <span className={styles.statLabel}>Average:</span>
                     <span className={styles.statValue}>
-                      {studentData?.testAverage ? `${studentData.testAverage.toFixed(1)}%` : 'N/A'}
+                      {studentData?.data?.testAverage ? `${studentData.data.testAverage.toFixed(1)}%` : 'N/A'}
                     </span>
                   </div>
                 </div>
               </div>
 
               <div className={styles.testResultsList}>
-                {studentData?.testResults?.map((test, index) => {
+                {studentData?.data?.testResults?.map((test, index) => {
                   const isCompleted = (test.obtainedMarks || 0) > 0;
                   const percentage = isCompleted ? (test.percentage || ((test.obtainedMarks / test.totalMarks) * 100).toFixed(1)) : 0;
                   return (
@@ -875,7 +844,7 @@ export default function PersonalizedLearning() {
                     </div>
                   );
                 })}
-                {(!studentData?.testResults || studentData.testResults.length === 0) && (
+                {(!studentData?.data?.testResults || studentData.data.testResults.length === 0) && (
                   <div className={styles.emptyState}>
                     <div className={styles.emptyIcon}>📋</div>
                     <p className={styles.emptyText}>No test results available yet</p>
@@ -909,19 +878,34 @@ export default function PersonalizedLearning() {
                   {aiRecs && !aiRecs.error && (
                     <>
                       <h4>Study Tips</h4>
-                      <ul>{aiRecs.studyTips?.map((tip, i) => <li key={i}>{tip}</li>)}</ul>
+                      <ul>{aiRecs.studyTips?.map((tip, i) => <li key={i}>{typeof tip === 'string' ? tip : JSON.stringify(tip)}</li>)}</ul>
                       <h4>Feedback</h4>
-                      <p>{aiRecs.feedback}</p>
+                      <p>{typeof aiRecs.feedback === 'string' ? aiRecs.feedback : JSON.stringify(aiRecs.feedback)}</p>
                       <h4>Learning Strategies</h4>
-                      <ul>{aiRecs.learningStrategies?.map((s, i) => <li key={i}>{s}</li>)}</ul>
+                      <ul>{aiRecs.learningStrategies?.map((s, i) => <li key={i}>{typeof s === 'string' ? s : JSON.stringify(s)}</li>)}</ul>
                       <h4>Motivation</h4>
-                      <blockquote>{aiRecs.motivation}</blockquote>
+                      <blockquote>{typeof aiRecs.motivation === 'string' ? aiRecs.motivation : JSON.stringify(aiRecs.motivation)}</blockquote>
+                      {aiRecs.studySchedule && (
+                        <>
+                          <h4>Recommended Study Schedule</h4>
+                          <p>{typeof aiRecs.studySchedule === 'string' ? aiRecs.studySchedule : JSON.stringify(aiRecs.studySchedule)}</p>
+                        </>
+                      )}
+                      {aiRecs.resourceRecommendations && (
+                        <>
+                          <h4>Recommended Resources</h4>
+                          <ul>{aiRecs.resourceRecommendations?.map((resource, i) => <li key={i}>{typeof resource === 'string' ? resource : JSON.stringify(resource)}</li>)}</ul>
+                        </>
+                      )}
                       {aiRecs.goalSuggestions && (
                         <>
                           <h4>Goal Suggestions</h4>
                           <ul>
                             {Object.entries(aiRecs.goalSuggestions).map(([goal, suggestion], i) => (
-                              <li key={i}><b>{goal}:</b> {suggestion}</li>
+                              <li key={i}>
+                                <b>{typeof goal === 'string' ? goal : JSON.stringify(goal)}:</b> 
+                                {typeof suggestion === 'string' ? suggestion : JSON.stringify(suggestion)}
+                              </li>
                             ))}
                           </ul>
                         </>
@@ -940,14 +924,17 @@ export default function PersonalizedLearning() {
                   {contentRecs && !contentRecs.error && (
                     <>
                       <h4>Topics to Focus On</h4>
-                      <ul>{contentRecs.topicsToFocus?.map((topic, i) => <li key={i}>{topic}</li>)}</ul>
+                      <ul>{contentRecs.topicsToFocus?.map((topic, i) => <li key={i}>{typeof topic === 'string' ? topic : JSON.stringify(topic)}</li>)}</ul>
                       <h4>Recommended Resources</h4>
-                      <ul>{contentRecs.resourceTypes?.map((resource, i) => <li key={i}>{resource}</li>)}</ul>
+                      <ul>{contentRecs.resourceTypes?.map((resource, i) => <li key={i}>{typeof resource === 'string' ? resource : JSON.stringify(resource)}</li>)}</ul>
                       <h4>Study Plan</h4>
-                      <p><strong>Difficulty Level:</strong> {contentRecs.difficultyLevel}</p>
+                      <p><strong>Difficulty Level:</strong> {typeof contentRecs.difficultyLevel === 'string' ? contentRecs.difficultyLevel : JSON.stringify(contentRecs.difficultyLevel)}</p>
                       <p><strong>Time Allocation:</strong> {contentRecs.timeAllocation} minutes per session</p>
+                      {contentRecs.studySessionFormat && (
+                        <p><strong>Session Format:</strong> {typeof contentRecs.studySessionFormat === 'string' ? contentRecs.studySessionFormat : JSON.stringify(contentRecs.studySessionFormat)}</p>
+                      )}
                       <h4>Next Steps</h4>
-                      <ul>{contentRecs.nextSteps?.map((step, i) => <li key={i}>{step}</li>)}</ul>
+                      <ul>{contentRecs.nextSteps?.map((step, i) => <li key={i}>{typeof step === 'string' ? step : JSON.stringify(step)}</li>)}</ul>
                     </>
                   )}
                 </div>
@@ -1072,6 +1059,10 @@ export default function PersonalizedLearning() {
                 <h2 className={styles.sectionTitle}>Learning Preferences</h2>
                 <AttentionSpanSettings 
                   currentAttentionSpan={learningProfile?.attentionSpan}
+                  currentStudyPreference={learningProfile?.studyPreference}
+                  currentLearningStyle={learningProfile?.learningStyle}
+                  currentStudyTimePreference={learningProfile?.studyTimePreference}
+                  currentPreferredDifficulty={learningProfile?.preferredDifficulty}
                   onUpdate={handleAttentionSpanUpdate}
                 />
               </div>
