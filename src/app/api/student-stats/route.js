@@ -17,6 +17,10 @@ export async function GET(request) {
       totalAssignments: 0,
       completedAssignments: 0,
       assignmentAverage: 0,
+      totalTests: 0,
+      completedTests: 0,
+      testAverage: 0,
+      recentAssessments: 0,
       scoreDetails: {
         subjects: {},
         recentScores: [],
@@ -25,6 +29,12 @@ export async function GET(request) {
       assignmentDetails: {
         subjects: {},
         recentAssignments: [],
+        totalMarks: 0,
+        obtainedMarks: 0
+      },
+      testDetails: {
+        subjects: {},
+        recentTests: [],
         totalMarks: 0,
         obtainedMarks: 0
       }
@@ -45,7 +55,7 @@ export async function GET(request) {
       }));
 
       stats.totalAssignments = assignmentsData.length;
-      stats.completedAssignments = assignmentsData.filter(a => (a.obtainedMarks || 0) > 0).length; // Only completed if obtained marks > 0
+      stats.completedAssignments = assignmentsData.filter(a => (a.obtainedMarks || 0) > 0).length;
 
       // Calculate assignment statistics
       let totalAssignmentMarks = 0;
@@ -53,13 +63,10 @@ export async function GET(request) {
       const assignmentSubjects = {};
 
       assignmentsData.forEach(assignment => {
-        // Only include assignments that have been completed (obtainedMarks > 0)
         if ((assignment.obtainedMarks || 0) > 0) {
-          // Calculate total and obtained marks
           totalAssignmentMarks += assignment.totalMarks || 0;
           totalObtainedMarks += assignment.obtainedMarks || 0;
 
-          // Group by subject
           if (!assignmentSubjects[assignment.subject]) {
             assignmentSubjects[assignment.subject] = {
               total: 0,
@@ -81,17 +88,15 @@ export async function GET(request) {
         }
       });
 
-      // Calculate assignment average
       if (totalAssignmentMarks > 0) {
         stats.assignmentAverage = (totalObtainedMarks / totalAssignmentMarks) * 100;
       }
 
-      // Store assignment details
       stats.assignmentDetails.totalMarks = totalAssignmentMarks;
       stats.assignmentDetails.obtainedMarks = totalObtainedMarks;
       stats.assignmentDetails.subjects = assignmentSubjects;
       stats.assignmentDetails.recentAssignments = assignmentsData
-        .filter(assignment => (assignment.obtainedMarks || 0) > 0) // Only completed assignments
+        .filter(assignment => (assignment.obtainedMarks || 0) > 0)
         .slice(0, 5)
         .map(assignment => ({
           title: assignment.assignmentTitle,
@@ -118,43 +123,28 @@ export async function GET(request) {
       if (!studentSnapshot.empty) {
         const studentData = studentSnapshot.docs[0].data();
         
-        // Combine points and fallPoints arrays
         const allPoints = [
           ...(studentData.points || []),
           ...(studentData.fallPoints || [])
         ];
         
-        // Filter for actual quizzes (not attendance, assignments, or assessments)
+        // Filter for actual quizzes (exclude attendance, assignments, assessments)
         const quizData = allPoints.filter(point => {
-          // Exclude attendance records
-          if (point.quizId === 'attendance') {
-            return false;
-          }
-          // Exclude assignments and assessments
-          if (point.type === 'assignment' || point.type === 'assessment') {
-            return false;
-          }
-          // Include quizzes with unknown subject and score > 0 as completed
-          if (point.subject === 'unknown' && (point.score || 0) > 0) {
-            return true;
-          }
-          // Include other quizzes with valid subjects (not unknown)
-          if (point.subject && point.subject !== 'unknown' && point.subject !== 'Unknown') {
-            return true;
-          }
+          if (point.quizId === 'attendance') return false;
+          if (point.type === 'assignment' || point.type === 'assessment') return false;
+          if (point.subject === 'unknown' && (point.score || 0) > 0) return true;
+          if (point.subject && point.subject !== 'unknown' && point.subject !== 'Unknown') return true;
           return false;
         });
 
         stats.totalQuizzes = quizData.length;
         
-        // Calculate quiz statistics
         if (quizData.length > 0) {
           const quizScores = quizData.map(quiz => quiz.score || 0).filter(score => score > 0);
           if (quizScores.length > 0) {
             stats.averageScore = quizScores.reduce((sum, score) => sum + score, 0) / quizScores.length;
           }
           
-          // Group by subject for subject performance
           const quizSubjects = {};
           quizData.forEach(quiz => {
             const subject = (quiz.subject === 'unknown' || quiz.subject === 'Unknown') ? 'General' : quiz.subject;
@@ -166,7 +156,6 @@ export async function GET(request) {
             quizSubjects[subject].scores.push(quiz.score || 0);
           });
 
-          // Calculate subject averages
           Object.keys(quizSubjects).forEach(subject => {
             stats.scoreDetails.subjects[subject] = {
               average: quizSubjects[subject].total / quizSubjects[subject].count,
@@ -176,7 +165,6 @@ export async function GET(request) {
             };
           });
 
-          // Get recent scores for trend analysis
           stats.scoreDetails.recentScores = quizData
             .sort((a, b) => new Date(b.date) - new Date(a.date))
             .slice(0, 10)
@@ -187,7 +175,6 @@ export async function GET(request) {
               topic: quiz.topic || 'Quiz'
             }));
 
-          // Calculate improvement (comparing recent vs older scores)
           if (quizScores.length >= 10) {
             const recentScores = quizScores.slice(0, 5);
             const olderScores = quizScores.slice(-5);
@@ -211,34 +198,27 @@ export async function GET(request) {
       );
       const testResultsSnapshot = await getDocs(testResultsQuery);
       
-      // Filter for test results (exclude assignments and other types)
       const testResultsData = testResultsSnapshot.docs
         .map(doc => ({
           id: doc.id,
           ...doc.data()
         }))
         .filter(mark => {
-          // Include marks that have subject, semester, and are not assignments
-          // Check if it's a test result by looking for subject, semester, and absence of assignmentId
           return mark.subject && mark.semester && !mark.assignmentId && mark.obtainedMarks !== undefined;
         });
 
       stats.totalTests = testResultsData.length;
       stats.completedTests = testResultsData.filter(t => (t.obtainedMarks || 0) > 0).length;
 
-      // Calculate test statistics
       let totalTestMarks = 0;
       let totalObtainedTestMarks = 0;
       const testSubjects = {};
 
       testResultsData.forEach(test => {
-        // Only include tests that have been completed (obtainedMarks > 0)
         if ((test.obtainedMarks || 0) > 0) {
-          // Calculate total and obtained marks
           totalTestMarks += test.totalMarks || 0;
           totalObtainedTestMarks += test.obtainedMarks || 0;
 
-          // Group by subject
           if (!testSubjects[test.subject]) {
             testSubjects[test.subject] = {
               total: 0,
@@ -261,18 +241,16 @@ export async function GET(request) {
         }
       });
 
-      // Calculate test average
       if (totalTestMarks > 0) {
         stats.testAverage = (totalObtainedTestMarks / totalTestMarks) * 100;
       }
 
-      // Store test details
       stats.testDetails = {
         totalMarks: totalTestMarks,
         obtainedMarks: totalObtainedTestMarks,
         subjects: testSubjects,
         recentTests: testResultsData
-          .filter(test => (test.obtainedMarks || 0) > 0) // Only completed tests
+          .filter(test => (test.obtainedMarks || 0) > 0)
           .slice(0, 5)
           .map(test => ({
             subject: test.subject,
@@ -297,7 +275,36 @@ export async function GET(request) {
       };
     }
 
-    // Calculate overall average including assignments
+    // Calculate recent assessments count (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    let recentCount = 0;
+    
+    // Count recent quizzes
+    if (stats.scoreDetails.recentScores) {
+      recentCount += stats.scoreDetails.recentScores.filter(score => 
+        new Date(score.date) >= thirtyDaysAgo
+      ).length;
+    }
+    
+    // Count recent assignments
+    if (stats.assignmentDetails.recentAssignments) {
+      recentCount += stats.assignmentDetails.recentAssignments.filter(assignment => 
+        new Date(assignment.addedAt) >= thirtyDaysAgo
+      ).length;
+    }
+    
+    // Count recent tests
+    if (stats.testDetails.recentTests) {
+      recentCount += stats.testDetails.recentTests.filter(test => 
+        new Date(test.addedAt) >= thirtyDaysAgo
+      ).length;
+    }
+    
+    stats.recentAssessments = recentCount;
+
+    // Calculate overall average including all assessment types
     const allAverages = [];
     if (stats.averageScore > 0) allAverages.push(stats.averageScore);
     if (stats.assignmentAverage > 0) allAverages.push(stats.assignmentAverage);
@@ -307,31 +314,13 @@ export async function GET(request) {
       stats.averageScore = allAverages.reduce((sum, avg) => sum + avg, 0) / allAverages.length;
     }
 
-    // Ensure all required properties exist even if data fetching fails
-    if (!stats.scoreDetails) {
-      stats.scoreDetails = {
-        subjects: {},
-        recentScores: [],
-        improvement: 0
-      };
-    }
-    
-    if (!stats.assignmentDetails) {
-      stats.assignmentDetails = {
-        subjects: {},
-        recentAssignments: [],
-        totalMarks: 0,
-        obtainedMarks: 0
-      };
-    }
-
     return NextResponse.json({ 
       success: true,
       stats: {
         ...stats,
-        averageScore: Math.round(stats.averageScore * 10) / 10, // Round to 1 decimal
-        assignmentAverage: Math.round(stats.assignmentAverage * 10) / 10, // Round to 1 decimal
-        testAverage: Math.round(stats.testAverage * 10) / 10, // Round to 1 decimal
+        averageScore: Math.round(stats.averageScore * 10) / 10,
+        assignmentAverage: Math.round(stats.assignmentAverage * 10) / 10,
+        testAverage: Math.round(stats.testAverage * 10) / 10,
       }
     });
   } catch (error) {
@@ -344,9 +333,12 @@ export async function GET(request) {
         totalAssignments: 0,
         completedAssignments: 0,
         assignmentAverage: 0,
+        totalTests: 0,
+        completedTests: 0,
+        testAverage: 0,
+        recentAssessments: 0,
         scoreDetails: { subjects: {}, recentScores: [], improvement: 0 },
         assignmentDetails: { subjects: {}, recentAssignments: [], totalMarks: 0, obtainedMarks: 0 },
-        testAverage: 0,
         testDetails: {
           totalMarks: 0,
           obtainedMarks: 0,

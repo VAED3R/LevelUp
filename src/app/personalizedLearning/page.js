@@ -205,6 +205,78 @@ export default function PersonalizedLearning() {
     }
   };
 
+  const calculateOverallAverage = () => {
+    const analytics = studentData?.analytics?.academic;
+    if (!analytics) return 0;
+
+    const averages = [];
+    
+    // Add quiz average if available
+    if (analytics.quizAverage > 0) {
+      averages.push(analytics.quizAverage);
+    }
+    
+    // Add test average if available
+    if (studentData?.testAverage > 0) {
+      averages.push(studentData.testAverage);
+    }
+    
+    // Add assignment average if available
+    if (studentData?.assignmentAverage > 0) {
+      averages.push(studentData.assignmentAverage);
+    }
+    
+    // If no averages available, try to calculate from subject performance
+    if (averages.length === 0 && analytics.subjectPerformance) {
+      const subjectAverages = Object.values(analytics.subjectPerformance)
+        .map(subject => typeof subject === 'number' ? subject : (subject?.average || 0))
+        .filter(avg => avg > 0);
+      
+      if (subjectAverages.length > 0) {
+        return subjectAverages.reduce((sum, avg) => sum + avg, 0) / subjectAverages.length;
+      }
+    }
+    
+    // Return average of available scores
+    return averages.length > 0 ? averages.reduce((sum, avg) => sum + avg, 0) / averages.length : 0;
+  };
+
+  const getAcademicStrategies = () => {
+    const overallAvg = calculateOverallAverage();
+    const quizAvg = studentData?.analytics?.academic?.quizAverage || 0;
+    const testAvg = studentData?.testAverage || 0;
+    const assignmentAvg = studentData?.assignmentAverage || 0;
+    
+    const strategies = [];
+    
+    if (overallAvg < 70) {
+      strategies.push("Focus on foundational concepts and review basic materials");
+      strategies.push("Increase study time and practice with sample questions");
+      strategies.push("Seek help from teachers or tutors for difficult topics");
+    } else if (overallAvg < 85) {
+      strategies.push("Strengthen weak areas identified in recent assessments");
+      strategies.push("Practice advanced problem-solving techniques");
+      strategies.push("Review and consolidate knowledge regularly");
+    } else {
+      strategies.push("Challenge yourself with advanced materials and concepts");
+      strategies.push("Help peers and teach others to reinforce learning");
+      strategies.push("Explore additional resources and research opportunities");
+    }
+    
+    // Subject-specific strategies
+    if (quizAvg < 70 && quizAvg > 0) {
+      strategies.push("Improve quiz performance through regular practice and review");
+    }
+    if (testAvg < 70 && testAvg > 0) {
+      strategies.push("Enhance test-taking strategies and time management");
+    }
+    if (assignmentAvg < 70 && assignmentAvg > 0) {
+      strategies.push("Focus on assignment quality and thoroughness");
+    }
+    
+    return strategies;
+  };
+
   const handleAddGoal = () => {
     setEditingGoal(null);
     setShowGoalForm(true);
@@ -331,7 +403,7 @@ export default function PersonalizedLearning() {
               <div className={styles.profileStats}>
                 <div className={styles.stat}>
                   <span className={styles.statNumber}>
-                    {studentData?.analytics?.academic?.averageScore?.toFixed(1) || 'N/A'}
+                    {calculateOverallAverage().toFixed(1)}
                   </span>
                   <span className={styles.statLabel}>Overall Avg</span>
                 </div>
@@ -498,15 +570,26 @@ export default function PersonalizedLearning() {
                         <span className={styles.activityTitle}>
                           {activity.type.charAt(0).toUpperCase() + activity.type.slice(1)}
                         </span>
-                        <span className={styles.activityDate}>
-                          {new Date(activity.date).toLocaleDateString()}
-                        </span>
                       </div>
-                      {activity.score && (
-                        <div className={styles.activityScore}>
-                          Score: {activity.score}%
-                        </div>
-                      )}
+                      <span className={styles.activityDate}>
+                        {new Date(activity.date).toLocaleDateString()}
+                      </span>
+                      <span className={styles.activityScore}>
+                        {activity.score?.toFixed(1)}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Academic Strategies */}
+              <div className={styles.strategiesSection}>
+                <h2 className={styles.sectionTitle}>Academic Strategies</h2>
+                <div className={styles.strategiesGrid}>
+                  {getAcademicStrategies().map((strategy, index) => (
+                    <div key={index} className={styles.strategyCard}>
+                      <span className={styles.strategyIcon}>💡</span>
+                      <p>{strategy}</p>
                     </div>
                   ))}
                 </div>

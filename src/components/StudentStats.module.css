@@ -7,12 +7,42 @@
   margin-bottom: 30px;
 }
 
+.statsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 25px;
+}
+
 .statsTitle {
   font-size: 1.8rem;
   font-weight: 600;
-  margin-bottom: 25px;
   color: #fff;
-  text-align: center;
+  margin: 0;
+}
+
+.refreshButton {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #fff;
+}
+
+.refreshButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(180deg);
+}
+
+.refreshButton:active {
+  transform: rotate(180deg) scale(0.95);
 }
 
 .statsGrid {
@@ -84,6 +114,25 @@
   gap: 8px;
   font-size: 0.9rem;
   font-weight: 600;
+  margin-top: 8px;
+}
+
+.assessmentBreakdown {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+}
+
+.assessmentType {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 8px;
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .attendanceBreakdown {
@@ -123,17 +172,26 @@
   transition: width 0.8s ease;
 }
 
-.quizProgress, .assignmentProgress {
+.quizProgress, .assignmentProgress, .testProgress {
   margin-top: 10px;
 }
 
-.quizProgress span, .assignmentProgress span {
+.quizProgress span, .assignmentProgress span, .testProgress span {
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.7);
 }
 
-.assignmentMarks {
+.quizAverage, .assignmentMarks, .testMarks {
   margin-top: 8px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.quizAverage span, .assignmentMarks span, .testMarks span {
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.8);
   font-weight: 600;
