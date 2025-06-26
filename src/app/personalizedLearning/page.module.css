@@ -1398,4 +1398,15 @@
 .testResultPending {
   font-weight: 500;
   color: #FF9800;
+}
+
+/* Settings Tab */
+.settingsTab {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.settingsSection {
+  margin-bottom: 30px;
 } 

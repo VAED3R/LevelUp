@@ -15,7 +15,6 @@ export async function GET(request) {
 
     // Fetch Assignments
     try {
-      console.log('Fetching assignments for student:', studentId);
       const assignmentsRef = collection(db, 'assignments');
       const assignmentsQuery = query(
         assignmentsRef,
@@ -26,8 +25,6 @@ export async function GET(request) {
         id: doc.id,
         ...doc.data()
       }));
-      console.log('Assignments fetched:', studentData.assignments.length);
-      console.log('Sample assignment:', studentData.assignments[0]);
     } catch (error) {
       console.error('Error fetching assignments:', error);
       studentData.assignments = [];
@@ -107,8 +104,6 @@ export async function GET(request) {
           // Check if it's a test result by looking for subject, semester, and absence of assignmentId
           return mark.subject && mark.semester && !mark.assignmentId && mark.obtainedMarks !== undefined;
         });
-      
-      console.log('Test results fetched:', studentData.testResults.length);
     } catch (error) {
       console.error('Error fetching test results:', error);
       studentData.testResults = [];
@@ -143,7 +138,6 @@ export async function GET(request) {
       
       if (!studentSnapshot.empty) {
         const studentDocData = studentSnapshot.docs[0].data();
-        console.log('Student data fetched for student-data API:', studentDocData);
         
         // Combine points and fallPoints arrays
         const allPoints = [
@@ -151,43 +145,34 @@ export async function GET(request) {
           ...(studentDocData.fallPoints || [])
         ];
         
-        console.log('Total points entries for student-data:', allPoints.length);
-        
         // Filter for actual quizzes (not attendance, assignments, or assessments)
         studentData.quizzes = allPoints.filter(point => {
           // Exclude attendance records
           if (point.quizId === 'attendance') {
-            console.log('Excluding attendance from student-data:', point);
             return false;
           }
           // Exclude assignments and assessments
           if (point.type === 'assignment' || point.type === 'assessment') {
-            console.log('Excluding assignment/assessment from student-data:', point);
             return false;
           }
-          // Include quizzes with unknown subject and score > 0 as completed
-          if (point.subject === 'unknown' && (point.score || 0) > 0) {
-            console.log('Including unknown subject quiz with score > 0 from student-data:', point);
-            return true;
+          // Exclude quizzes with unknown subject
+          if (point.subject === 'unknown' || point.subject === 'Unknown') {
+            return false;
           }
-          // Include other quizzes with valid subjects (not unknown)
+          // Include only quizzes with valid subjects
           if (point.subject && point.subject !== 'unknown' && point.subject !== 'Unknown') {
-            console.log('Including valid subject quiz from student-data:', point);
             return true;
           }
-          console.log('Excluding other entry from student-data:', point);
           return false;
         }).map(quiz => ({
           id: quiz.quizId,
           score: quiz.score || 0,
-          subject: (quiz.subject === 'unknown' || quiz.subject === 'Unknown') ? 'General' : quiz.subject,
+          subject: quiz.subject,
           topic: quiz.topic || 'Quiz',
           completedAt: quiz.date,
           totalQuestions: quiz.totalQuestions || 0,
           points: quiz.points || 0
         }));
-        
-        console.log('Filtered quizzes for student-data:', studentData.quizzes);
       } else {
         studentData.quizzes = [];
       }

@@ -117,7 +117,6 @@ export async function GET(request) {
       
       if (!studentSnapshot.empty) {
         const studentData = studentSnapshot.docs[0].data();
-        console.log('Student data fetched:', studentData);
         
         // Combine points and fallPoints arrays
         const allPoints = [
@@ -125,37 +124,27 @@ export async function GET(request) {
           ...(studentData.fallPoints || [])
         ];
         
-        console.log('Total points entries:', allPoints.length);
-        console.log('Points array length:', studentData.points?.length || 0);
-        console.log('FallPoints array length:', studentData.fallPoints?.length || 0);
-        
         // Filter for actual quizzes (not attendance, assignments, or assessments)
         const quizData = allPoints.filter(point => {
           // Exclude attendance records
           if (point.quizId === 'attendance') {
-            console.log('Excluding attendance:', point);
             return false;
           }
           // Exclude assignments and assessments
           if (point.type === 'assignment' || point.type === 'assessment') {
-            console.log('Excluding assignment/assessment:', point);
             return false;
           }
           // Include quizzes with unknown subject and score > 0 as completed
           if (point.subject === 'unknown' && (point.score || 0) > 0) {
-            console.log('Including unknown subject quiz with score > 0:', point);
             return true;
           }
           // Include other quizzes with valid subjects (not unknown)
           if (point.subject && point.subject !== 'unknown' && point.subject !== 'Unknown') {
-            console.log('Including valid subject quiz:', point);
             return true;
           }
-          console.log('Excluding other entry:', point);
           return false;
         });
 
-        console.log('Filtered quiz data:', quizData);
         stats.totalQuizzes = quizData.length;
         
         // Calculate quiz statistics

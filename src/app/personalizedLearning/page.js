@@ -12,6 +12,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
 } from 'recharts';
 import { getEnhancedDeepSeekRecommendations, getRecommendedContent } from "@/lib/deepseek";
+import AttentionSpanSettings from "@/components/AttentionSpanSettings";
 
 export default function PersonalizedLearning() {
   const { user } = useAuth();
@@ -24,6 +25,7 @@ export default function PersonalizedLearning() {
   const [editingGoal, setEditingGoal] = useState(null);
   const [aiRecs, setAiRecs] = useState(null);
   const [contentRecs, setContentRecs] = useState(null);
+  const [showAttentionSpanSettings, setShowAttentionSpanSettings] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -154,17 +156,11 @@ export default function PersonalizedLearning() {
 
   const fetchRecommendedContent = async () => {
     try {
-      console.log('Fetching content recommendations...');
-      console.log('Learning Profile:', learningProfile);
-      console.log('Academic Analytics:', studentData?.analytics?.academic);
-      console.log('Subjects:', Object.keys(studentData?.analytics?.academic?.subjectPerformance || {}));
-      
       const content = await getRecommendedContent(
         learningProfile,
         studentData?.analytics?.academic,
         Object.keys(studentData?.analytics?.academic?.subjectPerformance || {})
       );
-      console.log('Content recommendations received:', content);
       setContentRecs(content);
     } catch (error) {
       console.error('Error fetching content recommendations:', error);
@@ -278,6 +274,11 @@ export default function PersonalizedLearning() {
     } catch (error) {
       console.error('Error deleting goal:', error);
     }
+  };
+
+  const handleAttentionSpanUpdate = (updatedProfile) => {
+    setLearningProfile(updatedProfile);
+    setShowAttentionSpanSettings(false);
   };
 
   if (loading) {
@@ -437,6 +438,12 @@ export default function PersonalizedLearning() {
             onClick={() => setActiveTab('goals')}
           >
             🎯 Goals
+          </button>
+          <button 
+            className={`${styles.tabButton} ${activeTab === 'settings' ? styles.active : ''}`}
+            onClick={() => setActiveTab('settings')}
+          >
+            Settings
           </button>
         </div>
 
@@ -972,6 +979,18 @@ export default function PersonalizedLearning() {
                 <button className={styles.addGoalButton} onClick={handleAddGoal}>
                   + Add New Learning Goal
                 </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'settings' && (
+            <div className={styles.settingsTab}>
+              <div className={styles.settingsSection}>
+                <h2 className={styles.sectionTitle}>Learning Preferences</h2>
+                <AttentionSpanSettings 
+                  currentAttentionSpan={learningProfile?.attentionSpan}
+                  onUpdate={handleAttentionSpanUpdate}
+                />
               </div>
             </div>
           )}

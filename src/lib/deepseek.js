@@ -1,9 +1,5 @@
 export async function getRecommendedContent(studentProfile, performanceData, subjects) {
   const apiKey = process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY;
-  console.log('DeepSeek API Key available:', !!apiKey);
-  console.log('Student Profile for content:', studentProfile);
-  console.log('Performance Data for content:', performanceData);
-  console.log('Subjects for content:', subjects);
   
   const prompt = `
     Student Profile: ${JSON.stringify(studentProfile)}
@@ -20,8 +16,6 @@ export async function getRecommendedContent(studentProfile, performanceData, sub
     Respond ONLY with a valid JSON object.
   `;
 
-  console.log('Sending prompt to DeepSeek:', prompt);
-
   const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -35,9 +29,7 @@ export async function getRecommendedContent(studentProfile, performanceData, sub
     })
   });
 
-  console.log('DeepSeek response status:', response.status);
   const data = await response.json();
-  console.log('DeepSeek response data:', data);
   let content = data.choices?.[0]?.message?.content || '{}';
   
   try {
@@ -47,11 +39,9 @@ export async function getRecommendedContent(studentProfile, performanceData, sub
     }
     
     const parsed = JSON.parse(content);
-    console.log('Parsed content recommendations:', parsed);
     return parsed;
   } catch (parseError) {
     console.error('JSON parsing error for content recommendations:', parseError);
-    console.log('Raw content:', content);
     
     return { 
       error: "Could not parse content recommendations.", 
