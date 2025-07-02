@@ -1,0 +1,8 @@
+Collecting numpy
+  Obtaining dependency information for numpy from https://files.pythonhosted.org/packages/b1/3e/e28f4c1dd9e042eb57a3eb652f200225e311b608632bc727ae378623d4f8/numpy-2.3.1-cp312-cp312-win_amd64.whl.metadata
+  Downloading numpy-2.3.1-cp312-cp312-win_amd64.whl.metadata (60 kB)
+     -------------------------------------- 60.9/60.9 kB 544.6 kB/s eta 0:00:00
+Downloading numpy-2.3.1-cp312-cp312-win_amd64.whl (12.7 MB)
+   ---------------------------------------- 12.7/12.7 MB 9.3 MB/s eta 0:00:00
+Installing collected packages: numpy
+Successfully installed numpy-2.3.1
