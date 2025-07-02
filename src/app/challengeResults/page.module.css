@@ -1,3 +1,6 @@
+/* Import Arcade Font */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
 .container {
   min-height: 100vh;
   background: linear-gradient(135deg, #1a0033, #7f37c6, #632298);
@@ -26,20 +29,72 @@
   display: inline-block;
   border-radius: 8px;
   text-shadow: 4px 4px 0px #000;
+  position: relative;
+}
+
+.title::before {
+  content: '🏆';
+  margin-right: 15px;
+  font-size: 32px;
+  animation: titleTrophy 3s ease-in-out infinite;
+}
+
+@keyframes titleTrophy {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-8px) rotate(-8deg); }
+  75% { transform: translateY(-8px) rotate(8deg); }
 }
 
 .resultsCard {
   background: rgba(0, 0, 0, 0.7);
   border: 4px solid #7f37c6;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 30px;
   box-shadow: 5px 5px 0px #452d57;
   text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.resultsCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #7f37c6, #9c34d0, #7f37c6);
+  background-size: 200% 100%;
+  animation: gradientMove 3s linear infinite;
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
 }
 
 .challengeInfo {
   margin-bottom: 30px;
   text-align: center;
+  background: rgba(127, 55, 198, 0.1);
+  padding: 20px;
+  border-radius: 8px;
+  border: 2px solid rgba(127, 55, 198, 0.3);
+  position: relative;
+}
+
+.challengeInfo::before {
+  content: '⚔️';
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 20px;
+  background: #1a0033;
+  padding: 6px;
+  border-radius: 50%;
+  border: 2px solid #7f37c6;
+  z-index: 10;
 }
 
 .challengeInfo h2 {
@@ -48,12 +103,22 @@
   color: #fff;
   margin-bottom: 10px;
   text-shadow: 2px 2px 0px #000;
+  margin-top: 10px;
 }
 
 .difficulty {
   font-family: 'Press Start 2P', cursive;
   font-size: 12px;
   color: #ffd700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.difficulty::before {
+  content: '⚡';
+  font-size: 14px;
 }
 
 .scoresContainer {
@@ -66,10 +131,31 @@
 .scoreCard {
   flex: 1;
   background: rgba(0, 0, 0, 0.5);
-  border: 2px solid #7f37c6;
-  border-radius: 8px;
+  border: 3px solid #7f37c6;
+  border-radius: 12px;
   padding: 20px;
   text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.scoreCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, #7f37c6, #9c34d0, #7f37c6);
+  background-size: 200% 100%;
+  animation: gradientMove 3s linear infinite;
+}
+
+.scoreCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 0 #452d57;
+  border-color: #9c34d0;
 }
 
 .scoreCard h3 {
@@ -78,16 +164,48 @@
   color: #fff;
   margin-bottom: 15px;
   text-shadow: 2px 2px 0px #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.scoreCard h3::before {
+  font-size: 16px;
+}
+
+.scoreCard:first-child h3::before {
+  content: '👤';
+}
+
+.scoreCard:last-child h3::before {
+  content: '🎯';
 }
 
 .scoreDetails {
   font-family: 'Press Start 2P', cursive;
   font-size: 12px;
   color: #fff;
+  background: rgba(127, 55, 198, 0.1);
+  padding: 15px;
+  border-radius: 6px;
+  border: 1px solid rgba(127, 55, 198, 0.3);
 }
 
 .scoreDetails p {
   margin: 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.scoreDetails p:first-child::before {
+  content: '📊';
+}
+
+.scoreDetails p:last-child::before {
+  content: '⏱️';
 }
 
 .detailedResults {
@@ -96,6 +214,19 @@
   background: rgba(0, 0, 0, 0.5);
   border: 2px solid #7f37c6;
   border-radius: 8px;
+  position: relative;
+}
+
+.detailedResults::before {
+  content: '📋';
+  position: absolute;
+  top: -10px;
+  left: 20px;
+  font-size: 20px;
+  background: #1a0033;
+  padding: 5px;
+  border-radius: 50%;
+  border: 2px solid #7f37c6;
 }
 
 .detailedResults h3 {
@@ -105,6 +236,7 @@
   margin-bottom: 20px;
   text-align: center;
   text-shadow: 2px 2px 0px #000;
+  margin-top: 10px;
 }
 
 .questionsContainer {
@@ -118,6 +250,19 @@
   border: 1px solid #7f37c6;
   border-radius: 8px;
   padding: 15px;
+  position: relative;
+}
+
+.questionResult::before {
+  content: '❓';
+  position: absolute;
+  top: -5px;
+  left: 10px;
+  font-size: 16px;
+  background: #1a0033;
+  padding: 3px;
+  border-radius: 50%;
+  border: 1px solid #7f37c6;
 }
 
 .questionResult h4 {
@@ -126,6 +271,7 @@
   color: #fff;
   margin-bottom: 10px;
   text-shadow: 2px 2px 0px #000;
+  margin-left: 20px;
 }
 
 .questionText {
@@ -134,11 +280,13 @@
   color: #fff;
   margin-bottom: 15px;
   line-height: 1.4;
+  margin-left: 20px;
 }
 
 .answersContainer {
   display: flex;
   gap: 15px;
+  margin-left: 20px;
 }
 
 .answerCard {
@@ -146,6 +294,7 @@
   background: rgba(0, 0, 0, 0.2);
   border-radius: 6px;
   padding: 10px;
+  border: 1px solid rgba(127, 55, 198, 0.3);
 }
 
 .answerCard h5 {
@@ -154,6 +303,21 @@
   color: #fff;
   margin-bottom: 8px;
   text-shadow: 1px 1px 0px #000;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.answerCard h5::before {
+  font-size: 14px;
+}
+
+.answerCard:first-child h5::before {
+  content: '👤';
+}
+
+.answerCard:last-child h5::before {
+  content: '🎯';
 }
 
 .correct {
@@ -161,6 +325,13 @@
   font-family: 'Press Start 2P', cursive;
   font-size: 12px;
   margin: 5px 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.correct::before {
+  content: '✅';
 }
 
 .incorrect {
@@ -168,6 +339,13 @@
   font-family: 'Press Start 2P', cursive;
   font-size: 12px;
   margin: 5px 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.incorrect::before {
+  content: '❌';
 }
 
 .timeTaken {
@@ -175,6 +353,13 @@
   font-size: 10px;
   color: #a3a3a3;
   margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.timeTaken::before {
+  content: '⏱️';
 }
 
 .correctAnswer {
@@ -188,23 +373,85 @@
   font-size: 12px;
   color: #ffd700;
   text-shadow: 1px 1px 0px #000;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.correctAnswer p::before {
+  content: '💡';
 }
 
 .winnerSection {
   background: rgba(0, 0, 0, 0.5);
-  border: 2px solid #ffd700;
-  border-radius: 8px;
-  padding: 20px;
+  border: 3px solid #ffd700;
+  border-radius: 12px;
+  padding: 25px;
   text-align: center;
   margin-bottom: 30px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+.winnerSection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #ffd700, #ffed4e, #ffd700);
+  background-size: 200% 100%;
+  animation: winnerGradient 3s linear infinite;
+}
+
+@keyframes winnerGradient {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
+}
+
+.winnerSection::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.1), transparent);
+  pointer-events: none;
+  animation: winnerShimmer 4s infinite;
+}
+
+@keyframes winnerShimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 .winnerTitle {
   font-family: 'Press Start 2P', cursive;
   font-size: 16px;
   color: #ffd700;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   text-shadow: 2px 2px 0px #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  position: relative;
+  z-index: 2;
+}
+
+.winnerTitle::before {
+  content: '🏆';
+  font-size: 20px;
+  animation: trophyBounce 2s infinite;
+}
+
+@keyframes trophyBounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-5px) rotate(-5deg); }
+  75% { transform: translateY(-5px) rotate(5deg); }
 }
 
 .winnerName {
@@ -212,6 +459,35 @@
   font-size: 20px;
   color: #fff;
   text-shadow: 2px 2px 0px #000;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 2;
+  animation: winnerGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes winnerGlow {
+  from { text-shadow: 2px 2px 0px #000, 0 0 5px rgba(255, 255, 255, 0.5); }
+  to { text-shadow: 2px 2px 0px #000, 0 0 15px rgba(255, 215, 0, 0.8); }
+}
+
+.winnerScore {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 14px;
+  color: #ffd700;
+  margin-top: 10px;
+  text-shadow: 1px 1px 0px #000;
+  position: relative;
+  z-index: 2;
+  background: rgba(255, 215, 0, 0.1);
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  display: inline-block;
+}
+
+.winnerScore::before {
+  content: '📊';
+  margin-right: 8px;
 }
 
 .actions {
@@ -220,28 +496,53 @@
 }
 
 .returnButton {
-  background: linear-gradient(135deg, #6B46C1, #805AD5);
+  font-family: 'Press Start 2P', cursive;
+  font-size: 12px;
+  background: linear-gradient(45deg, #7f37c6, #9c34d0);
   color: white;
   border: none;
-  padding: 12px 24px;
+  padding: 15px 25px;
   border-radius: 8px;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 500;
-  font-size: 16px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-transform: uppercase;
+  box-shadow: 0 4px 0 #452d57;
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 0px #000;
+}
+
+.returnButton::before {
+  content: '⬅️';
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.returnButton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.returnButton:hover::after {
+  left: 100%;
 }
 
 .returnButton:hover {
-  background: linear-gradient(135deg, #805AD5, #6B46C1);
   transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 0 #452d57;
+  background: linear-gradient(45deg, #9c34d0, #a944e0);
 }
 
 .returnButton:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #452d57;
 }
 
 .error {
@@ -250,44 +551,143 @@
   font-size: 14px;
   text-align: center;
   margin-top: 20px;
+  background: rgba(255, 107, 107, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 107, 107, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.error::before {
+  content: '⚠️';
+  font-size: 16px;
 }
 
 .claimPointsContainer {
   margin-top: 2rem;
   padding: 1.5rem;
-  background-color: #f8f9fa;
-  border-radius: 8px;
   text-align: center;
 }
 
 .claimPointsButton {
-  background-color: #28a745;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 12px;
+  background: linear-gradient(45deg, #28a745, #20c997);
   color: white;
   border: none;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  border-radius: 4px;
+  padding: 15px 25px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.2s;
-  font-weight: 600;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  box-shadow: 0 4px 0 #1e7e34;
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 0px #000;
+}
+
+.claimPointsButton::before {
+  content: '💰';
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.claimPointsButton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.claimPointsButton:hover::after {
+  left: 100%;
 }
 
 .claimPointsButton:hover {
-  background-color: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #1e7e34;
+  background: linear-gradient(45deg, #34ce57, #28a745);
+}
+
+.claimPointsButton:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #1e7e34;
 }
 
 .claimPointsButton:disabled {
-  background-color: #6c757d;
+  background: linear-gradient(45deg, #6c757d, #5a6268);
   cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 4px 0 #495057;
+  opacity: 0.7;
+}
+
+.claimPointsButton:disabled::before {
+  content: '⏳';
 }
 
 .pointsClaimedMessage {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 14px;
   color: #28a745;
-  font-weight: 600;
-  font-size: 1.1rem;
+  font-weight: bold;
+  text-shadow: 1px 1px 0px #000;
+  background: rgba(40, 167, 69, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+  border: 2px solid rgba(40, 167, 69, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  position: relative;
+  z-index: 2;
+}
+
+.pointsClaimedMessage::before {
+  content: '✅';
+  font-size: 16px;
+  animation: checkmarkPulse 2s infinite;
+}
+
+@keyframes checkmarkPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
 }
 
 .waitingMessage {
-  color: #6c757d;
-  font-style: italic;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 14px;
+  color: #ffd700;
+  font-style: normal;
+  text-shadow: 1px 1px 0px #000;
+  background: rgba(255, 215, 0, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  position: relative;
+  z-index: 2;
+}
+
+.waitingMessage::before {
+  content: '⏳';
+  font-size: 16px;
+  animation: waitingSpin 2s linear infinite;
+}
+
+@keyframes waitingSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 } 

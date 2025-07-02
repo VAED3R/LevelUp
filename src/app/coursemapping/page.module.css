@@ -436,3 +436,102 @@
         padding: 14px 24px;
     }
 }
+
+.excelUploadSection {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    color: white;
+}
+
+.excelUploadSection .sectionHeader {
+    color: white;
+}
+
+.excelUploadSection .sectionTitle {
+    color: white;
+    margin-bottom: 0.5rem;
+}
+
+.excelUploadSection .sectionSubtitle {
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.5;
+    margin-bottom: 0;
+}
+
+.excelUploadSection .sectionSubtitle strong {
+    color: white;
+    font-weight: 600;
+}
+
+.excelUploadArea {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.fileInput {
+    display: none;
+}
+
+.fileInputLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px dashed rgba(255, 255, 255, 0.4);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    color: white;
+}
+
+.fileInputLabel:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateY(-2px);
+}
+
+.uploadIcon {
+    font-size: 1.2rem;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    margin: 2rem 0;
+    position: relative;
+}
+
+.divider::before {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #e0e0e0, transparent);
+}
+
+.dividerText {
+    padding: 0 1rem;
+    background: white;
+    color: #666;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #e0e0e0, transparent);
+}
+
+.coreNote {
+    color: #667eea;
+    font-weight: 500;
+    font-style: italic;
+}

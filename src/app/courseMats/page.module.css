@@ -9,10 +9,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     padding: 20px;
     padding-top: 100px;
-    overflow: auto;
+    overflow-y: auto;
 }
 
 /* Content wrapper */
@@ -21,7 +20,6 @@
     width: 100%;
     text-align: center;
     position: relative;
-    height: calc(110vh - 140px);
     display: flex;
     flex-direction: column;
     padding-bottom: 50px;
@@ -40,74 +38,343 @@
     text-shadow: 4px 4px 0px #000;
 }
 
-/* Grid Layout */
-.cardGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px;
-    margin-top: 30px;
-}
-
-/* Card Styling */
-.card {
-    background: rgba(0, 0, 0, 0.7);
-    border: 4px solid #7f37c6;
-    border-radius: 8px;
-    padding: 30px;
-    box-shadow: 5px 5px 0px #452d57;
-    transition: transform 0.3s ease;
+/* Semester Selector */
+.semesterSelector {
+    margin-bottom: 2rem;
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
 }
 
-.card:hover {
-    transform: translateY(-5px);
-}
-
-.card h2 {
+.semesterLabel {
     font-family: 'Press Start 2P', cursive;
-    font-size: 18px;
+    font-size: 14px;
+    font-weight: 600;
     color: #fff;
-    margin-bottom: 20px;
     text-shadow: 2px 2px 0px #000;
 }
 
-/* Button Styling - View Materials */
+.select {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 12px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 3px solid #7f37c6;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    min-width: 180px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #452d57;
+    transition: all 0.3s ease;
+}
+
+.select:focus {
+    outline: none;
+    border-color: #9c34d0;
+    box-shadow: 0 6px 0 #452d57, 0 0 15px rgba(127, 55, 198, 0.5);
+}
+
+.select option {
+    background: rgba(0, 0, 0, 0.9);
+    color: #fff;
+}
+
+/* Grid Layout */
+.cardGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+}
+
+/* Enhanced Card Styling */
+.card {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(127, 55, 198, 0.1));
+    border: 3px solid #7f37c6;
+    border-radius: 12px;
+    padding: 0;
+    box-shadow: 0 8px 0 #452d57;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    min-height: 280px;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #ff00ff, #00ffff, #ff00ff);
+    background-size: 200% 100%;
+    animation: neonBorder 3s linear infinite;
+}
+
+@keyframes neonBorder {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 200% 0%; }
+}
+
+/* Card Header */
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid rgba(127, 55, 198, 0.3);
+}
+
+.subjectIcon {
+    font-size: 32px;
+    filter: drop-shadow(2px 2px 0px #000);
+}
+
+.courseTypeBadge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 8px;
+    font-weight: bold;
+    text-shadow: 1px 1px 0px #000;
+    color: #fff;
+    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.3);
+    letter-spacing: 0.5px;
+}
+
+/* Card Content */
+.cardContent {
+    padding: 20px 25px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.subjectTitle {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 16px;
+    color: #fff;
+    margin: 0;
+    text-shadow: 2px 2px 0px #000;
+    line-height: 1.4;
+    letter-spacing: 0.5px;
+}
+
+.courseInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.infoItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 6px;
+    border: 1px solid rgba(127, 55, 198, 0.3);
+}
+
+.infoLabel {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 10px;
+    color: #ccc;
+    text-shadow: 1px 1px 0px #000;
+    font-weight: bold;
+}
+
+.infoValue {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 12px;
+    color: #fff;
+    text-shadow: 1px 1px 0px #000;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.typeIcon {
+    font-size: 14px;
+    filter: drop-shadow(1px 1px 0px #000);
+}
+
+/* Card Actions */
+.cardActions {
+    padding: 20px 25px;
+    border-top: 1px solid rgba(127, 55, 198, 0.3);
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* Enhanced Button Styling */
 .button {
     font-family: 'Press Start 2P', cursive;
     font-size: 12px;
     background: linear-gradient(45deg, #9c34d0, #4b217b);
     color: #fff;
     border: none;
-    border-radius: 5px;
-    padding: 12px 25px;
+    border-radius: 8px;
+    padding: 15px 25px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     text-transform: uppercase;
-    box-shadow: 0 4px 0 #452d57;
+    box-shadow: 0 6px 0 #452d57;
     text-decoration: none;
-    display: inline-block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.button::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        to bottom right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.1) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: rotate(30deg);
+    transition: all 0.3s;
 }
 
 .button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 0 #452d57;
-    background: linear-gradient(45deg, #a944e0, #5b318b);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 0 #452d57, 0 0 20px rgba(127, 55, 198, 0.6);
+    background: linear-gradient(45deg, #b34de0, #5b278b);
+}
+
+.button:hover::after {
+    left: 100%;
 }
 
 .button:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px 0 #452d57;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 0 #452d57;
+}
+
+.buttonIcon {
+    font-size: 16px;
+    filter: drop-shadow(1px 1px 0px #000);
+}
+
+.buttonText {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 10px;
+    letter-spacing: 1px;
+}
+
+/* Loading and Empty States */
+.loadingState, .emptyState {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 16px;
+    color: #ccc;
+    text-align: center;
+    padding: 40px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 12px;
+    border: 2px solid #7f37c6;
+    box-shadow: 0 6px 0 #452d57;
+    text-shadow: 2px 2px 0px #000;
+    grid-column: 1 / -1;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
     .cardGrid {
         grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .card {
+        min-height: 250px;
+    }
+
+    .cardHeader {
+        padding: 15px 20px 10px;
+    }
+
+    .subjectIcon {
+        font-size: 28px;
+    }
+
+    .courseTypeBadge {
+        padding: 4px 8px;
+        font-size: 6px;
+    }
+
+    .cardContent {
+        padding: 15px 20px;
+        gap: 12px;
+    }
+
+    .subjectTitle {
+        font-size: 14px;
+    }
+
+    .infoItem {
+        padding: 6px 10px;
+    }
+
+    .infoLabel {
+        font-size: 8px;
+    }
+
+    .infoValue {
+        font-size: 10px;
+    }
+
+    .typeIcon {
+        font-size: 12px;
+    }
+
+    .cardActions {
+        padding: 15px 20px;
     }
 
     .button {
-        width: 100%;
+        padding: 12px 20px;
+        font-size: 10px;
+    }
+
+    .buttonIcon {
+        font-size: 14px;
+    }
+
+    .buttonText {
+        font-size: 8px;
+    }
+
+    .semesterSelector {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .semesterLabel {
+        font-size: 12px;
+    }
+
+    .select {
+        font-size: 10px;
+        padding: 10px 12px;
+        min-width: 160px;
+    }
+
+    .title {
+        font-size: 24px;
     }
 }

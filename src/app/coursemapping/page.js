@@ -6,6 +6,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import style from './page.module.css';
 import Navbar from "@/components/teacherNavbar";
+import * as XLSX from 'xlsx';
 
 export default function CourseMapping() {
     const [teacherEmail, setTeacherEmail] = useState("");
@@ -20,6 +21,8 @@ export default function CourseMapping() {
     const [courseNamesByType, setCourseNamesByType] = useState({});
     const [submitMessage, setSubmitMessage] = useState("");
     const [submitting, setSubmitting] = useState(false);
+    const [uploadingExcel, setUploadingExcel] = useState(false);
+    const [excelFile, setExcelFile] = useState(null);
 
     // Get current teacher email
     useEffect(() => {
@@ -156,12 +159,14 @@ export default function CourseMapping() {
             
             setStudents(studentsList);
             
-            // Initialize student courses state
+            // Initialize student courses state (excluding core subjects)
             const initialCourses = {};
             studentsList.forEach(student => {
                 initialCourses[student.id] = {};
                 courseTypes.forEach(type => {
-                    initialCourses[student.id][type] = '';
+                    if (type.toLowerCase() !== 'core') {
+                        initialCourses[student.id][type] = '';
+                    }
                 });
             });
             setStudentCourses(initialCourses);
@@ -248,6 +253,23 @@ export default function CourseMapping() {
                     }
                 }
 
+                // Auto-add core courses if not already selected
+                const coreCourses = courseNamesByType['Core'] || courseNamesByType['core'] || [];
+                coreCourses.forEach(coreCourse => {
+                    const isAlreadySelected = semesterCourses.some(course => course.courseName === coreCourse);
+                    if (!isAlreadySelected) {
+                        const courseDetail = courseDetails[coreCourse];
+                        if (courseDetail) {
+                            semesterCourses.push({
+                                courseName: coreCourse,
+                                courseCode: courseDetail.code,
+                                courseType: courseDetail.type,
+                                semester: courseDetail.semester
+                            });
+                        }
+                    }
+                });
+
                 if (semesterCourses.length > 0) {
                     // Check if document already exists for this student
                     const existingQuery = query(coursemapRef, where("studentId", "==", student.id));
@@ -263,13 +285,10 @@ export default function CourseMapping() {
                         const semesterIndex = updatedSemesters.findIndex(s => s.semesterName === selectedSemester);
                         
                         if (semesterIndex !== -1) {
-                            // Append new courses to existing semester
-                            const existingSemester = updatedSemesters[semesterIndex];
-                            const updatedCourses = [...existingSemester.courses, ...semesterCourses];
-                            
+                            // Replace existing semester courses
                             updatedSemesters[semesterIndex] = {
                                 semesterName: selectedSemester,
-                                courses: updatedCourses
+                                courses: semesterCourses
                             };
                         } else {
                             // Add new semester
@@ -309,6 +328,219 @@ export default function CourseMapping() {
             setSubmitMessage(`Error: ${error.message}`);
         } finally {
             setSubmitting(false);
+        }
+    };
+
+    const handleExcelUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        setExcelFile(file);
+        setUploadingExcel(true);
+        setSubmitMessage("");
+
+        try {
+            const data = await readExcelFile(file);
+            const processedData = processExcelData(data);
+            
+            if (processedData.success) {
+                await uploadExcelData(processedData.data);
+                setSubmitMessage(`Successfully uploaded ${processedData.data.length} course mappings from Excel file`);
+                setExcelFile(null);
+                // Reset file input
+                event.target.value = '';
+            } else {
+                setSubmitMessage(`Error: ${processedData.error}`);
+            }
+        } catch (error) {
+            console.error("Error processing Excel file:", error);
+            setSubmitMessage(`Error processing Excel file: ${error.message}`);
+        } finally {
+            setUploadingExcel(false);
+        }
+    };
+
+    const readExcelFile = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    resolve(jsonData);
+                } catch (error) {
+                    reject(error);
+                }
+            };
+            reader.onerror = reject;
+            reader.readAsArrayBuffer(file);
+        });
+    };
+
+    const processExcelData = (excelData) => {
+        if (!excelData || excelData.length < 2) {
+            return { success: false, error: "Excel file must have at least a header row and one data row" };
+        }
+
+        const headers = excelData[0];
+        const dataRows = excelData.slice(1);
+
+        // Expected headers: Student Name, Student Email, Course Type 1, Course Type 2, etc.
+        const requiredHeaders = ['Student Name', 'Student Email'];
+        const courseTypeHeaders = headers.filter(header => 
+            header && !requiredHeaders.includes(header)
+        );
+
+        if (!headers.includes('Student Name') || !headers.includes('Student Email')) {
+            return { success: false, error: "Excel file must have 'Student Name' and 'Student Email' columns" };
+        }
+
+        const processedData = [];
+
+        for (let i = 0; i < dataRows.length; i++) {
+            const row = dataRows[i];
+            if (row.length === 0 || !row[0]) continue; // Skip empty rows
+
+            const studentName = row[headers.indexOf('Student Name')];
+            const studentEmail = row[headers.indexOf('Student Email')];
+
+            if (!studentName || !studentEmail) {
+                continue; // Skip rows without required data
+            }
+
+            const courseMappings = {};
+            courseTypeHeaders.forEach(courseType => {
+                const courseTypeIndex = headers.indexOf(courseType);
+                const courseValue = row[courseTypeIndex] || '';
+                if (courseValue && courseValue !== 'NA') {
+                    courseMappings[courseType] = courseValue;
+                }
+            });
+
+            processedData.push({
+                studentName: studentName.trim(),
+                studentEmail: studentEmail.trim(),
+                courseMappings
+            });
+        }
+
+        return { success: true, data: processedData };
+    };
+
+    const uploadExcelData = async (excelData) => {
+        const coursemapRef = collection(db, "coursemap");
+
+        // Get course details from subjects collection
+        const subjectsRef = collection(db, "subjects");
+        const q = query(subjectsRef, where("semester", "==", selectedSemester));
+        const subjectsSnapshot = await getDocs(q);
+        
+        const courseDetails = {};
+        subjectsSnapshot.docs.forEach(doc => {
+            const subjectData = doc.data();
+            if (subjectData.courseName && subjectData.type) {
+                courseDetails[subjectData.courseName] = {
+                    code: subjectData.code || '',
+                    type: subjectData.type,
+                    semester: subjectData.semester
+                };
+            }
+        });
+
+        // Find students by email and upload their course mappings
+        for (const excelRow of excelData) {
+            const studentsRef = collection(db, "users");
+            const studentQuery = query(
+                studentsRef,
+                where("email", "==", excelRow.studentEmail),
+                where("role", "==", "student")
+            );
+            const studentSnapshot = await getDocs(studentQuery);
+
+            if (!studentSnapshot.empty) {
+                const student = studentSnapshot.docs[0];
+                const studentData = student.data();
+                
+                const semesterCourses = [];
+                
+                for (const [courseType, selectedCourse] of Object.entries(excelRow.courseMappings)) {
+                    const courseDetail = courseDetails[selectedCourse];
+                    if (courseDetail) {
+                        semesterCourses.push({
+                            courseName: selectedCourse,
+                            courseCode: courseDetail.code,
+                            courseType: courseDetail.type,
+                            semester: courseDetail.semester
+                        });
+                    }
+                }
+
+                // Auto-add core courses if not already selected
+                const coreCourses = courseNamesByType['Core'] || courseNamesByType['core'] || [];
+                coreCourses.forEach(coreCourse => {
+                    const isAlreadySelected = semesterCourses.some(course => course.courseName === coreCourse);
+                    if (!isAlreadySelected) {
+                        const courseDetail = courseDetails[coreCourse];
+                        if (courseDetail) {
+                            semesterCourses.push({
+                                courseName: coreCourse,
+                                courseCode: courseDetail.code,
+                                courseType: courseDetail.type,
+                                semester: courseDetail.semester
+                            });
+                        }
+                    }
+                });
+
+                if (semesterCourses.length > 0) {
+                    // Check if document already exists for this student
+                    const existingQuery = query(coursemapRef, where("studentId", "==", student.id));
+                    const existingSnapshot = await getDocs(existingQuery);
+                    
+                    if (!existingSnapshot.empty) {
+                        // Update existing document - append new semester
+                        const existingDoc = existingSnapshot.docs[0];
+                        const existingData = existingDoc.data();
+                        const updatedSemesters = [...existingData.semesters];
+                        
+                        // Check if semester already exists
+                        const semesterIndex = updatedSemesters.findIndex(s => s.semesterName === selectedSemester);
+                        
+                        if (semesterIndex !== -1) {
+                            // Replace existing semester courses
+                            updatedSemesters[semesterIndex] = {
+                                semesterName: selectedSemester,
+                                courses: semesterCourses
+                            };
+                        } else {
+                            // Add new semester
+                            updatedSemesters.push({
+                                semesterName: selectedSemester,
+                                courses: semesterCourses
+                            });
+                        }
+                        
+                        await updateDoc(existingDoc.ref, {
+                            semesters: updatedSemesters
+                        });
+                    } else {
+                        // Create new document
+                        await addDoc(coursemapRef, {
+                            studentId: student.id,
+                            studentName: studentData.name,
+                            studentEmail: studentData.email,
+                            class: studentData.class,
+                            semesters: [{
+                                semesterName: selectedSemester,
+                                courses: semesterCourses
+                            }]
+                        });
+                    }
+                }
+            }
         }
     };
 
@@ -361,9 +593,55 @@ export default function CourseMapping() {
 
                         {selectedClass && selectedSemester && (
                             <>
+                                <div className={style.excelUploadSection}>
+                                    <div className={style.sectionHeader}>
+                                        <h2 className={style.sectionTitle}>Upload Excel File</h2>
+                                        <p className={style.sectionSubtitle}>
+                                            Upload an Excel file with course mappings. 
+                                            <br />
+                                            <strong>Expected format:</strong> First row should contain headers: "Student Name", "Student Email", followed by course type columns (e.g., "Core", "Elective", etc.)
+                                            <br />
+                                            <strong>Note:</strong> Core subjects will be automatically assigned to all students.
+                                        </p>
+                                    </div>
+                                    
+                                    <div className={style.excelUploadArea}>
+                                        <input
+                                            type="file"
+                                            accept=".xlsx,.xls"
+                                            onChange={handleExcelUpload}
+                                            disabled={uploadingExcel}
+                                            className={style.fileInput}
+                                            id="excel-upload"
+                                        />
+                                        <label htmlFor="excel-upload" className={style.fileInputLabel}>
+                                            {uploadingExcel ? (
+                                                <>
+                                                    <span className={style.uploadIcon}>⏳</span>
+                                                    Processing Excel file...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span className={style.uploadIcon}>📁</span>
+                                                    Choose Excel file (.xlsx, .xls)
+                                                </>
+                                            )}
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div className={style.divider}>
+                                    <span className={style.dividerText}>OR</span>
+                                </div>
+
                                 <div className={style.sectionHeader}>
-                                    <h2 className={style.sectionTitle}>Students in {selectedClass} - {selectedSemester}</h2>
-                                    <p className={style.sectionSubtitle}>{students.length} students found</p>
+                                    <h2 className={style.sectionTitle}>Manual Course Mapping</h2>
+                                    <p className={style.sectionSubtitle}>
+                                        {students.length} students found
+                                        {courseTypes.some(type => type.toLowerCase() === 'core') && (
+                                            <span className={style.coreNote}> • Core subjects are automatically assigned to all students</span>
+                                        )}
+                                    </p>
                                 </div>
 
                                 {loadingStudents ? (
@@ -381,12 +659,14 @@ export default function CourseMapping() {
                                         <div className={style.dataTable}>
                                             <div className={style.tableHeader}>
                                                 <div className={style.headerCell}>Student Name</div>
-                                                {courseTypes.map((type) => (
-                                                    <div key={type} className={style.headerCell}>
-                                                        <span className={style.courseTypeIcon}>📚</span>
-                                                        {type}
-                                                    </div>
-                                                ))}
+                                                {courseTypes
+                                                    .filter(type => type.toLowerCase() !== 'core')
+                                                    .map((type) => (
+                                                        <div key={type} className={style.headerCell}>
+                                                            <span className={style.courseTypeIcon}>📚</span>
+                                                            {type}
+                                                        </div>
+                                                    ))}
                                             </div>
                                             <div className={style.tableBody}>
                                                 {students.map((student) => (
@@ -395,26 +675,26 @@ export default function CourseMapping() {
                                                             <span className={style.studentIcon}>👤</span>
                                                             {student.name || 'Unknown Student'}
                                                         </div>
-                                                        {courseTypes.map((courseType) => (
-                                                            <div key={courseType} className={style.dropdownCell}>
-                                                                <select
-                                                                    key={`${student.id}-${courseType}`}
-                                                                    value={studentCourses[student.id]?.[courseType] || ''}
-                                                                    onChange={(e) => handleCourseChange(student.id, courseType, e.target.value)}
-                                                                    className={style.courseSelect}
-                                                                >
-                                                                    <option value="">Select Course</option>
-                                                                    {courseType.toLowerCase() !== 'core' && (
+                                                        {courseTypes
+                                                            .filter(type => type.toLowerCase() !== 'core')
+                                                            .map((courseType) => (
+                                                                <div key={courseType} className={style.dropdownCell}>
+                                                                    <select
+                                                                        key={`${student.id}-${courseType}`}
+                                                                        value={studentCourses[student.id]?.[courseType] || ''}
+                                                                        onChange={(e) => handleCourseChange(student.id, courseType, e.target.value)}
+                                                                        className={style.courseSelect}
+                                                                    >
+                                                                        <option value="">Select Course</option>
                                                                         <option value="NA">NA</option>
-                                                                    )}
-                                                                    {courseNamesByType[courseType]?.map((courseName) => (
-                                                                        <option key={courseName} value={courseName}>
-                                                                            {courseName}
-                                                                        </option>
-                                                                    )) || []}
-                                                                </select>
-                                                            </div>
-                                                        ))}
+                                                                        {courseNamesByType[courseType]?.map((courseName) => (
+                                                                            <option key={courseName} value={courseName}>
+                                                                                {courseName}
+                                                                            </option>
+                                                                        )) || []}
+                                                                    </select>
+                                                                </div>
+                                                            ))}
                                                     </div>
                                                 ))}
                                             </div>

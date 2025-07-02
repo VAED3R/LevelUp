@@ -17,6 +17,131 @@ export default function CourseMats() {
     const [loading, setLoading] = useState(true);
     const [studentEmail, setStudentEmail] = useState("");
 
+    // Helper functions for enhanced cards
+    const getCourseTypeIcon = (courseType) => {
+        const icons = {
+            'Core': '📚',
+            'Elective': '🎯',
+            'Lab': '🧪',
+            'Project': '💻',
+            'Seminar': '🎤',
+            'Workshop': '🔧',
+            'Tutorial': '📝',
+            'Practical': '⚡',
+            'Theory': '📖',
+            'Research': '🔬',
+            'Skill Enhancement': '🚀'
+        };
+        return icons[courseType] || '📋';
+    };
+
+    const getCourseTypeColor = (courseType) => {
+        const colors = {
+            'Core': '#4CAF50',
+            'Elective': '#FF9800',
+            'Lab': '#2196F3',
+            'Project': '#9C27B0',
+            'Seminar': '#F44336',
+            'Workshop': '#607D8B',
+            'Tutorial': '#795548',
+            'Practical': '#00BCD4',
+            'Theory': '#8BC34A',
+            'Research': '#E91E63',
+            'Skill Enhancement': '#FF5722'
+        };
+        return colors[courseType] || '#9C27B0';
+    };
+
+    const getCourseTypeBadge = (courseType) => {
+        const badges = {
+            'Core': 'Core',
+            'Elective': 'Elective',
+            'Lab': 'Laboratory',
+            'Project': 'Project',
+            'Seminar': 'Seminar',
+            'Workshop': 'Workshop',
+            'Tutorial': 'Tutorial',
+            'Practical': 'Practical',
+            'Theory': 'Theory',
+            'Research': 'Research',
+            'Skill Enhancement': 'Skill Enhancement'
+        };
+        return badges[courseType] || 'Course';
+    };
+
+    const getSubjectIcon = (subjectName) => {
+        const subjectIcons = {
+            'Mathematics': '🔢',
+            'Physics': '⚛️',
+            'Chemistry': '🧪',
+            'Biology': '🧬',
+            'Computer Science': '💻',
+            'Engineering': '⚙️',
+            'Economics': '💰',
+            'Psychology': '🧠',
+            'Literature': '📖',
+            'History': '🏛️',
+            'Geography': '🌍',
+            'Art': '🎨',
+            'Music': '🎵',
+            'Physical Education': '⚽',
+            'Philosophy': '🤔',
+            'Sociology': '👥',
+            'Political Science': '🏛️',
+            'Environmental Science': '🌱',
+            'Astronomy': '🌌',
+            'Statistics': '📊',
+            'Programming': '👨‍💻',
+            'Database': '🗄️',
+            'Networks': '🌐',
+            'Algorithms': '🔍',
+            'Software Engineering': '🛠️',
+            'Data Structures': '📦',
+            'Operating Systems': '💾',
+            'Machine Learning': '🤖',
+            'Artificial Intelligence': '🧠',
+            'Web Development': '🌐',
+            'Mobile Development': '📱',
+            'Cybersecurity': '🔒',
+            'Cloud Computing': '☁️',
+            'DevOps': '⚡',
+            'UI/UX Design': '🎨',
+            'Game Development': '🎮',
+            'Blockchain': '⛓️',
+            'IoT': '📡',
+            'Big Data': '📈',
+            'Data Science': '📊'
+        };
+        
+        // Try to match by subject name
+        for (const [key, icon] of Object.entries(subjectIcons)) {
+            if (subjectName.toLowerCase().includes(key.toLowerCase())) {
+                return icon;
+            }
+        }
+        
+        // Default icons based on common patterns
+        if (subjectName.toLowerCase().includes('math')) return '🔢';
+        if (subjectName.toLowerCase().includes('programming') || subjectName.toLowerCase().includes('coding')) return '👨‍💻';
+        if (subjectName.toLowerCase().includes('database')) return '🗄️';
+        if (subjectName.toLowerCase().includes('network')) return '🌐';
+        if (subjectName.toLowerCase().includes('algorithm')) return '🔍';
+        if (subjectName.toLowerCase().includes('software')) return '🛠️';
+        if (subjectName.toLowerCase().includes('data')) return '📊';
+        if (subjectName.toLowerCase().includes('web')) return '🌐';
+        if (subjectName.toLowerCase().includes('mobile')) return '📱';
+        if (subjectName.toLowerCase().includes('security')) return '🔒';
+        if (subjectName.toLowerCase().includes('cloud')) return '☁️';
+        if (subjectName.toLowerCase().includes('devops')) return '⚡';
+        if (subjectName.toLowerCase().includes('design')) return '🎨';
+        if (subjectName.toLowerCase().includes('game')) return '🎮';
+        if (subjectName.toLowerCase().includes('blockchain')) return '⛓️';
+        if (subjectName.toLowerCase().includes('iot')) return '📡';
+        if (subjectName.toLowerCase().includes('machine learning') || subjectName.toLowerCase().includes('ai')) return '🤖';
+        
+        return '📚'; // Default icon
+    };
+
     // Get current student email
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -107,8 +232,8 @@ export default function CourseMats() {
                 <div className={styles.classContainer}>
                     <div className={styles.content}>
                         <h1 className={styles.title}>Course Materials</h1>
-                        <div style={{ marginBottom: "1.5rem" }}>
-                            <label htmlFor="semesterSelect" style={{ fontWeight: 600, marginRight: 8 }}>
+                        <div className={styles.semesterSelector}>
+                            <label htmlFor="semesterSelect" className={styles.semesterLabel}>
                                 Select Semester:
                             </label>
                             <select
@@ -116,7 +241,6 @@ export default function CourseMats() {
                                 value={selectedSemester}
                                 onChange={(e) => setSelectedSemester(e.target.value)}
                                 className={styles.select}
-                                style={{ padding: "0.5rem", borderRadius: 4, minWidth: 150 }}
                             >
                                 <option value="" disabled>
                                     Select Semester
@@ -130,21 +254,42 @@ export default function CourseMats() {
                         </div>
                         <div className={styles.cardGrid}>
                             {loading ? (
-                                <div>Loading...</div>
+                                <div className={styles.loadingState}>Loading subjects...</div>
                             ) : !selectedSemester ? (
-                                <div>Please select a semester.</div>
+                                <div className={styles.emptyState}>Please select a semester.</div>
                             ) : subjects.length === 0 ? (
-                                <div>No subjects found for this semester.</div>
+                                <div className={styles.emptyState}>No subjects found for this semester.</div>
                             ) : (
                                 subjects.map((subject) => (
                                     <div key={subject.id} className={styles.card}>
-                                        <h2>{subject.name}</h2>
-                                        <p style={{ color: '#666', marginBottom: '1rem' }}>
-                                            Code: {subject.courseCode} | Type: {subject.courseType}
-                                        </p>
-                                        <Link href={`/materials?subject=${encodeURIComponent(subject.name)}`}>
-                                            <button className={styles.button}>View Materials</button>
-                                        </Link>
+                                        <div className={styles.cardHeader}>
+                                            <div className={styles.subjectIcon}>
+                                                {getSubjectIcon(subject.name)}
+                                            </div>
+                                            <div className={styles.courseTypeBadge} 
+                                                 style={{ backgroundColor: getCourseTypeColor(subject.courseType) }}>
+                                                {getCourseTypeBadge(subject.courseType)}
+                                            </div>
+                                        </div>
+                                        
+                                        <div className={styles.cardContent}>
+                                            <h2 className={styles.subjectTitle}>{subject.name}</h2>
+                                            <div className={styles.courseInfo}>
+                                                <div className={styles.infoItem}>
+                                                    <span className={styles.infoLabel}>Code:</span>
+                                                    <span className={styles.infoValue}>{subject.courseCode}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className={styles.cardActions}>
+                                            <Link href={`/materials?subject=${encodeURIComponent(subject.name)}`}>
+                                                <button className={styles.button}>
+                                                    <span className={styles.buttonIcon}>📚</span>
+                                                    <span className={styles.buttonText}>View Materials</span>
+                                                </button>
+                                            </Link>
+                                        </div>
                                     </div>
                                 ))
                             )}

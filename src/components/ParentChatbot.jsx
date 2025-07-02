@@ -1,31 +1,56 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './ParentChatbot.module.css';
 import { FaRobot, FaTimes, FaGraduationCap, FaHandHoldingHeart, FaQuestion } from 'react-icons/fa';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where, getDoc, doc } from 'firebase/firestore';
 import { auth } from '@/lib/firebase';
 
-const ParentChatbot = () => {
+const ParentChatbot = ({ showWelcome = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeChat, setActiveChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [studentPerformance, setStudentPerformance] = useState(null);
-  const [showWelcomePopup, setShowWelcomePopup] = useState(true);
+  const [showWelcomePopup, setShowWelcomePopup] = useState(showWelcome);
+  const [isFadingOut, setIsFadingOut] = useState(false);
   const [parentName, setParentName] = useState('');
+  const timerRef = useRef(null);
 
   useEffect(() => {
-    // Show welcome popup for 5 seconds
-    const timer = setTimeout(() => {
+    // Show welcome popup for 3 seconds only if showWelcome is true
+    if (showWelcome) {
+      setShowWelcomePopup(true);
+      setIsFadingOut(false);
+      
+      // Clear any existing timer
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+      
+      // Set new timer for fade out
+      timerRef.current = setTimeout(() => {
+        setIsFadingOut(true);
+        // Hide the popup after animation completes
+        setTimeout(() => {
+          setShowWelcomePopup(false);
+        }, 500);
+      }, 3000);
+
+      return () => {
+        if (timerRef.current) {
+          clearTimeout(timerRef.current);
+          timerRef.current = null;
+        }
+      };
+    } else {
       setShowWelcomePopup(false);
-    }, 5000);
+      setIsFadingOut(false);
+    }
 
     // Fetch parent name
     fetchParentName();
-
-    return () => clearTimeout(timer);
-  }, []);
+  }, [showWelcome]);
 
   const fetchParentName = async () => {
     try {
@@ -486,7 +511,7 @@ const ParentChatbot = () => {
   return (
     <>
       {showWelcomePopup && (
-        <div className={styles.welcomePopup}>
+        <div className={`${styles.welcomePopup} ${isFadingOut ? styles.fadeOut : ''}`}>
           <div className={styles.welcomeContent}>
             <FaRobot className={styles.welcomeIcon} />
             <p>Hi {parentName ? parentName : 'there'}! I'm your AI assistant. I can help you with:</p>
@@ -497,7 +522,12 @@ const ParentChatbot = () => {
             </ul>
             <button 
               className={styles.closeWelcome}
-              onClick={() => setShowWelcomePopup(false)}
+              onClick={() => {
+                setIsFadingOut(true);
+                setTimeout(() => {
+                  setShowWelcomePopup(false);
+                }, 500);
+              }}
             >
               Got it!
             </button>

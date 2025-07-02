@@ -178,7 +178,7 @@ export default function ParentDashboard() {
           </div>
         )}
       </div>
-      <ParentChatbot />
+      <ParentChatbot showWelcome={true} />
     </div>
   );
 }

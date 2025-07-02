@@ -76,11 +76,25 @@
   box-shadow: 5px 5px 0px #452d57;
   text-align: left;
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.requestCard:hover {
-  transform: translateY(-5px);
-  box-shadow: 8px 8px 0px #452d57;
+.requestCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #7f37c6, #9c34d0, #7f37c6);
+  background-size: 200% 100%;
+  animation: gradientMove 3s linear infinite;
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
 }
 
 /* Request header */
@@ -91,6 +105,7 @@
   margin-bottom: 15px;
   border-bottom: 1px solid rgba(127, 55, 198, 0.5);
   padding-bottom: 10px;
+  position: relative;
 }
 
 /* Request title */
@@ -100,6 +115,20 @@
   color: #fff;
   margin: 0;
   text-shadow: 2px 2px 0px #000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.requestTitle::before {
+  content: '⚔️';
+  font-size: 16px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
 }
 
 /* Status badge */
@@ -110,12 +139,25 @@
   border-radius: 4px;
   text-transform: uppercase;
   font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.statusBadge::before {
+  font-size: 10px;
 }
 
 /* Status colors */
 .statusPending {
-  background-color: #ffd700;
-  color: #000;
+  background-color: #ff8c00;
+  color: #fff;
+}
+
+.statusPending::before {
+  content: '⏳';
 }
 
 .statusAccepted {
@@ -123,9 +165,17 @@
   color: #fff;
 }
 
+.statusAccepted::before {
+  content: '✅';
+}
+
 .statusRejected {
   background-color: #f44336;
   color: #fff;
+}
+
+.statusRejected::before {
+  content: '❌';
 }
 
 .statusCancelled {
@@ -133,9 +183,17 @@
   color: #fff;
 }
 
+.statusCancelled::before {
+  content: '🚫';
+}
+
 .statusCompleted {
   background-color: #2196f3;
   color: #fff;
+}
+
+.statusCompleted::before {
+  content: '🏆';
 }
 
 /* Request details */
@@ -145,14 +203,45 @@
   color: #fff;
   margin-bottom: 20px;
   line-height: 1.8;
+  background: rgba(127, 55, 198, 0.1);
+  padding: 15px;
+  border-radius: 6px;
+  border: 1px solid rgba(127, 55, 198, 0.3);
 }
 
 .requestDetails p {
   margin: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.requestDetails p:first-child::before {
+  content: '👤';
+}
+
+.requestDetails p:nth-child(2)::before {
+  content: '📚';
+}
+
+.requestDetails p:nth-child(3)::before {
+  content: '⚡';
+}
+
+.requestDetails p:nth-child(4)::before {
+  content: '⏱️';
+}
+
+.requestDetails p:nth-child(5)::before {
+  content: '💰';
+}
+
+.requestDetails p:nth-child(6)::before {
+  content: '📅';
 }
 
 .requestDetails strong {
-  color: #7f37c6;
+  color: #9c34d0;
 }
 
 /* Request actions */
@@ -162,7 +251,18 @@
   gap: 10px;
   margin-top: 15px;
   padding-top: 15px;
-  border-top: 1px solid #E2E8F0;
+  border-top: 1px solid rgba(127, 55, 198, 0.5);
+  position: relative;
+}
+
+.requestActions::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #7f37c6, transparent);
 }
 
 /* Accept button */
@@ -179,6 +279,28 @@
   text-transform: uppercase;
   box-shadow: 0 4px 0 #1b5e20;
   flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.acceptButton::before {
+  content: '✅';
+  margin-right: 6px;
+}
+
+.acceptButton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.acceptButton:hover::after {
+  left: 100%;
 }
 
 .acceptButton:hover {
@@ -206,6 +328,28 @@
   text-transform: uppercase;
   box-shadow: 0 4px 0 #b71c1c;
   flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.rejectButton::before {
+  content: '❌';
+  margin-right: 6px;
+}
+
+.rejectButton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.rejectButton:hover::after {
+  left: 100%;
 }
 
 .rejectButton:hover {
@@ -223,7 +367,7 @@
 .cancelButton {
   font-family: 'Press Start 2P', cursive;
   font-size: 10px;
-  background: linear-gradient(45deg, #9e9e9e, #757575);
+  background: linear-gradient(45deg, #f44336, #d32f2f);
   color: #fff;
   border: none;
   border-radius: 5px;
@@ -231,39 +375,90 @@
   cursor: pointer;
   transition: all 0.3s ease;
   text-transform: uppercase;
-  box-shadow: 0 4px 0 #424242;
+  box-shadow: 0 4px 0 #b71c1c;
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.cancelButton::before {
+  content: '🚫';
+  margin-right: 6px;
+}
+
+.cancelButton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
   width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.cancelButton:hover::after {
+  left: 100%;
 }
 
 .cancelButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 0 #424242;
-  background: linear-gradient(45deg, #bdbdbd, #9e9e9e);
+  box-shadow: 0 6px 0 #b71c1c;
+  background: linear-gradient(45deg, #ef5350, #e53935);
 }
 
 .cancelButton:active {
   transform: translateY(2px);
-  box-shadow: 0 2px 0 #424242;
+  box-shadow: 0 2px 0 #b71c1c;
 }
 
 /* Delete button */
 .deleteButton {
-  background-color: #dc3545;
-  color: white;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  background: linear-gradient(45deg, #d32f2f, #b71c1c);
+  color: #fff;
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  border-radius: 5px;
+  padding: 10px 15px;
   cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  box-shadow: 0 4px 0 #8b0000;
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.deleteButton::before {
+  content: '🗑️';
+  margin-right: 6px;
+}
+
+.deleteButton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.deleteButton:hover::after {
+  left: 100%;
 }
 
 .deleteButton:hover {
-  background-color: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #8b0000;
+  background: linear-gradient(45deg, #e53935, #c62828);
 }
 
 .deleteButton:active {
-  background-color: #bd2130;
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #8b0000;
 }
 
 /* Quiz pending */
@@ -482,30 +677,54 @@
 }
 
 .viewResultsButton {
-  background: linear-gradient(135deg, #6B46C1, #805AD5);
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  background: linear-gradient(45deg, #7f37c6, #9c34d0);
   color: white;
   border: none;
-  padding: 10px 20px;
+  padding: 10px 15px;
   border-radius: 8px;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 500;
-  font-size: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-transform: uppercase;
+  box-shadow: 0 4px 0 #452d57;
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 0px #000;
+  flex: 1;
+}
+
+.viewResultsButton::before {
+  content: '📊';
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.viewResultsButton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
   width: 100%;
-  margin-top: 10px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.viewResultsButton:hover::after {
+  left: 100%;
 }
 
 .viewResultsButton:hover {
-  background: linear-gradient(135deg, #805AD5, #6B46C1);
   transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 0 #452d57;
+  background: linear-gradient(45deg, #9c34d0, #a944e0);
 }
 
 .viewResultsButton:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #452d57;
 }
 
 .generateQuizButton {

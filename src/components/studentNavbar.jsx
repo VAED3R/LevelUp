@@ -56,6 +56,9 @@ export default function Navbar() {
               <Link href="/studentDashboard" className={styles.navLink}>Dashboard</Link>
             </li>
             <li className={styles.navItem}>
+              <Link href="/personalizedLearning" className={styles.navLink}>My Learning</Link>
+            </li>
+            <li className={styles.navItem}>
               <Link href="/studentAttendance" className={styles.navLink}>Attendance</Link>
             </li>
             <li className={styles.navItem}>

@@ -22,6 +22,16 @@ export default function StudentDashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [readNotificationIds, setReadNotificationIds] = useState(new Set());
+  const [achievements, setAchievements] = useState([]);
+  const [studentActivity, setStudentActivity] = useState({
+    quizzesCompleted: 0,
+    materialsAccessed: 0,
+    perfectScores: 0,
+    totalPoints: 0,
+    loginStreak: 0,
+    challengesWon: 0,
+    averageScore: 0
+  });
   const router = useRouter();
 
   useEffect(() => {
@@ -415,6 +425,338 @@ export default function StudentDashboard() {
     }
   }, [notifications.length]);
 
+  // Fetch student activity data for achievements
+  useEffect(() => {
+    const fetchStudentActivity = async () => {
+      if (!userData) return;
+
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        // 1. Fetch completed quizzes from 'marks' collection
+        // Note: Assuming 'marks' collection has a 'type' field to distinguish 'quiz' marks.
+        const quizResultsQuery = query(
+          collection(db, "marks"),
+          where("studentId", "==", user.uid),
+          where("type", "==", "quiz") 
+        );
+        const quizResultsSnapshot = await getDocs(quizResultsQuery);
+        const completedQuizzes = quizResultsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        // 2. Fetch materials accessed from coursemap collection
+        const courseMapQuery = query(
+          collection(db, "coursemap"),
+          where("accessedBy", "array-contains", user.uid)
+        );
+        const courseMapSnapshot = await getDocs(courseMapQuery);
+        const materialsAccessed = courseMapSnapshot.size;
+
+        // 3. Fetch challenge wins from onevsoneRequests
+        const challengesQuery = query(
+          collection(db, "onevsoneRequests"),
+          where("fromUserId", "==", user.uid),
+          where("status", "==", "completed"),
+          where("winner", "==", "fromUser")
+        );
+        const challengesSnapshot = await getDocs(challengesQuery);
+        const challengesWon = challengesSnapshot.size;
+
+        // 4. Fetch attendance data from 'attendance' collection
+        const attendanceQuery = query(
+          collection(db, "attendance"),
+          where("studentId", "==", user.uid)
+        );
+        const attendanceSnapshot = await getDocs(attendanceQuery);
+        const attendanceRecords = attendanceSnapshot.docs.map(doc => doc.data());
+        
+        // Calculate attendance percentage
+        const totalSessions = attendanceRecords.length;
+        const presentSessions = attendanceRecords.filter(record => record.status === 'present').length;
+        const attendancePercentage = totalSessions > 0 ? Math.round((presentSessions / totalSessions) * 100) : 0;
+
+        // 5. Fetch test results from 'marks' collection
+        // Note: Assuming 'marks' collection has a 'type' field to distinguish 'test' marks.
+        const testResultsQuery = query(
+          collection(db, "marks"),
+          where("studentId", "==", user.uid),
+          where("type", "==", "test")
+        );
+        const testResultsSnapshot = await getDocs(testResultsQuery);
+        const testResults = testResultsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        // 6. Fetch assignment submissions from 'assignments' collection
+        const assignmentsQuery = query(
+          collection(db, "assignments"),
+          where("studentId", "==", user.uid)
+        );
+        const assignmentsSnapshot = await getDocs(assignmentsQuery);
+        const assignments = assignmentsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        // 7. Fetch student performance data from 'performance_requests' collection
+        const studPerformQuery = query(
+          collection(db, "performance_requests"),
+          where("studentId", "==", user.uid)
+        );
+        const studPerformSnapshot = await getDocs(studPerformQuery);
+        const performanceData = studPerformSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        // Calculate comprehensive statistics
+        const totalPoints = pointsData?.totalPoints || 0;
+        const perfectScores = completedQuizzes.filter(q => q.score === 100).length;
+        const averageScore = completedQuizzes.length > 0 
+          ? completedQuizzes.reduce((sum, q) => sum + (q.score || 0), 0) / completedQuizzes.length 
+          : 0;
+
+        // Calculate login streak (you might want to implement this differently)
+        const loginStreak = Math.floor(Math.random() * 10) + 1; // Placeholder
+
+        // Calculate additional metrics
+        const assignmentsCompleted = assignments.filter(a => a.status === 'completed').length;
+        const testsTaken = testResults.length;
+
+        const activity = {
+          quizzesCompleted: completedQuizzes.length,
+          materialsAccessed: materialsAccessed,
+          perfectScores,
+          totalPoints,
+          loginStreak,
+          challengesWon,
+          averageScore: Math.round(averageScore),
+          attendancePercentage,
+          assignmentsCompleted,
+          testsTaken,
+          performanceRequests: performanceData.length,
+        };
+
+        setStudentActivity(activity);
+        checkAchievements(activity);
+      } catch (error) {
+        console.error('Error fetching student activity:', error);
+      }
+    };
+
+    fetchStudentActivity();
+  }, [userData, pointsData]);
+
+  // Enhanced achievement checking logic
+  const checkAchievements = (activity) => {
+    const allAchievements = [
+      {
+        id: 'first_quiz',
+        icon: '🥇',
+        title: 'First Quiz',
+        description: 'Completed your first quiz',
+        condition: activity.quizzesCompleted >= 1,
+        progress: Math.min(activity.quizzesCompleted, 1),
+        maxProgress: 1
+      },
+      {
+        id: 'quiz_master',
+        icon: '🎯',
+        title: 'Quiz Master',
+        description: 'Completed 10 quizzes',
+        condition: activity.quizzesCompleted >= 10,
+        progress: Math.min(activity.quizzesCompleted, 10),
+        maxProgress: 10
+      },
+      {
+        id: 'quiz_expert',
+        icon: '🎯',
+        title: 'Quiz Expert',
+        description: 'Completed 25 quizzes',
+        condition: activity.quizzesCompleted >= 25,
+        progress: Math.min(activity.quizzesCompleted, 25),
+        maxProgress: 25
+      },
+      {
+        id: 'perfect_score',
+        icon: '⭐',
+        title: 'Perfect Score',
+        description: 'Got 100% on a quiz',
+        condition: activity.perfectScores >= 1,
+        progress: Math.min(activity.perfectScores, 1),
+        maxProgress: 1
+      },
+      {
+        id: 'high_achiever',
+        icon: '🏆',
+        title: 'High Achiever',
+        description: 'Got 3 perfect scores',
+        condition: activity.perfectScores >= 3,
+        progress: Math.min(activity.perfectScores, 3),
+        maxProgress: 3
+      },
+      {
+        id: 'perfect_master',
+        icon: '👑',
+        title: 'Perfect Master',
+        description: 'Got 10 perfect scores',
+        condition: activity.perfectScores >= 10,
+        progress: Math.min(activity.perfectScores, 10),
+        maxProgress: 10
+      },
+      {
+        id: 'bookworm',
+        icon: '📚',
+        title: 'Bookworm',
+        description: 'Accessed 10+ materials',
+        condition: activity.materialsAccessed >= 10,
+        progress: Math.min(activity.materialsAccessed, 10),
+        maxProgress: 10
+      },
+      {
+        id: 'knowledge_seeker',
+        icon: '🔍',
+        title: 'Knowledge Seeker',
+        description: 'Accessed 25+ materials',
+        condition: activity.materialsAccessed >= 25,
+        progress: Math.min(activity.materialsAccessed, 25),
+        maxProgress: 25
+      },
+      {
+        id: 'research_scholar',
+        icon: '📖',
+        title: 'Research Scholar',
+        description: 'Accessed 50+ materials',
+        condition: activity.materialsAccessed >= 50,
+        progress: Math.min(activity.materialsAccessed, 50),
+        maxProgress: 50
+      },
+      {
+        id: 'point_collector',
+        icon: '💰',
+        title: 'Point Collector',
+        description: 'Earned 500 points',
+        condition: activity.totalPoints >= 500,
+        progress: Math.min(activity.totalPoints, 500),
+        maxProgress: 500
+      },
+      {
+        id: 'point_master',
+        icon: '💎',
+        title: 'Point Master',
+        description: 'Earned 1000 points',
+        condition: activity.totalPoints >= 1000,
+        progress: Math.min(activity.totalPoints, 1000),
+        maxProgress: 1000
+      },
+      {
+        id: 'point_legend',
+        icon: '💎',
+        title: 'Point Legend',
+        description: 'Earned 2500 points',
+        condition: activity.totalPoints >= 2500,
+        progress: Math.min(activity.totalPoints, 2500),
+        maxProgress: 2500
+      },
+      {
+        id: 'streak_master',
+        icon: '🔥',
+        title: 'Streak Master',
+        description: '7 days login streak',
+        condition: activity.loginStreak >= 7,
+        progress: Math.min(activity.loginStreak, 7),
+        maxProgress: 7
+      },
+      {
+        id: 'streak_legend',
+        icon: '🔥',
+        title: 'Streak Legend',
+        description: '30 days login streak',
+        condition: activity.loginStreak >= 30,
+        progress: Math.min(activity.loginStreak, 30),
+        maxProgress: 30
+      },
+      {
+        id: 'challenge_champion',
+        icon: '⚔️',
+        title: 'Challenge Champion',
+        description: 'Won 5 challenges',
+        condition: activity.challengesWon >= 5,
+        progress: Math.min(activity.challengesWon, 5),
+        maxProgress: 5
+      },
+      {
+        id: 'challenge_legend',
+        icon: '⚔️',
+        title: 'Challenge Legend',
+        description: 'Won 20 challenges',
+        condition: activity.challengesWon >= 20,
+        progress: Math.min(activity.challengesWon, 20),
+        maxProgress: 20
+      },
+      {
+        id: 'consistent_performer',
+        icon: '📈',
+        title: 'Consistent Performer',
+        description: 'Average score above 80%',
+        condition: activity.averageScore >= 80,
+        progress: Math.min(activity.averageScore, 80),
+        maxProgress: 80
+      },
+      {
+        id: 'excellent_student',
+        icon: '🎓',
+        title: 'Excellent Student',
+        description: 'Average score above 90%',
+        condition: activity.averageScore >= 90,
+        progress: Math.min(activity.averageScore, 90),
+        maxProgress: 90
+      },
+      {
+        id: 'attendance_star',
+        icon: '📅',
+        title: 'Attendance Star',
+        description: '95%+ attendance rate',
+        condition: activity.attendancePercentage >= 95,
+        progress: Math.min(activity.attendancePercentage, 95),
+        maxProgress: 95
+      },
+      {
+        id: 'assignment_completer',
+        icon: '📝',
+        title: 'Assignment Completer',
+        description: 'Completed 5 assignments',
+        condition: activity.assignmentsCompleted >= 5,
+        progress: Math.min(activity.assignmentsCompleted, 5),
+        maxProgress: 5
+      },
+      {
+        id: 'test_taker',
+        icon: '📊',
+        title: 'Test Taker',
+        description: 'Taken 10 tests',
+        condition: activity.testsTaken >= 10,
+        progress: Math.min(activity.testsTaken, 10),
+        maxProgress: 10
+      },
+      {
+        id: 'performance_requester',
+        icon: '📈',
+        title: 'Performance Requester',
+        description: 'Requested performance analysis 5 times',
+        condition: activity.performanceRequests >= 5,
+        progress: Math.min(activity.performanceRequests, 5),
+        maxProgress: 5
+      }
+    ];
+
+    setAchievements(allAchievements);
+  };
+
   return (
     <IntroAnimation loadingText="Loading Student Dashboard...">
       <div className={style.container}>
@@ -492,68 +834,195 @@ export default function StudentDashboard() {
             </div>
           </div>
 
-          <div className={style.cardContainer}>
-            <div className={style.userCard}>
-              <h2>Your Information</h2>
-              <p><strong>Name:</strong> {userData?.name}</p>
-              <p><strong>Class:</strong> {userData?.class}</p>
-              <p><strong>Course:</strong> B.Sc. APPLIED STATISTICS WITH DATA
-              SCIENCE HONOURS</p>
-              <p><strong>University:</strong> Calicut University-FYUGP</p>
-              <div className={style.pointsInfo}>
-                <p><strong>Total Points:</strong> {pointsData?.totalPoints || 0}</p>
+          {/* Hero Card - User Information */}
+          <div className={style.heroCard}>
+            <div className={style.heroContent}>
+              <div className={style.heroLeft}>
+                <div className={style.heroAvatar}>
+                  <span className={style.avatarText}>{userData?.name?.charAt(0) || 'S'}</span>
+                </div>
+                <div className={style.heroInfo}>
+                  <h2 className={style.heroName}>{userData?.name}</h2>
+                  <p className={style.heroClass}>{userData?.class}</p>
+                  <p className={style.heroCourse}>B.Sc. APPLIED STATISTICS WITH DATA SCIENCE HONOURS</p>
+                  <p className={style.heroUniversity}>Calicut University-FYUGP</p>
+                </div>
+              </div>
+              <div className={style.heroRight}>
+                <div className={style.heroPoints}>
+                  <div className={style.pointsIcon}>⭐</div>
+                  <div className={style.pointsContent}>
+                    <span className={style.pointsValue}>{pointsData?.totalPoints || 0}</span>
+                    <span className={style.pointsLabel}>Total Points</span>
+                  </div>
+                </div>
+                <div className={style.heroStats}>
+                  <div className={style.statItem}>
+                    <span className={style.statValue}>{quizzes.length}</span>
+                    <span className={style.statLabel}>Quizzes</span>
+                  </div>
+                  <div className={style.statItem}>
+                    <span className={style.statValue}>85%</span>
+                    <span className={style.statLabel}>Attendance</span>
+                  </div>
+                </div>
               </div>
             </div>
-            
-            <div className={style.userCard}>
-              <h2>Your Results</h2>
-              <p>View your test results and performance across all subjects</p>
+          </div>
+
+          {/* Quick Actions Section */}
+          <div className={style.quickActionsSection}>
+            <h2 className={style.sectionTitle}>Quick Actions</h2>
+            <div className={style.quickActionsGrid}>
               <button 
-                className={style.viewButton}
+                className={style.quickActionCard}
+                onClick={() => router.push('/Studentquiz')}
+              >
+                <div className={style.quickActionIcon}>📝</div>
+                <h3>Take Quiz</h3>
+                <p>Start a new quiz</p>
+              </button>
+              
+              <button 
+                className={style.quickActionCard}
+                onClick={() => router.push('/courseMats')}
+              >
+                <div className={style.quickActionIcon}>📚</div>
+                <h3>Study Materials</h3>
+                <p>Access course materials</p>
+              </button>
+              
+              <button 
+                className={style.quickActionCard}
                 onClick={() => router.push('/viewresults')}
               >
-                View Test Results
+                <div className={style.quickActionIcon}>📊</div>
+                <h3>View Results</h3>
+                <p>Check your performance</p>
+              </button>
+              
+              <button 
+                className={style.quickActionCard}
+                onClick={() => router.push('/leaderboard')}
+              >
+                <div className={style.quickActionIcon}>🏆</div>
+                <h3>Leaderboard</h3>
+                <p>See rankings</p>
               </button>
             </div>
           </div>
 
-          {loading ? (
-            <div className={style.loading}>Loading quizzes...</div>
-          ) : (
-            <div className={style.quizzesSection}>
-              <h2 className={style.sectionTitle}>Available Quizzes</h2>
-              <div className={style.quizzesGrid}>
-                {quizzes.length === 0 ? (
-                  <div className={style.quizCard}>
-                    <div className={style.quizActions}>
-                      <button className={style.viewButton} onClick={() => router.push('/Studentquiz')}>
-                        View All Quizzes
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  quizzes.map((quiz) => (
-                    <div key={quiz.id} className={style.quizCard}>
-                      <h3 className={style.quizTitle}>{quiz.topic || 'Untitled Quiz'}</h3>
-                      <p className={style.quizSubject}>{quiz.subject ? quiz.subject.replace(/_/g, " ") : 'No Subject'}</p>
-                      <div className={style.quizDetails}>
-                        <p>Questions: {quiz.questions.length}</p>
-                        <p>Created: {new Date(quiz.createdAt).toLocaleDateString()}</p>
-                      </div>
-                      <div className={style.quizActions}>
-                        <button 
-                          className={style.viewButton}
-                          onClick={() => handleStartQuiz(quiz.id)}
-                        >
-                          Start Quiz
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                )}
+          {/* Progress Cards Section */}
+          <div className={style.progressSection}>
+            <h2 className={style.sectionTitle}>Your Progress</h2>
+            <div className={style.progressGrid}>
+              <div className={style.progressCard}>
+                <div className={style.progressHeader}>
+                  <h3>Total Points</h3>
+                  <div className={style.progressIcon}>⭐</div>
+                </div>
+                <div className={style.progressValue}>{pointsData?.totalPoints || 0}</div>
+                <div className={style.progressBar}>
+                  <div 
+                    className={style.progressFill} 
+                    style={{width: `${Math.min((pointsData?.totalPoints || 0) / 1000 * 100, 100)}%`}}
+                  ></div>
+                </div>
+                <p className={style.progressLabel}>Next milestone: 1000 points</p>
+              </div>
+              
+              <div className={style.progressCard}>
+                <div className={style.progressHeader}>
+                  <h3>Quizzes Completed</h3>
+                  <div className={style.progressIcon}>🎯</div>
+                </div>
+                <div className={style.progressValue}>{studentActivity.quizzesCompleted}</div>
+                <div className={style.progressBar}>
+                  <div 
+                    className={style.progressFill} 
+                    style={{width: `${Math.min(studentActivity.quizzesCompleted / 10 * 100, 100)}%`}}
+                  ></div>
+                </div>
+                <p className={style.progressLabel}>Keep up the good work!</p>
+              </div>
+              
+              <div className={style.progressCard}>
+                <div className={style.progressHeader}>
+                  <h3>Attendance</h3>
+                  <div className={style.progressIcon}>📅</div>
+                </div>
+                <div className={style.progressValue}>{studentActivity.attendancePercentage}%</div>
+                <div className={style.progressBar}>
+                  <div 
+                    className={style.progressFill} 
+                    style={{width: `${studentActivity.attendancePercentage}%`}}
+                  ></div>
+                </div>
+                <p className={style.progressLabel}>Excellent attendance!</p>
               </div>
             </div>
-          )}
+          </div>
+
+          {/* Achievement Badges Section */}
+          <div className={style.achievementsSection}>
+            <h2 className={style.sectionTitle}>Achievements</h2>
+            <div className={style.achievementsGrid}>
+              {achievements.map((achievement) => (
+                <div 
+                  key={achievement.id} 
+                  className={`${style.achievementBadge} ${achievement.condition ? style.unlocked : style.locked}`}
+                >
+                  <div className={style.badgeIcon}>{achievement.icon}</div>
+                  <h4>{achievement.title}</h4>
+                  <p>{achievement.description}</p>
+                  <div className={style.achievementProgress}>
+                    <div className={style.progressBar}>
+                      <div 
+                        className={style.progressFill} 
+                        style={{width: `${(achievement.progress / achievement.maxProgress) * 100}%`}}
+                      ></div>
+                    </div>
+                    <span className={style.progressText}>
+                      {achievement.progress}/{achievement.maxProgress}
+                    </span>
+                  </div>
+                  {achievement.condition && (
+                    <div className={style.unlockIndicator}>✓ Unlocked</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Recent Activity Section */}
+          <div className={style.recentActivitySection}>
+            <h2 className={style.sectionTitle}>Recent Activity</h2>
+            <div className={style.activityTimeline}>
+              <div className={style.activityItem}>
+                <div className={style.activityIcon}>📝</div>
+                <div className={style.activityContent}>
+                  <h4>Completed Mathematics Quiz</h4>
+                  <p>Score: 85% - 2 hours ago</p>
+                </div>
+              </div>
+              
+              <div className={style.activityItem}>
+                <div className={style.activityIcon}>📚</div>
+                <div className={style.activityContent}>
+                  <h4>Downloaded Statistics Notes</h4>
+                  <p>Chapter 5 - 1 day ago</p>
+                </div>
+              </div>
+              
+              <div className={style.activityItem}>
+                <div className={style.activityIcon}>🏆</div>
+                <div className={style.activityContent}>
+                  <h4>Earned 50 points</h4>
+                  <p>Quiz completion bonus - 2 days ago</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </IntroAnimation>
