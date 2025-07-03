@@ -32,6 +32,7 @@ export default function TeacherQuiz() {
         correctAnswer: 0
     });
     const [topics, setTopics] = useState([]);
+    const [topicsLoading, setTopicsLoading] = useState(false);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -103,6 +104,7 @@ export default function TeacherQuiz() {
     useEffect(() => {
         const fetchTopics = async () => {
             if (subject) {
+                setTopicsLoading(true);
                 try {
                     const res = await fetch("/api/get-topics", {
                         method: "POST",
@@ -114,8 +116,10 @@ export default function TeacherQuiz() {
                 } catch (e) {
                     setTopics([]);
                 }
+                setTopicsLoading(false);
             } else {
                 setTopics([]);
+                setTopicsLoading(false);
             }
         };
         fetchTopics();
@@ -336,20 +340,25 @@ export default function TeacherQuiz() {
 
                         <div className={styles.formGroup}>
                             <label className={styles.label}>Topic</label>
-                            <select
-                                key="topic-select"
-                                value={topic}
-                                onChange={(e) => setTopic(e.target.value)}
-                                className={styles.select}
-                                disabled={!subject}
-                            >
-                                <option value="">{subject ? "Select Topic" : "Select subject first"}</option>
-                                {topics.map((topicName, idx) => (
-                                    <option key={topicName + '-' + idx} value={topicName}>
-                                        {topicName}
-                                    </option>
-                                ))}
-                            </select>
+                            <div style={{ position: 'relative' }}>
+                                <select
+                                    key="topic-select"
+                                    value={topic}
+                                    onChange={(e) => setTopic(e.target.value)}
+                                    className={styles.select}
+                                    disabled={!subject || topicsLoading}
+                                >
+                                    <option value="">{subject ? (topicsLoading ? "Loading topics..." : "Select Topic") : "Select subject first"}</option>
+                                    {topics.map((topicName, idx) => (
+                                        <option key={topicName + '-' + idx} value={topicName}>
+                                            {topicName}
+                                        </option>
+                                    ))}
+                                </select>
+                                {topicsLoading && (
+                                    <span className={styles.loadingSpinner} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)' }}></span>
+                                )}
+                            </div>
                         </div>
 
                         <div className={styles.modeToggle}>
