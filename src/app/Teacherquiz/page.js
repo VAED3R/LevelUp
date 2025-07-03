@@ -31,6 +31,7 @@ export default function TeacherQuiz() {
         options: ["", "", "", ""],
         correctAnswer: 0
     });
+    const [topics, setTopics] = useState([]);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -98,6 +99,28 @@ export default function TeacherQuiz() {
         }
     }, [semester, allSubjectsData]);
 
+    // Fetch topics for selected subject
+    useEffect(() => {
+        const fetchTopics = async () => {
+            if (subject) {
+                try {
+                    const res = await fetch("/api/get-topics", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ subject }),
+                    });
+                    const data = await res.json();
+                    setTopics(data.topics || []);
+                } catch (e) {
+                    setTopics([]);
+                }
+            } else {
+                setTopics([]);
+            }
+        };
+        fetchTopics();
+    }, [subject]);
+
     const handleOptionChange = (index, value) => {
         const newOptions = [...currentQuestion.options];
         newOptions[index] = value;
@@ -140,7 +163,7 @@ export default function TeacherQuiz() {
             const validateRes = await fetch("/api/validate-topic", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ topic }),
+                body: JSON.stringify({ subject, topic }),
             });
             const validateData = await validateRes.json();
             if (!validateData.valid) {
@@ -313,14 +336,20 @@ export default function TeacherQuiz() {
 
                         <div className={styles.formGroup}>
                             <label className={styles.label}>Topic</label>
-                            <input
-                                key="topic-input"
-                                type="text"
+                            <select
+                                key="topic-select"
                                 value={topic}
                                 onChange={(e) => setTopic(e.target.value)}
-                                placeholder="Enter topic for the quiz"
-                                className={styles.input}
-                            />
+                                className={styles.select}
+                                disabled={!subject}
+                            >
+                                <option value="">{subject ? "Select Topic" : "Select subject first"}</option>
+                                {topics.map((topicName, idx) => (
+                                    <option key={topicName + '-' + idx} value={topicName}>
+                                        {topicName}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
 
                         <div className={styles.modeToggle}>
