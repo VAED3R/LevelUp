@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { db, auth } from "@/lib/firebase";
-import { collection, getDocs, query, where, doc, updateDoc, onSnapshot, deleteDoc, addDoc } from "firebase/firestore";
+import { collection, getDocs, query, where, doc, updateDoc, onSnapshot, deleteDoc, addDoc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import Navbar from "@/components/teacherNavbar";
 import TeacherChatbot from "@/components/TeacherChatbot";
@@ -83,49 +83,237 @@ export default function TeacherChat() {
       const request = requests.find(r => r.id === requestId);
       if (!request) return;
 
-      const { metrics } = request;
-      
-      // Generate summary based on metrics
+      // Fetch actual data from database using API routes like learning profiles
+      const studentId = request.studentId;
       let summary = `Performance Analysis for ${request.studentName}:\n\n`;
+
+      // Fetch student data using the same API route as learning profiles
+      const studentResponse = await fetch(`/api/student-data?studentId=${studentId}`);
+      let studentData = null;
+      if (studentResponse.ok) {
+        const responseData = await studentResponse.json();
+        studentData = responseData.data;
+      }
+
+      // Fetch assignments data
+      const assignments = studentData?.assignments || [];
+
+      // Fetch test results data from marks collection (like student-data API)
+      const marksQuery = query(
+        collection(db, "marks"),
+        where("studentId", "==", studentId)
+      );
+      const marksSnapshot = await getDocs(marksQuery);
+      const allMarks = marksSnapshot.docs.map(doc => doc.data());
       
-      // Quiz Performance
-      summary += `Quiz Performance: ${metrics.quizPerformance}%\n`;
-      if (metrics.quizPerformance >= 80) {
-        summary += "Excellent performance in quizzes. Keep up the good work!\n";
-      } else if (metrics.quizPerformance >= 60) {
-        summary += "Good performance in quizzes. There's room for improvement.\n";
-      } else {
-        summary += "Needs improvement in quiz performance. Consider additional practice.\n";
+      // Filter for test results (exclude assignments)
+      const testResults = allMarks.filter(mark => {
+        return mark.subject && mark.semester && !mark.assignmentId && mark.obtainedMarks !== undefined;
+      });
+
+      // Fetch quiz data from quizResults collection (primary source)
+      const quizResultsQuery = query(
+        collection(db, "quizResults"),
+        where("studentId", "==", studentId)
+      );
+      const quizResultsSnapshot = await getDocs(quizResultsQuery);
+      let quizzes = quizResultsSnapshot.docs.map(doc => {
+        const quizData = doc.data();
+        return {
+          id: doc.id,
+          score: quizData.score || 0,
+          subject: quizData.subject || 'Unknown',
+          topic: quizData.subject || 'Quiz',
+          completedAt: quizData.completedAt,
+          totalQuestions: quizData.totalQuestions || 0,
+          points: quizData.score || 0, // Use score as points
+          rawData: quizData
+        };
+      });
+
+      // Also fetch quiz data from students collection as backup
+      const studentsQuery = query(
+        collection(db, "students"),
+        where("id", "==", studentId)
+      );
+      const studentsSnapshot = await getDocs(studentsQuery);
+      
+      if (!studentsSnapshot.empty) {
+        const studentDocData = studentsSnapshot.docs[0].data();
+        
+        // Combine points and fallPoints arrays
+        const allPoints = [
+          ...(studentDocData.points || []),
+          ...(studentDocData.fallPoints || [])
+        ];
+        
+        // Filter for actual quizzes (not attendance, assignments, or assessments)
+        const studentQuizzes = allPoints.filter(point => {
+          if (point.quizId === 'attendance') return false;
+          if (point.type === 'assignment' || point.type === 'assessment') return false;
+          if (point.subject === 'unknown' || point.subject === 'Unknown') return false;
+          return point.subject && point.subject !== 'unknown' && point.subject !== 'Unknown';
+        }).map(quiz => {
+          // Calculate score percentage based on points and total questions
+          let score = 0;
+          if (quiz.points && quiz.totalQuestions) {
+            score = Math.round((quiz.points / quiz.totalQuestions) * 100);
+          } else if (quiz.score) {
+            score = quiz.score;
+          } else if (quiz.points) {
+            // If only points available, assume it's a percentage
+            score = quiz.points;
+          }
+          
+          return {
+            id: quiz.quizId,
+            score: score,
+            subject: quiz.subject,
+            topic: quiz.topic || 'Quiz',
+            completedAt: quiz.date,
+            totalQuestions: quiz.totalQuestions || 0,
+            points: quiz.points || 0,
+            rawData: quiz
+          };
+        });
+
+        // Combine both sources, avoiding duplicates
+        const existingQuizIds = new Set(quizzes.map(q => q.id));
+        const uniqueStudentQuizzes = studentQuizzes.filter(quiz => !existingQuizIds.has(quiz.id));
+        quizzes = [...quizzes, ...uniqueStudentQuizzes];
       }
 
-      // Assignment Performance
-      summary += `\nAssignment Performance: ${metrics.assignmentPerformance}%\n`;
-      if (metrics.assignmentPerformance >= 80) {
-        summary += "Strong performance in assignments. Very consistent work.\n";
-      } else if (metrics.assignmentPerformance >= 60) {
-        summary += "Satisfactory performance in assignments. Could be more thorough.\n";
-      } else {
-        summary += "Assignment performance needs attention. Consider reviewing submission quality.\n";
+      // Calculate assignment performance
+      let assignmentPerformance = 0;
+      let assignmentCount = 0;
+      if (assignments.length > 0) {
+        const totalPercentage = assignments.reduce((sum, assignment) => {
+          if (assignment.obtainedMarks && assignment.totalMarks) {
+            assignmentCount++;
+            return sum + assignment.percentage;
+          }
+          return sum;
+        }, 0);
+        assignmentPerformance = assignmentCount > 0 ? Math.round(totalPercentage / assignmentCount) : 0;
       }
 
-      // Test Performance
-      summary += `\nTest Performance: ${metrics.testPerformance}%\n`;
-      if (metrics.testPerformance >= 80) {
-        summary += "Outstanding test performance. Excellent understanding of the material.\n";
-      } else if (metrics.testPerformance >= 60) {
-        summary += "Adequate test performance. Consider additional study time.\n";
-      } else {
-        summary += "Test performance needs significant improvement. Recommend extra tutoring.\n";
+      // Calculate test performance
+      let testPerformance = 0;
+      let testCount = 0;
+      if (testResults.length > 0) {
+        const totalPercentage = testResults.reduce((sum, test) => {
+          if (test.obtainedMarks && test.totalMarks) {
+            testCount++;
+            // Use the percentage field if available, otherwise calculate it
+            const percentage = test.percentage || Math.round((test.obtainedMarks / test.totalMarks) * 100);
+            return sum + percentage;
+          }
+          return sum;
+        }, 0);
+        testPerformance = testCount > 0 ? Math.round(totalPercentage / testCount) : 0;
       }
 
-      // Attendance
-      summary += `\nAttendance Rate: ${metrics.attendanceRate}%\n`;
-      if (metrics.attendanceRate >= 90) {
-        summary += "Excellent attendance record. Very consistent presence in class.\n";
-      } else if (metrics.attendanceRate >= 75) {
-        summary += "Good attendance, but there's room for improvement.\n";
+      // Calculate quiz performance from actual quiz data
+      let quizPerformance = 0;
+      let quizCount = 0;
+      if (quizzes.length > 0) {
+        console.log('Quiz data for debugging:', quizzes); // Debug log
+        const totalQuizScore = quizzes.reduce((sum, quiz) => {
+          if (quiz.score !== undefined && quiz.score !== null && quiz.score > 0) {
+            quizCount++;
+            return sum + quiz.score;
+          }
+          return sum;
+        }, 0);
+        quizPerformance = quizCount > 0 ? Math.round(totalQuizScore / quizCount) : 0;
+      }
+
+      // Generate detailed summary
+      summary += `📊 PERFORMANCE OVERVIEW:\n`;
+      summary += `Assignment Performance: ${assignmentPerformance}% (${assignmentCount} assignments)\n`;
+      summary += `Test Performance: ${testPerformance}% (${testCount} tests)\n`;
+      summary += `Quiz Performance: ${quizPerformance}% (from analytics)\n\n`;
+
+      // Assignment Analysis
+      summary += `📝 ASSIGNMENT ANALYSIS:\n`;
+      if (assignments.length > 0) {
+        if (assignmentPerformance >= 80) {
+          summary += "✅ Excellent assignment performance. Very consistent and high-quality work.\n";
+        } else if (assignmentPerformance >= 60) {
+          summary += "⚠️ Good assignment performance with room for improvement.\n";
+        } else {
+          summary += "❌ Assignment performance needs significant improvement.\n";
+        }
+
+        // Show recent assignments
+        const recentAssignments = assignments
+          .sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt))
+          .slice(0, 3);
+        
+        summary += `\nRecent Assignments:\n`;
+        recentAssignments.forEach(assignment => {
+          summary += `• ${assignment.assignmentTitle}: ${assignment.percentage}% (${assignment.obtainedMarks}/${assignment.totalMarks})\n`;
+        });
       } else {
-        summary += "Attendance needs improvement. Regular class attendance is crucial.\n";
+        summary += "No assignment data available.\n";
+      }
+
+      // Test Analysis
+      summary += `\n📋 TEST ANALYSIS:\n`;
+      if (testResults.length > 0) {
+        if (testPerformance >= 80) {
+          summary += "✅ Outstanding test performance. Excellent understanding of material.\n";
+        } else if (testPerformance >= 60) {
+          summary += "⚠️ Adequate test performance. Consider additional study time.\n";
+        } else {
+          summary += "❌ Test performance needs significant improvement. Recommend extra tutoring.\n";
+        }
+
+        // Show recent tests
+        const recentTests = testResults
+          .sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt))
+          .slice(0, 3);
+        
+        summary += `\nRecent Tests:\n`;
+        recentTests.forEach(test => {
+          // Use the percentage field if available, otherwise calculate it
+          const percentage = test.percentage || Math.round((test.obtainedMarks / test.totalMarks) * 100);
+          summary += `• ${test.subject}: ${percentage}% (${test.obtainedMarks}/${test.totalMarks})\n`;
+        });
+      } else {
+        summary += "No test data available.\n";
+      }
+
+      // Quiz Analysis
+      summary += `\n🎯 QUIZ ANALYSIS:\n`;
+      if (quizzes.length > 0) {
+        if (quizPerformance >= 80) {
+          summary += "✅ Excellent quiz performance. Strong grasp of concepts.\n";
+        } else if (quizPerformance >= 60) {
+          summary += "⚠️ Good quiz performance. Continue practicing regularly.\n";
+        } else {
+          summary += "❌ Quiz performance needs improvement. Focus on regular practice.\n";
+        }
+      } else {
+        summary += "No quiz data available.\n";
+      }
+
+      // Overall Assessment
+      summary += `\n📈 OVERALL ASSESSMENT:\n`;
+      const overallAverage = [assignmentPerformance, testPerformance, quizPerformance]
+        .filter(score => score > 0)
+        .reduce((sum, score) => sum + score, 0) / 
+        [assignmentPerformance, testPerformance, quizPerformance].filter(score => score > 0).length;
+
+      if (overallAverage >= 80) {
+        summary += "🌟 EXCELLENT: Student is performing exceptionally well across all areas.\n";
+        summary += "Recommendation: Continue current study habits and consider advanced challenges.\n";
+      } else if (overallAverage >= 60) {
+        summary += "👍 GOOD: Student is performing well with some areas for improvement.\n";
+        summary += "Recommendation: Focus on weaker areas while maintaining current strengths.\n";
+      } else {
+        summary += "⚠️ NEEDS IMPROVEMENT: Student requires additional support and guidance.\n";
+        summary += "Recommendation: Implement targeted intervention strategies and regular monitoring.\n";
       }
 
       // Update the request with the generated summary
@@ -133,7 +321,13 @@ export default function TeacherChat() {
       await updateDoc(requestRef, {
         summary,
         status: 'generated',
-        generatedAt: new Date().toISOString()
+        generatedAt: new Date().toISOString(),
+        metrics: {
+          assignmentPerformance,
+          testPerformance,
+          quizPerformance,
+          overallAverage: Math.round(overallAverage)
+        }
       });
       
       // Also update the edited summary state
