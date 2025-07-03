@@ -16,7 +16,7 @@ import {
 import { getEnhancedDeepSeekRecommendations, getRecommendedContent } from "@/lib/deepseek";
 import AttentionSpanSettings from "@/components/AttentionSpanSettings";
 import LearningAssessment from "@/components/LearningAssessment";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 export default function PersonalizedLearning() {
@@ -39,9 +39,16 @@ export default function PersonalizedLearning() {
   const [showSettingsPopup, setShowSettingsPopup] = useState(false);
   const [settingsPage, setSettingsPage] = useState(0);
 
+  // Real-time data state
+  const [realTimeQuizzes, setRealTimeQuizzes] = useState([]);
+  const [realTimeTests, setRealTimeTests] = useState([]);
+  const [realTimeAssignments, setRealTimeAssignments] = useState([]);
+
   useEffect(() => {
     if (user) {
       fetchData();
+      const cleanup = setupRealTimeListeners();
+      return cleanup;
     }
   }, [user]);
 
@@ -50,6 +57,83 @@ export default function PersonalizedLearning() {
       generateRecommendations();
     }
   }, [user, learningProfile, studentData]);
+
+  // Set up real-time listeners for dynamic updates
+  const setupRealTimeListeners = () => {
+    if (!user) return () => {};
+
+    // Real-time listener for quizzes (from students collection)
+    const studentsRef = doc(db, "students", user.uid);
+    const quizzesUnsubscribe = onSnapshot(studentsRef, (doc) => {
+      if (doc.exists()) {
+        const studentData = doc.data();
+        const allPoints = [
+          ...(studentData.points || []),
+          ...(studentData.fallPoints || [])
+        ];
+        
+        // Filter for actual quizzes (not attendance, assignments, or assessments)
+        const quizzes = allPoints.filter(point => {
+          if (point.quizId === 'attendance') return false;
+          if (point.type === 'assignment' || point.type === 'assessment') return false;
+          if (point.subject === 'unknown' || point.subject === 'Unknown') return false;
+          if (point.subject && point.subject !== 'unknown' && point.subject !== 'Unknown') return true;
+          return false;
+        }).map(quiz => ({
+          id: quiz.quizId,
+          score: quiz.score || 0,
+          subject: quiz.subject,
+          topic: quiz.topic || 'Quiz',
+          completedAt: quiz.date,
+          totalQuestions: quiz.totalQuestions || 0,
+          points: quiz.points || 0
+        }));
+        
+        setRealTimeQuizzes(quizzes);
+      }
+    });
+
+    // Real-time listener for test results (from marks collection)
+    const testResultsQuery = query(
+      collection(db, "marks"),
+      where("studentId", "==", user.uid),
+      orderBy("addedAt", "desc")
+    );
+    const testsUnsubscribe = onSnapshot(testResultsQuery, (snapshot) => {
+      const tests = snapshot.docs
+        .map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        .filter(mark => {
+          return mark.subject && mark.semester && !mark.assignmentId && mark.obtainedMarks !== undefined;
+        });
+      
+      setRealTimeTests(tests);
+    });
+
+    // Real-time listener for assignments
+    const assignmentsQuery = query(
+      collection(db, "assignments"),
+      where("studentId", "==", user.uid),
+      orderBy("addedAt", "desc")
+    );
+    const assignmentsUnsubscribe = onSnapshot(assignmentsQuery, (snapshot) => {
+      const assignments = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      setRealTimeAssignments(assignments);
+    });
+
+    // Return cleanup function
+    return () => {
+      quizzesUnsubscribe();
+      testsUnsubscribe();
+      assignmentsUnsubscribe();
+    };
+  };
 
   const fetchData = async () => {
     try {
@@ -203,34 +287,69 @@ export default function PersonalizedLearning() {
   };
 
   const calculateOverallAverage = () => {
-    const analytics = studentData?.data?.analytics?.academic;
-    if (!analytics) return 0;
-
     const averages = [];
     
-    // Add quiz average if available
-    if (analytics.quizAverage > 0) {
-      averages.push(analytics.quizAverage);
+    // Calculate quiz average from real-time data
+    if (realTimeQuizzes.length > 0) {
+      const quizScores = realTimeQuizzes.map(quiz => quiz.score || 0).filter(score => score > 0);
+      if (quizScores.length > 0) {
+        const quizAverage = quizScores.reduce((sum, score) => sum + score, 0) / quizScores.length;
+        averages.push(quizAverage);
+      }
     }
     
-    // Add test average if available
-    if (studentData?.data?.testAverage > 0) {
-      averages.push(studentData.data.testAverage);
+    // Calculate test average from real-time data
+    if (realTimeTests.length > 0) {
+      const completedTests = realTimeTests.filter(test => (test.obtainedMarks || 0) > 0);
+      if (completedTests.length > 0) {
+        const testScores = completedTests.map(test => {
+          const percentage = test.percentage || (test.totalMarks > 0 ? ((test.obtainedMarks / test.totalMarks) * 100) : 0);
+          return percentage;
+        });
+        const testAverage = testScores.reduce((sum, score) => sum + score, 0) / testScores.length;
+        averages.push(testAverage);
+      }
     }
     
-    // Add assignment average if available
-    if (studentData?.data?.assignmentAverage > 0) {
-      averages.push(studentData.data.assignmentAverage);
+    // Calculate assignment average from real-time data
+    if (realTimeAssignments.length > 0) {
+      const completedAssignments = realTimeAssignments.filter(assignment => (assignment.obtainedMarks || 0) > 0);
+      if (completedAssignments.length > 0) {
+        const assignmentScores = completedAssignments.map(assignment => assignment.percentage || 0);
+        const assignmentAverage = assignmentScores.reduce((sum, score) => sum + score, 0) / assignmentScores.length;
+        averages.push(assignmentAverage);
+      }
     }
     
-    // If no averages available, try to calculate from subject performance
-    if (averages.length === 0 && analytics.subjectPerformance) {
-      const subjectAverages = Object.values(analytics.subjectPerformance)
-        .map(subject => typeof subject === 'number' ? subject : (subject?.average || 0))
-        .filter(avg => avg > 0);
+    // Fallback to static data if no real-time data available
+    if (averages.length === 0) {
+      const analytics = studentData?.data?.analytics?.academic;
+      if (!analytics) return 0;
       
-      if (subjectAverages.length > 0) {
-        return subjectAverages.reduce((sum, avg) => sum + avg, 0) / subjectAverages.length;
+      // Add quiz average if available
+      if (analytics.quizAverage > 0) {
+        averages.push(analytics.quizAverage);
+      }
+      
+      // Add test average if available
+      if (studentData?.data?.testAverage > 0) {
+        averages.push(studentData.data.testAverage);
+      }
+      
+      // Add assignment average if available
+      if (studentData?.data?.assignmentAverage > 0) {
+        averages.push(studentData.data.assignmentAverage);
+      }
+      
+      // If no averages available, try to calculate from subject performance
+      if (averages.length === 0 && analytics.subjectPerformance) {
+        const subjectAverages = Object.values(analytics.subjectPerformance)
+          .map(subject => typeof subject === 'number' ? subject : (subject?.average || 0))
+          .filter(avg => avg > 0);
+        
+        if (subjectAverages.length > 0) {
+          return subjectAverages.reduce((sum, avg) => sum + avg, 0) / subjectAverages.length;
+        }
       }
     }
     
@@ -240,9 +359,41 @@ export default function PersonalizedLearning() {
 
   const getAcademicStrategies = () => {
     const overallAvg = calculateOverallAverage();
-    const quizAvg = studentData?.data?.analytics?.academic?.quizAverage || 0;
-    const testAvg = studentData?.data?.testAverage || 0;
-    const assignmentAvg = studentData?.data?.assignmentAverage || 0;
+    
+    // Calculate real-time averages
+    let quizAvg = 0;
+    if (realTimeQuizzes.length > 0) {
+      const quizScores = realTimeQuizzes.map(quiz => quiz.score || 0).filter(score => score > 0);
+      if (quizScores.length > 0) {
+        quizAvg = quizScores.reduce((sum, score) => sum + score, 0) / quizScores.length;
+      }
+    }
+    
+    let testAvg = 0;
+    if (realTimeTests.length > 0) {
+      const completedTests = realTimeTests.filter(test => (test.obtainedMarks || 0) > 0);
+      if (completedTests.length > 0) {
+        const testScores = completedTests.map(test => {
+          const percentage = test.percentage || (test.totalMarks > 0 ? ((test.obtainedMarks / test.totalMarks) * 100) : 0);
+          return percentage;
+        });
+        testAvg = testScores.reduce((sum, score) => sum + score, 0) / testScores.length;
+      }
+    }
+    
+    let assignmentAvg = 0;
+    if (realTimeAssignments.length > 0) {
+      const completedAssignments = realTimeAssignments.filter(assignment => (assignment.obtainedMarks || 0) > 0);
+      if (completedAssignments.length > 0) {
+        const assignmentScores = completedAssignments.map(assignment => assignment.percentage || 0);
+        assignmentAvg = assignmentScores.reduce((sum, score) => sum + score, 0) / assignmentScores.length;
+      }
+    }
+    
+    // Fallback to static data if no real-time data available
+    if (quizAvg === 0) quizAvg = studentData?.data?.analytics?.academic?.quizAverage || 0;
+    if (testAvg === 0) testAvg = studentData?.data?.testAverage || 0;
+    if (assignmentAvg === 0) assignmentAvg = studentData?.data?.assignmentAverage || 0;
     
     const strategies = [];
     
@@ -448,15 +599,15 @@ export default function PersonalizedLearning() {
                   <p>Overall Average</p>
                 </div>
                 <div className={styles.performanceStat}>
-                  <h4>{studentData?.data?.testResults?.length || 0}</h4>
+                  <h4>{realTimeTests.length || studentData?.data?.testResults?.length || 0}</h4>
                   <p>Tests Taken</p>
                 </div>
                 <div className={styles.performanceStat}>
-                  <h4>{studentData?.data?.assignments?.length || 0}</h4>
+                  <h4>{realTimeAssignments.length || studentData?.data?.assignments?.length || 0}</h4>
                   <p>Assignments</p>
                 </div>
                 <div className={styles.performanceStat}>
-                  <h4>{studentData?.data?.analytics?.academic?.totalQuizzes || 0}</h4>
+                  <h4>{realTimeQuizzes.length || studentData?.data?.analytics?.academic?.totalQuizzes || 0}</h4>
                   <p>Quizzes Taken</p>
                 </div>
               </div>
@@ -645,11 +796,11 @@ export default function PersonalizedLearning() {
               </div>
 
               {/* Assignments Preview */}
-              {studentData?.data?.assignments?.length > 0 && (
+              {((realTimeAssignments.length > 0 ? realTimeAssignments : studentData?.data?.assignments || []).length > 0) && (
                 <div className={styles.assignmentsPreview}>
                   <h2 className={styles.sectionTitle}>Recent Assignments</h2>
                   <div className={styles.assignmentsGrid}>
-                    {studentData.data.assignments.slice(0, 3).map((assignment, index) => {
+                    {(realTimeAssignments.length > 0 ? realTimeAssignments : studentData?.data?.assignments || []).slice(0, 3).map((assignment, index) => {
                       const isCompleted = (assignment.obtainedMarks || 0) > 0;
                       return (
                         <div key={index} className={styles.assignmentCard}>
@@ -685,11 +836,11 @@ export default function PersonalizedLearning() {
               )}
 
               {/* Test Results Preview */}
-              {studentData?.testResults?.length > 0 && (
+              {((realTimeTests.length > 0 ? realTimeTests : studentData?.data?.testResults || []).length > 0) && (
                 <div className={styles.testResultsPreview}>
                   <h2 className={styles.sectionTitle}>Recent Test Results</h2>
                   <div className={styles.testResultsGrid}>
-                    {studentData.testResults.slice(0, 3).map((test, index) => {
+                    {(realTimeTests.length > 0 ? realTimeTests : studentData?.data?.testResults || []).slice(0, 3).map((test, index) => {
                       const isCompleted = (test.obtainedMarks || 0) > 0;
                       const percentage = isCompleted ? (test.percentage || ((test.obtainedMarks / test.totalMarks) * 100).toFixed(1)) : 0;
                       return (
@@ -743,7 +894,7 @@ export default function PersonalizedLearning() {
                   <div className={styles.chartCard}>
                     <h3>Assignment Performance Trend</h3>
                     <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={studentData?.data?.assignments?.slice(0, 10).reverse().map(assignment => ({
+                      <LineChart data={(realTimeAssignments.length > 0 ? realTimeAssignments : studentData?.data?.assignments || []).slice(0, 10).reverse().map(assignment => ({
                         date: new Date(assignment.addedAt).toLocaleDateString(),
                         score: assignment.percentage || 0,
                         title: assignment.assignmentTitle
@@ -766,7 +917,14 @@ export default function PersonalizedLearning() {
                         score: typeof data === 'number' ? data : (data?.average || 0)
                       }))}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="subject" />
+                        <XAxis 
+                          dataKey="subject" 
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
+                          interval={0}
+                          tick={{ fontSize: 12 }}
+                        />
                         <YAxis />
                         <Tooltip />
                         <Bar dataKey="score" fill="#8884d8" />
@@ -786,25 +944,38 @@ export default function PersonalizedLearning() {
                 <div className={styles.assignmentStats}>
                   <div className={styles.statItem}>
                     <span className={styles.statLabel}>Total:</span>
-                    <span className={styles.statValue}>{studentData?.data?.assignments?.length || 0}</span>
+                    <span className={styles.statValue}>{realTimeAssignments.length || studentData?.data?.assignments?.length || 0}</span>
                   </div>
                   <div className={styles.statItem}>
                     <span className={styles.statLabel}>Completed:</span>
                     <span className={styles.statValue}>
-                      {studentData?.data?.assignments?.filter(a => (a.obtainedMarks || 0) > 0).length || 0}
+                      {(realTimeAssignments.length > 0 ? realTimeAssignments.filter(a => (a.obtainedMarks || 0) > 0).length : 0) || 
+                       (studentData?.data?.assignments?.filter(a => (a.obtainedMarks || 0) > 0).length || 0)}
                     </span>
                   </div>
                   <div className={styles.statItem}>
                     <span className={styles.statLabel}>Average:</span>
                     <span className={styles.statValue}>
-                      {studentData?.data?.assignmentAverage ? `${studentData.data.assignmentAverage.toFixed(1)}%` : 'N/A'}
+                      {(() => {
+                        let avg = 0;
+                        if (realTimeAssignments.length > 0) {
+                          const completedAssignments = realTimeAssignments.filter(assignment => (assignment.obtainedMarks || 0) > 0);
+                          if (completedAssignments.length > 0) {
+                            const assignmentScores = completedAssignments.map(assignment => assignment.percentage || 0);
+                            avg = assignmentScores.reduce((sum, score) => sum + score, 0) / assignmentScores.length;
+                          }
+                        } else if (studentData?.data?.assignmentAverage) {
+                          avg = studentData.data.assignmentAverage;
+                        }
+                        return avg > 0 ? `${avg.toFixed(1)}%` : 'N/A';
+                      })()}
                     </span>
                   </div>
                 </div>
               </div>
 
               <div className={styles.assignmentsList}>
-                {studentData?.data?.assignments?.map((assignment, index) => {
+                {(realTimeAssignments.length > 0 ? realTimeAssignments : studentData?.data?.assignments || []).map((assignment, index) => {
                   const isCompleted = (assignment.obtainedMarks || 0) > 0;
                   return (
                     <div key={index} className={styles.assignmentItem}>
@@ -856,25 +1027,41 @@ export default function PersonalizedLearning() {
                 <div className={styles.testStats}>
                   <div className={styles.statItem}>
                     <span className={styles.statLabel}>Total Tests:</span>
-                    <span className={styles.statValue}>{studentData?.data?.testResults?.length || 0}</span>
+                    <span className={styles.statValue}>{realTimeTests.length || studentData?.data?.testResults?.length || 0}</span>
                   </div>
                   <div className={styles.statItem}>
                     <span className={styles.statLabel}>Completed:</span>
                     <span className={styles.statValue}>
-                      {studentData?.data?.testResults?.filter(t => (t.obtainedMarks || 0) > 0).length || 0}
+                      {(realTimeTests.length > 0 ? realTimeTests.filter(t => (t.obtainedMarks || 0) > 0).length : 0) || 
+                       (studentData?.data?.testResults?.filter(t => (t.obtainedMarks || 0) > 0).length || 0)}
                     </span>
                   </div>
                   <div className={styles.statItem}>
                     <span className={styles.statLabel}>Average:</span>
                     <span className={styles.statValue}>
-                      {studentData?.data?.testAverage ? `${studentData.data.testAverage.toFixed(1)}%` : 'N/A'}
+                      {(() => {
+                        let avg = 0;
+                        if (realTimeTests.length > 0) {
+                          const completedTests = realTimeTests.filter(test => (test.obtainedMarks || 0) > 0);
+                          if (completedTests.length > 0) {
+                            const testScores = completedTests.map(test => {
+                              const percentage = test.percentage || (test.totalMarks > 0 ? ((test.obtainedMarks / test.totalMarks) * 100) : 0);
+                              return percentage;
+                            });
+                            avg = testScores.reduce((sum, score) => sum + score, 0) / testScores.length;
+                          }
+                        } else if (studentData?.data?.testAverage) {
+                          avg = studentData.data.testAverage;
+                        }
+                        return avg > 0 ? `${avg.toFixed(1)}%` : 'N/A';
+                      })()}
                     </span>
                   </div>
                 </div>
               </div>
 
               <div className={styles.testResultsList}>
-                {studentData?.data?.testResults?.map((test, index) => {
+                {(realTimeTests.length > 0 ? realTimeTests : studentData?.data?.testResults || []).map((test, index) => {
                   const isCompleted = (test.obtainedMarks || 0) > 0;
                   const percentage = isCompleted ? (test.percentage || ((test.obtainedMarks / test.totalMarks) * 100).toFixed(1)) : 0;
                   return (
@@ -915,7 +1102,7 @@ export default function PersonalizedLearning() {
                     </div>
                   );
                 })}
-                {(!studentData?.data?.testResults || studentData.data.testResults.length === 0) && (
+                {((!realTimeTests || realTimeTests.length === 0) && (!studentData?.data?.testResults || studentData.data.testResults.length === 0)) && (
                   <div className={styles.emptyState}>
                     <div className={styles.emptyIcon}>📋</div>
                     <p className={styles.emptyText}>No test results available yet</p>
