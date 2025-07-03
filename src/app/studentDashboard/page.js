@@ -30,7 +30,8 @@ export default function StudentDashboard() {
     totalPoints: 0,
     loginStreak: 0,
     challengesWon: 0,
-    averageScore: 0
+    averageScore: 0,
+    attendancePercentage: 0
   });
   const router = useRouter();
 
@@ -434,18 +435,16 @@ export default function StudentDashboard() {
         const user = auth.currentUser;
         if (!user) return;
 
-        // 1. Fetch completed quizzes from 'marks' collection
-        // Note: Assuming 'marks' collection has a 'type' field to distinguish 'quiz' marks.
-        const quizResultsQuery = query(
-          collection(db, "marks"),
-          where("studentId", "==", user.uid),
-          where("type", "==", "quiz") 
-        );
-        const quizResultsSnapshot = await getDocs(quizResultsQuery);
-        const completedQuizzes = quizResultsSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
+        // Fetch student data using the same API route as personalizedLearning
+        const studentResponse = await fetch(`/api/student-data?studentId=${user.uid}`);
+        let studentData = null;
+        if (studentResponse.ok) {
+          const responseData = await studentResponse.json();
+          studentData = responseData.data;
+        }
+
+        // 1. Get quizzes completed from student data (same as personalizedLearning)
+        const quizzesCompleted = studentData?.analytics?.academic?.totalQuizzes || 0;
 
         // 2. Fetch materials accessed from coursemap collection
         const courseMapQuery = query(
@@ -479,7 +478,6 @@ export default function StudentDashboard() {
         const attendancePercentage = totalSessions > 0 ? Math.round((presentSessions / totalSessions) * 100) : 0;
 
         // 5. Fetch test results from 'marks' collection
-        // Note: Assuming 'marks' collection has a 'type' field to distinguish 'test' marks.
         const testResultsQuery = query(
           collection(db, "marks"),
           where("studentId", "==", user.uid),
@@ -515,10 +513,12 @@ export default function StudentDashboard() {
 
         // Calculate comprehensive statistics
         const totalPoints = pointsData?.totalPoints || 0;
-        const perfectScores = completedQuizzes.filter(q => q.score === 100).length;
-        const averageScore = completedQuizzes.length > 0 
-          ? completedQuizzes.reduce((sum, q) => sum + (q.score || 0), 0) / completedQuizzes.length 
-          : 0;
+        
+        // Calculate perfect scores from student data quizzes
+        const perfectScores = studentData?.quizzes?.filter(q => q.score === 100).length || 0;
+        
+        // Calculate average score from student data
+        const averageScore = studentData?.analytics?.academic?.quizAverage || 0;
 
         // Calculate login streak (you might want to implement this differently)
         const loginStreak = Math.floor(Math.random() * 10) + 1; // Placeholder
@@ -528,7 +528,7 @@ export default function StudentDashboard() {
         const testsTaken = testResults.length;
 
         const activity = {
-          quizzesCompleted: completedQuizzes.length,
+          quizzesCompleted: quizzesCompleted,
           materialsAccessed: materialsAccessed,
           perfectScores,
           totalPoints,
@@ -858,11 +858,11 @@ export default function StudentDashboard() {
                 </div>
                 <div className={style.heroStats}>
                   <div className={style.statItem}>
-                    <span className={style.statValue}>{quizzes.length}</span>
+                    <span className={style.statValue}>{studentActivity.quizzesCompleted}</span>
                     <span className={style.statLabel}>Quizzes</span>
                   </div>
                   <div className={style.statItem}>
-                    <span className={style.statValue}>85%</span>
+                    <span className={style.statValue}>{studentActivity.attendancePercentage}%</span>
                     <span className={style.statLabel}>Attendance</span>
                   </div>
                 </div>
