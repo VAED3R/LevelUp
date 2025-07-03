@@ -215,7 +215,15 @@ export default function Assignments() {
           );
 
           console.log("Filtered students:", filteredStudentsList);
-          setFilteredStudents(filteredStudentsList);
+          
+          // Sort students alphabetically by name
+          const sortedStudents = filteredStudentsList.sort((a, b) => {
+            const nameA = (a.name || '').toLowerCase();
+            const nameB = (b.name || '').toLowerCase();
+            return nameA.localeCompare(nameB);
+          });
+          
+          setFilteredStudents(sortedStudents);
 
           // Initialize marks for filtered students with empty values
           const initialMarks = {};
