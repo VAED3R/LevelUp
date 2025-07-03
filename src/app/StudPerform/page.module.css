@@ -471,6 +471,95 @@
   word-wrap: break-word;
 }
 
+.summaryMarkdown {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #2d3748;
+  margin: 0;
+  padding: 0;
+}
+
+.summaryMarkdown h1,
+.summaryMarkdown h2,
+.summaryMarkdown h3,
+.summaryMarkdown h4,
+.summaryMarkdown h5,
+.summaryMarkdown h6 {
+  color: #2d3748;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.summaryMarkdown h1 { font-size: 1.5em; }
+.summaryMarkdown h2 { font-size: 1.3em; }
+.summaryMarkdown h3 { font-size: 1.1em; }
+
+.summaryMarkdown p {
+  margin: 0.8em 0;
+  line-height: 1.6;
+}
+
+.summaryMarkdown ul,
+.summaryMarkdown ol {
+  margin: 0.8em 0;
+  padding-left: 1.5em;
+}
+
+.summaryMarkdown li {
+  margin: 0.3em 0;
+  line-height: 1.5;
+}
+
+.summaryMarkdown strong {
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.summaryMarkdown em {
+  font-style: italic;
+}
+
+.summaryMarkdown hr {
+  border: none;
+  border-top: 1px solid rgba(102, 126, 234, 0.2);
+  margin: 1.5em 0;
+}
+
+.summaryMarkdown blockquote {
+  border-left: 3px solid #667eea;
+  margin: 1em 0;
+  padding-left: 1em;
+  color: #718096;
+  font-style: italic;
+}
+
+.summaryMarkdown code {
+  background-color: rgba(102, 126, 234, 0.1);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+  color: #667eea;
+}
+
+.summaryMarkdown pre {
+  background-color: rgba(255, 255, 255, 0.5);
+  padding: 1em;
+  border-radius: 6px;
+  overflow-x: auto;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  margin: 1em 0;
+}
+
+.summaryMarkdown pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
 .sendRequestButton {
   background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;

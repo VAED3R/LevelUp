@@ -5,6 +5,7 @@ import { db, auth } from "@/lib/firebase";
 import { collection, getDocs, query, where, getDoc, doc, addDoc, onSnapshot } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
+import ReactMarkdown from 'react-markdown';
 import Navbar from "@/components/parentNavbar";
 import styles from "./page.module.css";
 import { Line, Pie } from "react-chartjs-2";
@@ -41,6 +42,7 @@ export default function StudentPerformance() {
     tests: [],
     attendance: []
   });
+  const [studentData, setStudentData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [performanceDescription, setPerformanceDescription] = useState("");
@@ -169,113 +171,73 @@ export default function StudentPerformance() {
     return () => unsubscribe();
   }, []);
 
-  // Fetch performance data for the student
+  // Fetch performance data for the student using the same approach as personalized learning
   const fetchPerformanceData = async (studentId) => {
     try {
-      // Fetch quizzes
-      const quizzesQuery = query(
-        collection(db, "quizzes"),
-        where("studentId", "==", studentId)
-      );
-      const quizzesSnapshot = await getDocs(quizzesQuery);
-      const quizzes = quizzesSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-
-      // Fetch assignments
-      const assignmentsQuery = query(
-        collection(db, "assignments"),
-        where("studentId", "==", studentId)
-      );
-      const assignmentsSnapshot = await getDocs(assignmentsQuery);
-      const assignments = assignmentsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-
-      // Fetch test results from marks collection instead of testResults
-      const testsQuery = query(
-        collection(db, "marks"),
-        where("studentId", "==", studentId)
-      );
-      const testsSnapshot = await getDocs(testsQuery);
-      const tests = testsSnapshot.docs.map(doc => {
-        const data = doc.data();
-        // Calculate percentage based on obtained marks and total marks
-        const percentage = data.totalMarks > 0 
-          ? ((data.obtainedMarks / data.totalMarks) * 100).toFixed(2) 
-          : 0;
+      // Fetch comprehensive student data using the same API route as personalized learning
+      const studentResponse = await fetch(`/api/student-data?studentId=${studentId}`);
+      
+      if (studentResponse.ok) {
+        const responseData = await studentResponse.json();
+        setStudentData(responseData);
         
-        return {
-          id: doc.id,
-          ...data,
-          percentage
-        };
-      });
+        // Extract data from the student-data API response
+        const quizzes = responseData.data?.quizzes || [];
+        const assignments = responseData.data?.assignments || [];
+        const tests = responseData.data?.testResults || [];
+        const attendance = responseData.data?.attendance || [];
 
-      // Fetch attendance
-      const attendanceQuery = query(
-        collection(db, "attendance"),
-        where("studentId", "==", studentId)
-      );
-      const attendanceSnapshot = await getDocs(attendanceQuery);
-      const attendance = attendanceSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-
-      setPerformanceData({
-        quizzes,
-        assignments,
-        tests,
-        attendance
-      });
+        setPerformanceData({
+          quizzes,
+          assignments,
+          tests,
+          attendance
+        });
+      } else {
+        console.error('Failed to fetch student data:', studentResponse.status);
+        setError("Failed to fetch student data");
+      }
     } catch (error) {
       console.error("Error fetching performance data:", error);
       setError("Failed to fetch performance data");
     }
   };
 
-  // Calculate performance metrics
+  // Calculate performance metrics using the same approach as personalized learning
   const calculateMetrics = () => {
-    if (!student) return null;
+    if (!student || !studentData) return null;
 
     const { quizzes, assignments, tests, attendance } = performanceData;
 
-    // Quiz performance
-    const quizScores = quizzes.map(q => q.score || 0);
-    const avgQuizScore = quizScores.length > 0 
-      ? (quizScores.reduce((a, b) => a + b, 0) / quizScores.length).toFixed(2)
-      : 0;
+    // Quiz performance - using analytics from student-data API (same as personalized learning)
+    const avgQuizScore = studentData?.data?.analytics?.academic?.quizAverage || 0;
 
-    // Assignment performance
-    const assignmentScores = assignments.map(a => a.percentage || 0);
-    const avgAssignmentScore = assignmentScores.length > 0
-      ? (assignmentScores.reduce((a, b) => a + b, 0) / assignmentScores.length).toFixed(2)
-      : 0;
+    // Assignment performance - using analytics from student-data API
+    const avgAssignmentScore = studentData?.data?.analytics?.academic?.assignmentAverage || 0;
 
-    // Test performance
-    const testScores = tests.map(t => t.percentage || 0);
-    const avgTestScore = testScores.length > 0
-      ? (testScores.reduce((a, b) => a + b, 0) / testScores.length).toFixed(2)
-      : 0;
+    // Test performance - using analytics from student-data API
+    const avgTestScore = studentData?.data?.testAverage || 0;
 
-    // Attendance rate
+    // Attendance rate - using analytics from student-data API with fallback
+    let attendanceRate = studentData?.data?.attendanceRate || 0;
     const totalAttendance = attendance.length;
-    const presentDays = attendance.filter(a => a.status === "present").length;
-    const attendanceRate = totalAttendance > 0
-      ? ((presentDays / totalAttendance) * 100).toFixed(2)
-      : 0;
+    
+    // Fallback calculation if API doesn't provide attendance rate
+    if (!attendanceRate && totalAttendance > 0) {
+      const presentDays = attendance.filter(a => a.status === "present").length;
+      attendanceRate = ((presentDays / totalAttendance) * 100).toFixed(2);
+    }
+
+
 
     return {
-      avgQuizScore,
-      avgAssignmentScore,
-      avgTestScore,
+      avgQuizScore: avgQuizScore.toFixed(2),
+      avgAssignmentScore: avgAssignmentScore.toFixed(2),
+      avgTestScore: avgTestScore.toFixed(2),
       attendanceRate,
-      totalQuizzes: quizzes.length,
-      totalAssignments: assignments.length,
-      totalTests: tests.length,
+      totalQuizzes: studentData?.data?.analytics?.academic?.totalQuizzes || 0,
+      totalAssignments: studentData?.data?.analytics?.academic?.totalAssignments || 0,
+      totalTests: studentData?.data?.analytics?.academic?.totalTests || 0,
       totalAttendance: totalAttendance
     };
   };
@@ -491,15 +453,15 @@ export default function StudentPerformance() {
     
     // Only add quiz data if we have quizzes
     if (performanceData.quizzes && performanceData.quizzes.length > 0) {
-      // Sort quizzes by date
+      // Sort quizzes by date (using completedAt from student-data API)
       const sortedQuizzes = [...performanceData.quizzes].sort((a, b) => {
-        const dateA = a.date ? new Date(a.date) : new Date(0);
-        const dateB = b.date ? new Date(b.date) : new Date(0);
+        const dateA = a.completedAt ? new Date(a.completedAt) : new Date(0);
+        const dateB = b.completedAt ? new Date(b.completedAt) : new Date(0);
         return dateA - dateB;
       });
       
       // Set labels and data
-      quizPerformanceData.labels = sortedQuizzes.map(quiz => formatDate(quiz.date));
+      quizPerformanceData.labels = sortedQuizzes.map(quiz => formatDate(quiz.completedAt));
       quizPerformanceData.datasets[0].data = sortedQuizzes.map(quiz => quiz.score || 0);
     }
     
@@ -541,6 +503,13 @@ export default function StudentPerformance() {
 
   const metrics = calculateMetrics();
   const chartData = prepareChartData();
+
+  // Recalculate metrics when studentData changes
+  useEffect(() => {
+    if (studentData && student) {
+      // This will trigger a re-render with updated metrics
+    }
+  }, [studentData, student]);
 
   // Add this new useEffect to listen for performance requests
   useEffect(() => {
@@ -824,7 +793,11 @@ export default function StudentPerformance() {
                       <h3>Teacher's Analysis</h3>
                     </div>
                     <div className={styles.descriptionContent}>
-                      <pre>{performanceDescription}</pre>
+                      <div className={styles.summaryMarkdown}>
+                        <ReactMarkdown>
+                          {performanceDescription}
+                        </ReactMarkdown>
+                      </div>
                     </div>
                     <button 
                       className={styles.sendRequestButton}
@@ -862,9 +835,9 @@ export default function StudentPerformance() {
                       </tr>
                     </thead>
                     <tbody>
-                      {performanceData.quizzes.map(quiz => (
-                        <tr key={quiz.id}>
-                          <td>{formatDate(quiz.date)}</td>
+                      {performanceData.quizzes.map((quiz, index) => (
+                        <tr key={quiz.id || `quiz-${index}`}>
+                          <td>{formatDate(quiz.completedAt)}</td>
                           <td>{quiz.subject}</td>
                           <td>{quiz.score}%</td>
                           <td>{quiz.totalQuestions}</td>
@@ -893,8 +866,8 @@ export default function StudentPerformance() {
                       </tr>
                     </thead>
                     <tbody>
-                      {performanceData.assignments.map(assignment => (
-                        <tr key={assignment.id}>
+                      {performanceData.assignments.map((assignment, index) => (
+                        <tr key={assignment.id || `assignment-${index}`}>
                           <td>{formatDate(assignment.addedAt)}</td>
                           <td>{assignment.subject}</td>
                           <td>{assignment.assignmentTitle}</td>
@@ -925,8 +898,8 @@ export default function StudentPerformance() {
                         </tr>
                       </thead>
                       <tbody>
-                        {performanceData.tests.map(test => (
-                          <tr key={test.id}>
+                        {performanceData.tests.map((test, index) => (
+                          <tr key={test.id || `test-${index}`}>
                             <td>{test.subject}</td>
                             <td>{test.obtainedMarks}</td>
                             <td>{test.totalMarks}</td>
@@ -960,8 +933,8 @@ export default function StudentPerformance() {
                       </tr>
                     </thead>
                     <tbody>
-                      {performanceData.attendance.map(record => (
-                        <tr key={record.id}>
+                      {performanceData.attendance.map((record, index) => (
+                        <tr key={record.id || `attendance-${index}`}>
                           <td>{formatDate(record.addedAt)}</td>
                           <td>{record.status}</td>
                           <td>{record.subject}</td>

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { db, auth } from "@/lib/firebase";
 import { collection, getDocs, query, where, doc, updateDoc, onSnapshot, deleteDoc, addDoc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
+import ReactMarkdown from 'react-markdown';
 import Navbar from "@/components/teacherNavbar";
 import TeacherChatbot from "@/components/TeacherChatbot";
 import styles from "./page.module.css";
@@ -16,6 +17,7 @@ export default function TeacherChat() {
   const [submitting, setSubmitting] = useState({});
   const [deleting, setDeleting] = useState({});
   const [editedSummaries, setEditedSummaries] = useState({});
+  const [editMode, setEditMode] = useState({});
   const [teacherName, setTeacherName] = useState("");
   const [teacherEmail, setTeacherEmail] = useState("");
 
@@ -85,8 +87,7 @@ export default function TeacherChat() {
 
       // Fetch actual data from database using API routes like learning profiles
       const studentId = request.studentId;
-      let summary = `Performance Analysis for ${request.studentName}:\n\n`;
-
+      
       // Fetch student data using the same API route as learning profiles
       const studentResponse = await fetch(`/api/student-data?studentId=${studentId}`);
       let studentData = null;
@@ -217,7 +218,6 @@ export default function TeacherChat() {
       let quizPerformance = 0;
       let quizCount = 0;
       if (quizzes.length > 0) {
-        console.log('Quiz data for debugging:', quizzes); // Debug log
         const totalQuizScore = quizzes.reduce((sum, quiz) => {
           if (quiz.score !== undefined && quiz.score !== null && quiz.score > 0) {
             quizCount++;
@@ -228,92 +228,125 @@ export default function TeacherChat() {
         quizPerformance = quizCount > 0 ? Math.round(totalQuizScore / quizCount) : 0;
       }
 
-      // Generate detailed summary
-      summary += `📊 PERFORMANCE OVERVIEW:\n`;
-      summary += `Assignment Performance: ${assignmentPerformance}% (${assignmentCount} assignments)\n`;
-      summary += `Test Performance: ${testPerformance}% (${testCount} tests)\n`;
-      summary += `Quiz Performance: ${quizPerformance}% (from analytics)\n\n`;
-
-      // Assignment Analysis
-      summary += `📝 ASSIGNMENT ANALYSIS:\n`;
-      if (assignments.length > 0) {
-        if (assignmentPerformance >= 80) {
-          summary += "✅ Excellent assignment performance. Very consistent and high-quality work.\n";
-        } else if (assignmentPerformance >= 60) {
-          summary += "⚠️ Good assignment performance with room for improvement.\n";
-        } else {
-          summary += "❌ Assignment performance needs significant improvement.\n";
+      // Prepare data for DeepSeek analysis
+      const performanceData = {
+        studentName: request.studentName,
+        assignments: {
+          performance: assignmentPerformance,
+          count: assignmentCount,
+          details: assignments.slice(0, 5).map(a => ({
+            title: a.assignmentTitle,
+            percentage: a.percentage,
+            obtained: a.obtainedMarks,
+            total: a.totalMarks,
+            date: a.addedAt
+          }))
+        },
+        tests: {
+          performance: testPerformance,
+          count: testCount,
+          details: testResults.slice(0, 5).map(t => ({
+            subject: t.subject,
+            percentage: t.percentage || Math.round((t.obtainedMarks / t.totalMarks) * 100),
+            obtained: t.obtainedMarks,
+            total: t.totalMarks,
+            date: t.addedAt
+          }))
+        },
+        quizzes: {
+          performance: quizPerformance,
+          count: quizCount,
+          details: quizzes.slice(0, 5).map(q => ({
+            subject: q.subject,
+            score: q.score,
+            totalQuestions: q.totalQuestions,
+            date: q.completedAt
+          }))
         }
+      };
 
-        // Show recent assignments
-        const recentAssignments = assignments
-          .sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt))
-          .slice(0, 3);
-        
-        summary += `\nRecent Assignments:\n`;
-        recentAssignments.forEach(assignment => {
-          summary += `• ${assignment.assignmentTitle}: ${assignment.percentage}% (${assignment.obtainedMarks}/${assignment.totalMarks})\n`;
-        });
-      } else {
-        summary += "No assignment data available.\n";
-      }
-
-      // Test Analysis
-      summary += `\n📋 TEST ANALYSIS:\n`;
-      if (testResults.length > 0) {
-        if (testPerformance >= 80) {
-          summary += "✅ Outstanding test performance. Excellent understanding of material.\n";
-        } else if (testPerformance >= 60) {
-          summary += "⚠️ Adequate test performance. Consider additional study time.\n";
-        } else {
-          summary += "❌ Test performance needs significant improvement. Recommend extra tutoring.\n";
-        }
-
-        // Show recent tests
-        const recentTests = testResults
-          .sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt))
-          .slice(0, 3);
-        
-        summary += `\nRecent Tests:\n`;
-        recentTests.forEach(test => {
-          // Use the percentage field if available, otherwise calculate it
-          const percentage = test.percentage || Math.round((test.obtainedMarks / test.totalMarks) * 100);
-          summary += `• ${test.subject}: ${percentage}% (${test.obtainedMarks}/${test.totalMarks})\n`;
-        });
-      } else {
-        summary += "No test data available.\n";
-      }
-
-      // Quiz Analysis
-      summary += `\n🎯 QUIZ ANALYSIS:\n`;
-      if (quizzes.length > 0) {
-        if (quizPerformance >= 80) {
-          summary += "✅ Excellent quiz performance. Strong grasp of concepts.\n";
-        } else if (quizPerformance >= 60) {
-          summary += "⚠️ Good quiz performance. Continue practicing regularly.\n";
-        } else {
-          summary += "❌ Quiz performance needs improvement. Focus on regular practice.\n";
-        }
-      } else {
-        summary += "No quiz data available.\n";
-      }
-
-      // Overall Assessment
-      summary += `\n📈 OVERALL ASSESSMENT:\n`;
+      // Calculate overall average
       const overallAverage = [assignmentPerformance, testPerformance, quizPerformance]
         .filter(score => score > 0)
         .reduce((sum, score) => sum + score, 0) / 
         [assignmentPerformance, testPerformance, quizPerformance].filter(score => score > 0).length;
 
-      if (overallAverage >= 80) {
-        summary += "🌟 EXCELLENT: Student is performing exceptionally well across all areas.\n";
-        summary += "Recommendation: Continue current study habits and consider advanced challenges.\n";
-      } else if (overallAverage >= 60) {
-        summary += "👍 GOOD: Student is performing well with some areas for improvement.\n";
-        summary += "Recommendation: Focus on weaker areas while maintaining current strengths.\n";
+      // Generate detailed summary using DeepSeek API
+      const deepseekPrompt = `Analyze the performance data for ${request.studentName} and provide a complete academic assessment.
+
+STUDENT DATA:
+${JSON.stringify(performanceData, null, 2)}
+
+PERFORMANCE METRICS:
+- Assignment Performance: ${assignmentPerformance}% (${assignmentCount} assignments)
+- Test Performance: ${testPerformance}% (${testCount} tests)  
+- Quiz Performance: ${quizPerformance}% (${quizCount} quizzes)
+- Overall Average: ${Math.round(overallAverage)}%
+
+Provide a complete analysis with these sections:
+
+1. 📊 EXECUTIVE SUMMARY
+   - Overall rating and key performance indicators
+   - Primary strengths and concerns
+
+2. 📈 PERFORMANCE BREAKDOWN
+   - Assignment analysis (trends, quality, consistency)
+   - Test performance (subject breakdown, knowledge retention)
+   - Quiz performance (concept understanding, practice patterns)
+
+3. 🎯 STRENGTHS & WEAKNESSES
+   - Areas of excellence
+   - Improvement needs and learning gaps
+
+4. 🚀 IMPROVEMENT STRATEGIES
+   - Short-term goals (2-4 weeks)
+   - Medium-term objectives (2-3 months)
+   - Study techniques and resources
+
+5. 📝 ACTIONABLE RECOMMENDATIONS
+   - Immediate actions
+   - Teacher and parent involvement
+   - Student self-help techniques
+
+Use professional tone with emojis. Ensure the analysis is complete and actionable.`;
+
+      // Call DeepSeek API with Reasoner model
+      const deepseekResponse = await fetch('/api/deepseek', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'deepseek-reasoner',
+          messages: [
+            {
+              role: 'user',
+              content: deepseekPrompt
+            }
+          ]
+        })
+      });
+
+      let summary;
+      if (deepseekResponse.ok) {
+        const deepseekData = await deepseekResponse.json();
+        summary = deepseekData.response || 'Failed to generate AI summary';
+        
+        // Check if response is complete (has all expected sections)
+        const expectedSections = ['📊 EXECUTIVE SUMMARY', '📈 PERFORMANCE BREAKDOWN', '🎯 STRENGTHS', '🚀 IMPROVEMENT', '📝 ACTIONABLE'];
+        const missingSections = expectedSections.filter(section => !summary.includes(section));
+        
+        if (missingSections.length > 0) {
+          console.warn('DeepSeek API - Incomplete response, missing sections:', missingSections);
+          summary += `\n\n⚠️ Note: This analysis was cut off due to length limits. Please review the available sections above.`;
+        }
+        
+        console.log('DeepSeek API - Response length:', summary.length);
+        console.log('DeepSeek API - Response preview:', summary.substring(0, 300) + '...');
       } else {
-        summary += "⚠️ NEEDS IMPROVEMENT: Student requires additional support and guidance.\n";
-        summary += "Recommendation: Implement targeted intervention strategies and regular monitoring.\n";
+        const errorData = await deepseekResponse.json().catch(() => ({}));
+        console.error('DeepSeek API error response:', errorData);
+        throw new Error(`Failed to generate summary using DeepSeek API: ${errorData.error || deepseekResponse.statusText}`);
       }
 
       // Update the request with the generated summary
@@ -350,6 +383,37 @@ export default function TeacherChat() {
       [requestId]: newSummary
     }));
   };
+
+  const toggleEditMode = (requestId) => {
+    setEditMode(prev => ({
+      ...prev,
+      [requestId]: !prev[requestId]
+    }));
+  };
+
+  const saveEdit = (requestId) => {
+    setEditMode(prev => ({
+      ...prev,
+      [requestId]: false
+    }));
+  };
+
+  const cancelEdit = (requestId) => {
+    // Reset to original summary
+    const request = requests.find(r => r.id === requestId);
+    if (request && request.summary) {
+      setEditedSummaries(prev => ({
+        ...prev,
+        [requestId]: request.summary
+      }));
+    }
+    setEditMode(prev => ({
+      ...prev,
+      [requestId]: false
+    }));
+  };
+
+
 
   const submitSummary = async (requestId) => {
     setSubmitting(prev => ({ ...prev, [requestId]: true }));
@@ -420,13 +484,49 @@ export default function TeacherChat() {
                   {request.status === 'generated' && (
                     <>
                       <div className={styles.summary}>
-                        <h4>Generated Summary:</h4>
-                        <textarea
-                          className={styles.summaryTextarea}
-                          value={editedSummaries[request.id] || ''}
-                          onChange={(e) => handleSummaryEdit(request.id, e.target.value)}
-                          rows={15}
-                        />
+                        <div className={styles.summaryHeader}>
+                          <h4>Generated Summary:</h4>
+                          <button
+                            className={styles.editButton}
+                            onClick={() => toggleEditMode(request.id)}
+                          >
+                            {editMode[request.id] ? 'Cancel Edit' : 'Edit Summary'}
+                          </button>
+                        </div>
+                        
+                        {editMode[request.id] ? (
+                          <div className={styles.summaryEdit}>
+                            <textarea
+                              className={styles.summaryTextarea}
+                              value={editedSummaries[request.id] || ''}
+                              onChange={(e) => handleSummaryEdit(request.id, e.target.value)}
+                              rows={20}
+                              placeholder="Edit the summary here..."
+                            />
+                            <div className={styles.editButtons}>
+                              <button
+                                className={styles.saveButton}
+                                onClick={() => saveEdit(request.id)}
+                              >
+                                Save Changes
+                              </button>
+                              <button
+                                className={styles.cancelButton}
+                                onClick={() => cancelEdit(request.id)}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className={styles.summaryDisplay}>
+                            <div className={styles.summaryMarkdown}>
+                              <ReactMarkdown>
+                                {editedSummaries[request.id] || ''}
+                              </ReactMarkdown>
+                            </div>
+                          </div>
+                        )}
                       </div>
                       <div className={styles.buttonGroup}>
                         <button
@@ -450,7 +550,13 @@ export default function TeacherChat() {
                   {request.status === 'submitted' && (
                     <div className={styles.summary}>
                       <h4>Submitted Summary:</h4>
-                      <pre>{request.summary}</pre>
+                      <div className={styles.summaryDisplay}>
+                        <div className={styles.summaryMarkdown}>
+                          <ReactMarkdown>
+                            {request.summary}
+                          </ReactMarkdown>
+                        </div>
+                      </div>
                       <p className={styles.submittedAt}>
                         Submitted on: {new Date(request.submittedAt).toLocaleString()}
                       </p>

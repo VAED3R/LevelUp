@@ -12,6 +12,19 @@ export async function GET(request) {
 
   try {
     const studentData = {};
+    
+    // Get student name for fallback attendance query
+    let studentName = '';
+    try {
+      const usersRef = collection(db, 'users');
+      const userQuery = query(usersRef, where('__name__', '==', studentId));
+      const userSnapshot = await getDocs(userQuery);
+      if (!userSnapshot.empty) {
+        studentName = userSnapshot.docs[0].data().name || '';
+      }
+    } catch (error) {
+      console.error('Error fetching student name:', error);
+    }
 
     // Fetch Assignments
     try {
@@ -127,6 +140,67 @@ export async function GET(request) {
       studentData.oneVsOneRequests = [];
     }
 
+    // Fetch Attendance Data
+    try {
+      const attendanceRef = collection(db, 'attendance');
+      const attendanceQuery = query(
+        attendanceRef,
+        where('studentId', '==', studentId),
+        orderBy('addedAt', 'desc')
+      );
+      const attendanceSnapshot = await getDocs(attendanceQuery);
+      studentData.attendance = attendanceSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      // If no attendance found with studentId, try to find by student name or other fields
+      if (studentData.attendance.length === 0) {
+        // Try to find attendance by student name
+        const nameQuery = query(
+          attendanceRef,
+          where('studentName', '==', studentName),
+          orderBy('addedAt', 'desc')
+        );
+        const nameSnapshot = await getDocs(nameQuery);
+        if (!nameSnapshot.empty) {
+          studentData.attendance = nameSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+        } else {
+          // Try to find by student name from students collection
+          try {
+            const studentsRef = collection(db, 'students');
+            const studentQuery = query(studentsRef, where('id', '==', studentId));
+            const studentSnapshot = await getDocs(studentQuery);
+            if (!studentSnapshot.empty) {
+              const studentDocData = studentSnapshot.docs[0].data();
+              const studentNameFromStudents = studentDocData.name || '';
+              
+              const studentsNameQuery = query(
+                attendanceRef,
+                where('studentName', '==', studentNameFromStudents),
+                orderBy('addedAt', 'desc')
+              );
+              const studentsNameSnapshot = await getDocs(studentsNameQuery);
+              if (!studentsNameSnapshot.empty) {
+                studentData.attendance = studentsNameSnapshot.docs.map(doc => ({
+                  id: doc.id,
+                  ...doc.data()
+                }));
+              }
+            }
+          } catch (error) {
+            console.error('Error in students collection fallback:', error);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching attendance:', error);
+      studentData.attendance = [];
+    }
+
     // Fetch Quiz Data from students collection
     try {
       const studentsRef = collection(db, 'students');
@@ -189,6 +263,11 @@ export async function GET(request) {
     
     // Add test average to main studentData for easy access
     studentData.testAverage = studentData.analytics.academic.testAverage;
+    
+    // Add attendance analytics to main studentData for easy access
+    const totalAttendance = studentData.attendance.length;
+    const presentDays = studentData.attendance.filter(a => a.status === "present").length;
+    studentData.attendanceRate = totalAttendance > 0 ? ((presentDays / totalAttendance) * 100).toFixed(2) : 0;
 
     return NextResponse.json({ data: studentData });
   } catch (error) {

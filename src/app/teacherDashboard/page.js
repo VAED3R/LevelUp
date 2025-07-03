@@ -141,27 +141,6 @@ export default function TeacherDashboard() {
                         </div>
                         <div className={style.heroStats}>
                             <div className={style.statCard}>
-                                <div className={style.statIcon}>📚</div>
-                                <div className={style.statContent}>
-                                    <h3>{stats.totalQuizzes}</h3>
-                                    <p>Total Quizzes</p>
-                                </div>
-                            </div>
-                            <div className={style.statCard}>
-                                <div className={style.statIcon}>❓</div>
-                                <div className={style.statContent}>
-                                    <h3>{stats.totalQuestions}</h3>
-                                    <p>Questions Created</p>
-                                </div>
-                            </div>
-                            <div className={style.statCard}>
-                                <div className={style.statIcon}>📈</div>
-                                <div className={style.statContent}>
-                                    <h3>{stats.recentQuizzes}</h3>
-                                    <p>This Week</p>
-                                </div>
-                            </div>
-                            <div className={style.statCard}>
                                 <div className={style.statIcon}>🏫</div>
                                 <div className={style.statContent}>
                                     <h3>{stats.activeClasses}</h3>
