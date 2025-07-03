@@ -26,6 +26,7 @@
 
 .header {
   margin-bottom: 30px;
+  position: relative;
 }
 
 .title {
@@ -103,10 +104,7 @@
   transition: transform 0.3s ease;
 }
 
-.characterCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 5px 5px 0px #452d57;
-}
+/* Removed hover animation */
 
 .characterInfo {
   background: rgba(0, 0, 0, 0.3);
@@ -231,10 +229,7 @@
   animation: gradientMove 3s linear infinite;
 }
 
-.performanceStat:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 15px rgba(127, 55, 198, 0.5);
-}
+/* Removed hover animation */
 
 .performanceStat h4 {
   font-family: 'Press Start 2P', cursive;
@@ -261,24 +256,31 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  border: 2px solid rgba(127, 55, 198, 0.4);
 }
 
 .characterStats h3 {
   font-family: 'Press Start 2P', cursive;
-  margin-bottom: 12px;
+  margin-bottom: 20px;
   color: #7f37c6;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
   text-shadow: 2px 2px 0px #000;
+  text-align: center;
+  padding-bottom: 10px;
+  border-bottom: 2px solid rgba(127, 55, 198, 0.3);
 }
 
 .statsList {
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
   flex: 1;
   overflow-y: auto;
   padding-right: 8px;
@@ -299,71 +301,72 @@
 }
 
 .statItem {
-  background: rgba(0, 0, 0, 0.5);
-  padding: 10px;
-  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 15px;
+  border-radius: 12px;
   border: 2px solid #7f37c6;
   position: relative;
   overflow: hidden;
-  min-height: 70px;
+  min-height: 80px;
   display: flex;
   align-items: center;
   transition: transform 0.3s ease;
-  box-shadow: 0 0 10px rgba(127, 55, 198, 0.3);
+  box-shadow: 0 0 15px rgba(127, 55, 198, 0.4);
 }
 
-.statItem::before {
-  content: '⚡';
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 1rem;
-  filter: drop-shadow(1px 1px 0px #000);
-}
-
-.statItem:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 15px rgba(127, 55, 198, 0.5);
-}
+/* Removed lightning icon */
 
 .statContent {
-  padding-left: 25px;
+  padding-left: 0;
   flex: 1;
 }
 
 .statName {
   font-family: 'VT323', monospace;
   color: #e0e0e0;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
   text-shadow: 1px 1px 0px #000;
 }
 
 .statValue {
   font-family: 'Press Start 2P', cursive;
+  font-size: 14px;
   color: #fff;
-  font-size: 12px;
   font-weight: 800;
   text-shadow: 2px 2px 0px #000;
-  background: rgba(127, 55, 198, 0.25);
-  padding: 3px 6px;
-  border-radius: 5px;
-  border: 1px solid rgba(127, 55, 198, 0.4);
+  padding: 4px 8px;
+  border-radius: 6px;
   display: inline-block;
-  margin-bottom: 3px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  border: 2px solid rgba(127, 55, 198, 0.7);
+  box-shadow: 0 0 8px rgba(127, 55, 198, 0.3);
+  position: relative;
+}
+
+.statValue::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  background: linear-gradient(45deg, rgba(127, 55, 198, 0.3), rgba(156, 52, 208, 0.3));
+  border-radius: 6px;
+  z-index: -1;
 }
 
 .statDetails {
   font-family: 'VT323', monospace;
-  font-size: 10px;
+  font-size: 12px;
   color: #b0b0b0;
-  margin-top: 2px;
+  margin-top: 3px;
   font-style: italic;
-  line-height: 1.2;
+  line-height: 1.3;
   text-shadow: 1px 1px 0px #000;
 }
 
@@ -586,10 +589,7 @@
   animation: gradientMove 3s linear infinite;
 }
 
-.activityCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 15px rgba(127, 55, 198, 0.5);
-}
+/* Removed hover animation */
 
 .activityHeader {
   display: flex;
@@ -653,22 +653,7 @@
   overflow: hidden;
 }
 
-.strategyCard::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, #7f37c6, #9c34d0, #7f37c6);
-  background-size: 200% 100%;
-  animation: gradientMove 3s linear infinite;
-}
-
-.strategyCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 15px rgba(127, 55, 198, 0.5);
-}
+/* Removed hover animation */
 
 .strategyIcon {
   font-size: 1.5rem;
@@ -706,22 +691,7 @@
   overflow: hidden;
 }
 
-.assignmentCard::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, #7f37c6, #9c34d0, #7f37c6);
-  background-size: 200% 100%;
-  animation: gradientMove 3s linear infinite;
-}
-
-.assignmentCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 15px rgba(127, 55, 198, 0.5);
-}
+/* Removed hover animation */
 
 .assignmentHeader {
   display: flex;
@@ -793,22 +763,7 @@
   overflow: hidden;
 }
 
-.testResultCard::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, #7f37c6, #9c34d0, #7f37c6);
-  background-size: 200% 100%;
-  animation: gradientMove 3s linear infinite;
-}
-
-.testResultCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 15px rgba(127, 55, 198, 0.5);
-}
+/* Removed hover animation */
 
 .testResultHeader {
   display: flex;
@@ -892,10 +847,7 @@
   animation: gradientMove 3s linear infinite;
 }
 
-.chartCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 15px rgba(127, 55, 198, 0.5);
-}
+/* Removed hover animation */
 
 .chartCard h3 {
   font-family: 'VT323', monospace;
@@ -992,6 +944,26 @@
   color: #fff;
   font-weight: 800;
   text-shadow: 2px 2px 0px #000;
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: inline-block;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  border: 2px solid rgba(127, 55, 198, 0.7);
+  box-shadow: 0 0 8px rgba(127, 55, 198, 0.3);
+  position: relative;
+}
+
+.statValue::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  background: linear-gradient(45deg, rgba(127, 55, 198, 0.3), rgba(156, 52, 208, 0.3));
+  border-radius: 6px;
+  z-index: -1;
 }
 
 /* Assignments List */
@@ -1204,7 +1176,7 @@
 
 .testScore {
   display: flex;
-  flex-direction: column;
+    flex-direction: column;
   align-items: center;
   gap: 8px;
   min-width: 120px;
@@ -1235,8 +1207,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
-}
+    gap: 5px;
+  }
 
 .testScore .pendingText {
   font-family: 'VT323', monospace;
@@ -1322,29 +1294,14 @@
   background: rgba(0, 0, 0, 0.5);
   border: 2px solid #7f37c6;
   border-radius: 8px;
-  padding: 20px;
+    padding: 20px;
   transition: transform 0.3s ease;
   box-shadow: 0 0 10px rgba(127, 55, 198, 0.3);
   position: relative;
   overflow: hidden;
 }
 
-.recommendationCard::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, #7f37c6, #9c34d0, #7f37c6);
-  background-size: 200% 100%;
-  animation: gradientMove 3s linear infinite;
-}
-
-.recommendationCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 15px rgba(127, 55, 198, 0.5);
-}
+/* Removed hover animation */
 
 .recommendationCard h4 {
   font-family: 'VT323', monospace;
@@ -1443,22 +1400,7 @@
   overflow: hidden;
 }
 
-.goalCard::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, #7f37c6, #9c34d0, #7f37c6);
-  background-size: 200% 100%;
-  animation: gradientMove 3s linear infinite;
-}
-
-.goalCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 15px rgba(127, 55, 198, 0.5);
-}
+/* Removed hover animation */
 
 .goalHeader {
   display: flex;
@@ -1702,6 +1644,464 @@
   margin: 0;
 }
 
+/* Settings Button */
+.titleContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settingsButton {
+  background: linear-gradient(45deg, #7f37c6, #9c34d0);
+  color: #fff;
+  border: 2px solid #7f37c6;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 24px;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 0 #452d57;
+  text-shadow: 1px 1px 0px #000;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.settingsButton:hover {
+  background: linear-gradient(45deg, #9c34d0, #7f37c6);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #452d57;
+}
+
+.settingsButton:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0 #452d57;
+}
+
+/* Settings Popup */
+.settingsPopup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.settingsPopupContent {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border: 2px solid #7f37c6;
+  border-radius: 12px;
+  width: 95%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 0 30px rgba(127, 55, 198, 0.5);
+}
+
+.settingsPopupContent::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, #7f37c6, #9c34d0, #7f37c6);
+  background-size: 200% 100%;
+  animation: gradientMove 3s linear infinite;
+}
+
+.settingsPopupHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 2px solid #7f37c6;
+  background: rgba(127, 55, 198, 0.1);
+}
+
+.settingsPopupHeader h2 {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 18px;
+  color: #fff;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 0px #000;
+  margin: 0;
+}
+
+.closeButton {
+  background: rgba(244, 67, 54, 0.3);
+  border: 2px solid #f44336;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  color: #fff;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 0 #452d57;
+  text-shadow: 1px 1px 0px #000;
+}
+
+.closeButton:hover {
+  background: rgba(244, 67, 54, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 0 #452d57;
+}
+
+.closeButton:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #452d57;
+}
+
+.settingsPopupBody {
+  padding: 30px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.settingsPage {
+  animation: fadeIn 0.3s ease;
+}
+
+.settingsPage h3 {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 16px;
+  color: #7f37c6;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 0px #000;
+  margin: 0 0 10px 0;
+}
+
+.settingsPage p {
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  color: #e0e0e0;
+  line-height: 1.5;
+  margin: 0 0 25px 0;
+  text-shadow: 1px 1px 0px #000;
+}
+
+/* Attention Span Section */
+.attentionSpanSection {
+  margin-bottom: 20px;
+}
+
+.sliderContainer {
+  margin-bottom: 20px;
+}
+
+.sliderHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.currentValue {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 14px;
+  font-weight: 800;
+  color: #7f37c6;
+  text-shadow: 2px 2px 0px #000;
+}
+
+.description {
+  font-family: 'VT323', monospace;
+  font-size: 14px;
+  color: #b0b0b0;
+  text-shadow: 1px 1px 0px #000;
+}
+
+.sliderWrapper {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.slider {
+    width: 100%;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  outline: none;
+  -webkit-appearance: none;
+  border: 1px solid #7f37c6;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(45deg, #7f37c6, #9c34d0);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(45deg, #7f37c6, #9c34d0);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.sliderLabels {
+  display: flex;
+    justify-content: space-between;
+  font-family: 'VT323', monospace;
+  font-size: 12px;
+  color: #b0b0b0;
+  text-shadow: 1px 1px 0px #000;
+}
+
+.presetButtons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.presetButton {
+  background: rgba(127, 55, 198, 0.3);
+  border: 2px solid #7f37c6;
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-family: 'VT323', monospace;
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 0 #452d57;
+  text-shadow: 1px 1px 0px #000;
+  color: #fff;
+}
+
+.presetButton:hover {
+  background: rgba(127, 55, 198, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 0 #452d57;
+}
+
+.presetButton.active {
+  background: linear-gradient(45deg, #7f37c6, #9c34d0);
+  box-shadow: 0 0 10px rgba(127, 55, 198, 0.5);
+}
+
+.presetButton:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #452d57;
+}
+
+/* Options Grid */
+.optionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.optionCard {
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid #7f37c6;
+  border-radius: 8px;
+  padding: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 0 10px rgba(127, 55, 198, 0.3);
+}
+
+/* Removed hover animation */
+
+.optionCard.active {
+  background: linear-gradient(45deg, rgba(127, 55, 198, 0.3), rgba(156, 52, 208, 0.3));
+  border-color: #9c34d0;
+  box-shadow: 0 0 20px rgba(127, 55, 198, 0.6);
+}
+
+.optionIcon {
+  font-size: 2rem;
+  filter: drop-shadow(1px 1px 0px #000);
+}
+
+.optionContent h5 {
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  color: #fff;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 1px 1px 0px #000;
+  margin: 0 0 5px 0;
+}
+
+.optionContent p {
+  font-family: 'VT323', monospace;
+  font-size: 12px;
+  color: #b0b0b0;
+  line-height: 1.4;
+  text-shadow: 1px 1px 0px #000;
+  margin: 0;
+}
+
+/* Settings Popup Footer */
+.settingsPopupFooter {
+  padding: 20px;
+  border-top: 2px solid #7f37c6;
+  background: rgba(127, 55, 198, 0.1);
+}
+
+.navigationButtons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.navButton {
+  background: rgba(127, 55, 198, 0.3);
+  border: 2px solid #7f37c6;
+  border-radius: 6px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-family: 'VT323', monospace;
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 0 #452d57;
+  text-shadow: 1px 1px 0px #000;
+  color: #fff;
+}
+
+.navButton:hover:not(:disabled) {
+  background: rgba(127, 55, 198, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 0 #452d57;
+}
+
+.navButton:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #452d57;
+}
+
+.navButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.pageIndicator {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 12px;
+  color: #7f37c6;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 0px #000;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.saveButton {
+  background: linear-gradient(45deg, #4caf50, #45a049);
+  color: #fff;
+  border: 2px solid #4caf50;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'VT323', monospace;
+  font-weight: 700;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 0 #2e7d32;
+  text-shadow: 1px 1px 0px #000;
+}
+
+.saveButton:hover {
+  background: linear-gradient(45deg, #45a049, #4caf50);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #2e7d32;
+}
+
+.saveButton:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0 #2e7d32;
+}
+
+.cancelButton {
+  background: rgba(158, 158, 158, 0.3);
+  color: #fff;
+  border: 2px solid #9e9e9e;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'VT323', monospace;
+  font-weight: 700;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 0 #616161;
+  text-shadow: 1px 1px 0px #000;
+}
+
+.cancelButton:hover {
+  background: rgba(158, 158, 158, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #616161;
+}
+
+.cancelButton:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0 #616161;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .profileCard {
@@ -1740,7 +2140,7 @@
 
 @media (max-width: 480px) {
   .performanceStats {
-    flex-direction: column;
+  flex-direction: column;
   }
   
   .performanceStat {

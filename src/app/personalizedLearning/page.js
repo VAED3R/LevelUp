@@ -6,6 +6,7 @@ import { LearningProfile } from "@/lib/learningProfile";
 import Navbar from "@/components/studentNavbar";
 import StudentStats from "@/components/StudentStats";
 import GoalForm from "@/components/GoalForm";
+import LoadingScreen from "@/components/LoadingScreen";
 import styles from "./page.module.css";
 import { 
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
@@ -34,6 +35,8 @@ export default function PersonalizedLearning() {
   const [subjects, setSubjects] = useState([]);
   const [regeneratingAi, setRegeneratingAi] = useState(false);
   const [regeneratingContent, setRegeneratingContent] = useState(false);
+  const [showSettingsPopup, setShowSettingsPopup] = useState(false);
+  const [settingsPage, setSettingsPage] = useState(0);
 
   useEffect(() => {
     if (user) {
@@ -380,16 +383,7 @@ export default function PersonalizedLearning() {
   };
 
   if (loading) {
-    return (
-      <div className={styles.container}>
-        <Navbar />
-        <div className={styles.loadingCard}>
-          <div className={styles.loadingSpinner}></div>
-          <h3>Loading Your Learning Dashboard</h3>
-          <p>Gathering your personalized data...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen text="Loading Your Learning Dashboard..." />;
   }
 
   if (error) {
@@ -409,7 +403,16 @@ export default function PersonalizedLearning() {
       <Navbar />
       <div className={styles.content}>
         <div className={styles.header}>
-          <h1 className={styles.title}>Personalized Learning Dashboard</h1>
+          <div className={styles.titleContainer}>
+            <h1 className={styles.title}>Personalized Learning Dashboard</h1>
+          </div>
+          <button 
+            className={styles.settingsButton}
+            onClick={() => setShowSettingsPopup(true)}
+            title="Learning Preferences"
+          >
+            ⚙️
+          </button>
           <p className={styles.subtitle}>
             Your learning journey, tailored just for you
           </p>
@@ -462,7 +465,7 @@ export default function PersonalizedLearning() {
 
               {/* Character Stats */}
               <div className={styles.characterStats}>
-                <h3>Abilities & Stats</h3>
+                <h3>Preferences</h3>
                 {learningProfile ? (
                   <ul className={styles.statsList}>
                     <li className={styles.statItem}>
@@ -475,43 +478,39 @@ export default function PersonalizedLearning() {
                     
                     <li className={styles.statItem}>
                       <div className={styles.statContent}>
-                        <div className={styles.statName}>Study Sessions</div>
-                        <div className={styles.statValue}>{learningProfile.studySessionsPerDay || 'N/A'}</div>
-                        <div className={styles.statDetails}>Sessions per day</div>
+                        <div className={styles.statName}>Study Preference</div>
+                        <div className={styles.statValue}>{learningProfile.studyPreference || 'N/A'}</div>
+                        <div className={styles.statDetails}>Preferred study method</div>
                       </div>
                     </li>
                     
                     <li className={styles.statItem}>
                       <div className={styles.statContent}>
                         <div className={styles.statName}>Preferred Time</div>
-                        <div className={styles.statValue}>{learningProfile.preferredStudyTime || 'N/A'}</div>
+                        <div className={styles.statValue}>
+                          {learningProfile.studyTimePreference ? 
+                            learningProfile.studyTimePreference.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 
+                            'N/A'
+                          }
+                        </div>
                         <div className={styles.statDetails}>Optimal study period</div>
                       </div>
                     </li>
                     
                     <li className={styles.statItem}>
                       <div className={styles.statContent}>
-                        <div className={styles.statName}>Environment</div>
-                        <div className={styles.statValue}>{learningProfile.studyEnvironment || 'N/A'}</div>
-                        <div className={styles.statDetails}>Preferred study setting</div>
+                        <div className={styles.statName}>Difficulty</div>
+                        <div className={styles.statValue}>
+                          {learningProfile.preferredDifficulty ? 
+                            learningProfile.preferredDifficulty.replace(/\b\w/g, l => l.toUpperCase()) : 
+                            'N/A'
+                          }
+                        </div>
+                        <div className={styles.statDetails}>Preferred challenge level</div>
                       </div>
                     </li>
                     
-                    <li className={styles.statItem}>
-                      <div className={styles.statContent}>
-                        <div className={styles.statName}>Quizzes Taken</div>
-                        <div className={styles.statValue}>{studentData?.data?.analytics?.academic?.totalQuizzes || 0}</div>
-                        <div className={styles.statDetails}>Total quiz attempts</div>
-                      </div>
-                    </li>
-                    
-                    <li className={styles.statItem}>
-                      <div className={styles.statContent}>
-                        <div className={styles.statName}>Challenges</div>
-                        <div className={styles.statValue}>{studentData?.data?.analytics?.academic?.totalChallenges || 0}</div>
-                        <div className={styles.statDetails}>Quiz challenges completed</div>
-                      </div>
-                    </li>
+
                   </ul>
                 ) : (
                   <div className={styles.noDataMessage}>
@@ -568,12 +567,7 @@ export default function PersonalizedLearning() {
           >
             🎯 Goals
           </button>
-          <button 
-            className={`${styles.tabButton} ${activeTab === 'settings' ? styles.active : ''}`}
-            onClick={() => setActiveTab('settings')}
-          >
-            Settings
-          </button>
+
         </div>
 
         {/* Tab Content */}
@@ -1155,21 +1149,7 @@ export default function PersonalizedLearning() {
             </div>
           )}
 
-          {activeTab === 'settings' && (
-            <div className={styles.settingsTab}>
-              <div className={styles.settingsSection}>
-                <h2 className={styles.sectionTitle}>Learning Preferences</h2>
-                <AttentionSpanSettings 
-                  currentAttentionSpan={learningProfile?.attentionSpan}
-                  currentStudyPreference={learningProfile?.studyPreference}
-                  currentLearningStyle={learningProfile?.learningStyle}
-                  currentStudyTimePreference={learningProfile?.studyTimePreference}
-                  currentPreferredDifficulty={learningProfile?.preferredDifficulty}
-                  onUpdate={handleAttentionSpanUpdate}
-                />
-              </div>
-            </div>
-          )}
+
         </div>
       </div>
       {showGoalForm && (
@@ -1178,6 +1158,280 @@ export default function PersonalizedLearning() {
           onGoalAdded={handleGoalAdded}
           onCancel={handleCancelGoalForm}
         />
+      )}
+
+      {/* Settings Popup */}
+      {showSettingsPopup && (
+        <div className={styles.settingsPopup}>
+          <div className={styles.settingsPopupContent}>
+            <div className={styles.settingsPopupHeader}>
+              <h2>Learning Preferences</h2>
+              <button 
+                className={styles.closeButton}
+                onClick={() => {
+                  setShowSettingsPopup(false);
+                  setSettingsPage(0);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className={styles.settingsPopupBody}>
+              {/* Page 1: Attention Span */}
+              {settingsPage === 0 && (
+                <div className={styles.settingsPage}>
+                  <h3>Attention Span</h3>
+                  <p>How long can you maintain focus during study sessions?</p>
+                  <div className={styles.attentionSpanSection}>
+                    <div className={styles.sliderContainer}>
+                      <div className={styles.sliderHeader}>
+                        <span className={styles.currentValue}>{learningProfile?.attentionSpan || 25} minutes</span>
+                        <span className={styles.description}>
+                          {learningProfile?.attentionSpan <= 15 ? 'Short (15 min or less) - Great for quick review sessions' :
+                           learningProfile?.attentionSpan <= 30 ? 'Medium (16-30 min) - Balanced study sessions' :
+                           learningProfile?.attentionSpan <= 45 ? 'Long (31-45 min) - Extended focus periods' :
+                           'Extended (45+ min) - Deep work sessions'}
+                        </span>
+                      </div>
+                      <div className={styles.sliderWrapper}>
+                        <input
+                          type="range"
+                          min="10"
+                          max="90"
+                          step="5"
+                          value={learningProfile?.attentionSpan || 25}
+                          onChange={(e) => {
+                            const newProfile = { ...learningProfile, attentionSpan: parseInt(e.target.value) };
+                            setLearningProfile(newProfile);
+                          }}
+                          className={styles.slider}
+                        />
+                        <div className={styles.sliderLabels}>
+                          <span>10 min</span>
+                          <span>30 min</span>
+                          <span>60 min</span>
+                          <span>90 min</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className={styles.presetButtons}>
+                      <button 
+                        className={`${styles.presetButton} ${(learningProfile?.attentionSpan || 25) === 15 ? styles.active : ''}`}
+                        onClick={() => {
+                          const newProfile = { ...learningProfile, attentionSpan: 15 };
+                          setLearningProfile(newProfile);
+                        }}
+                      >
+                        15 min
+                      </button>
+                      <button 
+                        className={`${styles.presetButton} ${(learningProfile?.attentionSpan || 25) === 25 ? styles.active : ''}`}
+                        onClick={() => {
+                          const newProfile = { ...learningProfile, attentionSpan: 25 };
+                          setLearningProfile(newProfile);
+                        }}
+                      >
+                        25 min
+                      </button>
+                      <button 
+                        className={`${styles.presetButton} ${(learningProfile?.attentionSpan || 25) === 45 ? styles.active : ''}`}
+                        onClick={() => {
+                          const newProfile = { ...learningProfile, attentionSpan: 45 };
+                          setLearningProfile(newProfile);
+                        }}
+                      >
+                        45 min
+                      </button>
+                      <button 
+                        className={`${styles.presetButton} ${(learningProfile?.attentionSpan || 25) === 60 ? styles.active : ''}`}
+                        onClick={() => {
+                          const newProfile = { ...learningProfile, attentionSpan: 60 };
+                          setLearningProfile(newProfile);
+                        }}
+                      >
+                        60 min
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Page 2: Study Preference */}
+              {settingsPage === 1 && (
+                <div className={styles.settingsPage}>
+                  <h3>Study Preference</h3>
+                  <p>How do you prefer to study and absorb information?</p>
+                  <div className={styles.optionsGrid}>
+                    {[
+                      { value: 'visual', label: 'Visual', icon: '🎨', description: 'Diagrams, charts, videos' },
+                      { value: 'auditory', label: 'Auditory', icon: '🎧', description: 'Podcasts, discussions, lectures' },
+                      { value: 'reading', label: 'Reading', icon: '📚', description: 'Books, articles, notes' },
+                      { value: 'kinesthetic', label: 'Hands-on', icon: '🔧', description: 'Experiments, practice, projects' },
+                      { value: 'mixed', label: 'Mixed', icon: '🔄', description: 'Combination of methods' }
+                    ].map((pref) => (
+                      <button
+                        key={pref.value}
+                        className={`${styles.optionCard} ${learningProfile?.studyPreference === pref.value ? styles.active : ''}`}
+                        onClick={() => {
+                          const newProfile = { ...learningProfile, studyPreference: pref.value };
+                          setLearningProfile(newProfile);
+                        }}
+                      >
+                        <div className={styles.optionIcon}>{pref.icon}</div>
+                        <div className={styles.optionContent}>
+                          <h5>{pref.label}</h5>
+                          <p>{pref.description}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Page 3: Difficulty Level */}
+              {settingsPage === 2 && (
+                <div className={styles.settingsPage}>
+                  <h3>Preferred Difficulty Level</h3>
+                  <p>What level of challenge do you prefer in your learning materials?</p>
+                  <div className={styles.optionsGrid}>
+                    {[
+                      { value: 'beginner', label: 'Beginner', icon: '🌱', description: 'Start with basics and fundamentals' },
+                      { value: 'easy', label: 'Easy', icon: '😊', description: 'Simple concepts and straightforward content' },
+                      { value: 'medium', label: 'Medium', icon: '⚖️', description: 'Balanced challenge and complexity' },
+                      { value: 'hard', label: 'Hard', icon: '🔥', description: 'Advanced concepts and complex problems' },
+                      { value: 'expert', label: 'Expert', icon: '🏆', description: 'Master-level content and deep analysis' }
+                    ].map((difficulty) => (
+                      <button
+                        key={difficulty.value}
+                        className={`${styles.optionCard} ${learningProfile?.preferredDifficulty === difficulty.value ? styles.active : ''}`}
+                        onClick={() => {
+                          const newProfile = { ...learningProfile, preferredDifficulty: difficulty.value };
+                          setLearningProfile(newProfile);
+                        }}
+                      >
+                        <div className={styles.optionIcon}>{difficulty.icon}</div>
+                        <div className={styles.optionContent}>
+                          <h5>{difficulty.label}</h5>
+                          <p>{difficulty.description}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Page 4: Study Time Preference */}
+              {settingsPage === 3 && (
+                <div className={styles.settingsPage}>
+                  <h3>Preferred Study Time</h3>
+                  <p>When do you feel most productive and focused?</p>
+                  <div className={styles.optionsGrid}>
+                    {[
+                      { value: 'early_morning', label: 'Early Morning', icon: '🌅', description: '5:00 AM - 8:00 AM' },
+                      { value: 'morning', label: 'Morning', icon: '☀️', description: '8:00 AM - 12:00 PM' },
+                      { value: 'afternoon', label: 'Afternoon', icon: '🌤️', description: '12:00 PM - 5:00 PM' },
+                      { value: 'evening', label: 'Evening', icon: '🌆', description: '5:00 PM - 9:00 PM' },
+                      { value: 'night', label: 'Night', icon: '🌙', description: '9:00 PM - 12:00 AM' },
+                      { value: 'late_night', label: 'Late Night', icon: '🌃', description: '12:00 AM - 5:00 AM' }
+                    ].map((time) => (
+                      <button
+                        key={time.value}
+                        className={`${styles.optionCard} ${learningProfile?.studyTimePreference === time.value ? styles.active : ''}`}
+                        onClick={() => {
+                          const newProfile = { ...learningProfile, studyTimePreference: time.value };
+                          setLearningProfile(newProfile);
+                        }}
+                      >
+                        <div className={styles.optionIcon}>{time.icon}</div>
+                        <div className={styles.optionContent}>
+                          <h5>{time.label}</h5>
+                          <p>{time.description}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Page 5: Learning Style */}
+              {settingsPage === 4 && (
+                <div className={styles.settingsPage}>
+                  <h3>Learning Style</h3>
+                  <p>How do you process and understand new information?</p>
+                  <div className={styles.optionsGrid}>
+                    {[
+                      { value: 'active', label: 'Active Learner', icon: '⚡', description: 'Learn by doing and discussing' },
+                      { value: 'reflective', label: 'Reflective Learner', icon: '🤔', description: 'Learn by thinking and analyzing' },
+                      { value: 'sequential', label: 'Sequential Learner', icon: '📋', description: 'Learn step-by-step, logically' },
+                      { value: 'global', label: 'Global Learner', icon: '🌍', description: 'Learn big picture first, then details' },
+                      { value: 'sensing', label: 'Sensing Learner', icon: '🔍', description: 'Learn facts and concrete examples' },
+                      { value: 'intuitive', label: 'Intuitive Learner', icon: '💡', description: 'Learn concepts and theories' }
+                    ].map((style) => (
+                      <button
+                        key={style.value}
+                        className={`${styles.optionCard} ${learningProfile?.learningStyle === style.value ? styles.active : ''}`}
+                        onClick={() => {
+                          const newProfile = { ...learningProfile, learningStyle: style.value };
+                          setLearningProfile(newProfile);
+                        }}
+                      >
+                        <div className={styles.optionIcon}>{style.icon}</div>
+                        <div className={styles.optionContent}>
+                          <h5>{style.label}</h5>
+                          <p>{style.description}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className={styles.settingsPopupFooter}>
+              <div className={styles.navigationButtons}>
+                <button 
+                  className={styles.navButton}
+                  onClick={() => setSettingsPage(Math.max(0, settingsPage - 1))}
+                  disabled={settingsPage === 0}
+                >
+                  ← Previous
+                </button>
+                <div className={styles.pageIndicator}>
+                  {settingsPage + 1} of 5
+                </div>
+                <button 
+                  className={styles.navButton}
+                  onClick={() => setSettingsPage(Math.min(4, settingsPage + 1))}
+                  disabled={settingsPage === 4}
+                >
+                  Next →
+                </button>
+              </div>
+              <div className={styles.actionButtons}>
+                <button 
+                  className={styles.saveButton}
+                  onClick={async () => {
+                    await handleAttentionSpanUpdate(learningProfile);
+                    setShowSettingsPopup(false);
+                    setSettingsPage(0);
+                  }}
+                >
+                  Save Preferences
+                </button>
+                <button 
+                  className={styles.cancelButton}
+                  onClick={() => {
+                    setShowSettingsPopup(false);
+                    setSettingsPage(0);
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

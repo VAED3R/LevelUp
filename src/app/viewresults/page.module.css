@@ -182,7 +182,6 @@
   border-radius: 12px;
   box-shadow: 0 8px 0 #452d57;
   overflow: hidden;
-  transition: all 0.3s ease;
   position: relative;
 }
 
@@ -201,12 +200,6 @@
 @keyframes gradientMove {
   0% { background-position: 0% 0%; }
   100% { background-position: 200% 0%; }
-}
-
-.resultCard:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 0 #452d57;
-  border-color: #9c34d0;
 }
 
 .cardHeader {

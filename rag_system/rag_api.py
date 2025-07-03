@@ -1,3 +1,5 @@
+# pip install -r requirements.txt
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -6,6 +8,7 @@ import traceback
 import logging
 import requests
 from dotenv import load_dotenv
+import difflib
 
 # LlamaIndex imports
 from llama_index.core import VectorStoreIndex, Document
@@ -51,6 +54,22 @@ def parse_semester_subjects(text: str) -> dict:
                 semester_subjects[current_semester].append(line.strip())
     return semester_subjects
 
+# Helper to parse subject-topic mapping from quiz_topics.txt
+def parse_subject_topics(file_path: str) -> dict:
+    subject_topics = {}
+    current_subject = None
+    with open(file_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            if line.startswith('[') and line.endswith(']'):
+                current_subject = line[1:-1].strip()
+                subject_topics[current_subject] = []
+            elif current_subject:
+                subject_topics[current_subject].append(line)
+    return subject_topics
+
 @app.on_event("startup")
 async def startup_event():
     logger.info("[STARTUP] Entering startup_event...")
@@ -95,11 +114,22 @@ async def startup_event():
         app.state.retriever = retriever
         app.state.semester_subjects = semester_subjects
         logger.info("[STARTUP] LlamaIndex loaded and index built successfully (in app.state)")
+
+        # Cache subject_topics at startup
+        file_path = os.path.join(os.path.dirname(__file__), "quiz_topics.txt")
+        logger.info(f"[STARTUP] Checking for quiz_topics.txt at: {file_path}")
+        if not os.path.exists(file_path):
+            logger.error(f"[STARTUP] quiz_topics.txt not found at: {file_path}")
+            raise FileNotFoundError(f"quiz_topics.txt not found at: {file_path}")
+        logger.info("[STARTUP] quiz_topics.txt found. Reading file...")
+        app.state.subject_topics = parse_subject_topics(file_path)
+        logger.info(f"[STARTUP] Parsed subjects: {list(app.state.subject_topics.keys())}")
     except Exception as e:
         logger.error(f"[STARTUP] Error loading LlamaIndex: {e} (type: {type(e)})")
         logger.error(traceback.format_exc())
         app.state.retriever = None
         app.state.semester_subjects = {}
+        app.state.subject_topics = {}
     logger.info("[STARTUP] Exiting startup_event.")
 
 class Query(BaseModel):
@@ -108,6 +138,13 @@ class Query(BaseModel):
 
 class SemesterQuery(BaseModel):
     semester: str
+
+class GetTopicsRequest(BaseModel):
+    subject: str
+
+class TopicRequest(BaseModel):
+    subject: str
+    topic: str
 
 @app.post("/search")
 async def search(query: Query, request: Request):
@@ -220,6 +257,22 @@ async def semester_subjects_endpoint(query: SemesterQuery, request: Request):
         logger.error(f"Error in semester_subjects: {str(e)}")
         logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/get-topics")
+async def get_topics(request: GetTopicsRequest):
+    subject = request.subject
+    subject_topics = app.state.subject_topics
+    topics = subject_topics.get(subject, [])
+    return {"topics": topics}
+
+@app.post("/validate-topic")
+async def validate_topic(request: TopicRequest):
+    subject = request.subject
+    topic = request.topic
+    subject_topics = app.state.subject_topics
+    valid_topics = subject_topics.get(subject, [])
+    is_valid = topic.strip() in valid_topics
+    return {"valid": is_valid}
 
 if __name__ == "__main__":
     import uvicorn
