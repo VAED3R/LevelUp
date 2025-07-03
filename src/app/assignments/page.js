@@ -301,47 +301,29 @@ export default function Assignments() {
         return;
       }
 
-      // Create assignment document
-      const assignmentData = {
-        title: assignmentTitle,
-        description: assignmentDescription,
-        class: selectedClass,
-        subject: selectedSubject,
-        semester: selectedSemester,
-        teacherEmail: teacherEmail,
-        createdAt: new Date().toISOString(),
-        totalStudents: filteredStudents.length,
-        submittedStudents: Object.values(marks).filter(mark => 
-          mark.obtained && mark.obtained !== "" && mark.obtained !== "0"
-        ).length
-      };
-
-      const assignmentRef = await addDoc(collection(db, "assignments"), assignmentData);
-      console.log("Assignment created with ID:", assignmentRef.id);
-
-      // Add marks for each student
-      const marksPromises = filteredStudents.map(async (student) => {
+      // Add assignment data for each student
+      const assignmentPromises = filteredStudents.map(async (student) => {
         const studentMarks = marks[student.id];
         const obtainedMarks = parseFloat(studentMarks.obtained) || 0;
         const totalMarks = parseFloat(studentMarks.total) || 0;
         const percentage = calculatePercentage(obtainedMarks, totalMarks);
 
-        const markData = {
-          assignmentId: assignmentRef.id,
+        const assignmentData = {
+          addedAt: new Date().toISOString(),
+          addedBy: teacherEmail,
+          assignmentDescription: assignmentDescription,
+          assignmentTitle: assignmentTitle,
+          class: selectedClass,
+          obtainedMarks: obtainedMarks,
+          percentage: percentage,
+          semester: selectedSemester,
           studentId: student.id,
           studentName: student.name,
-          studentEmail: student.email,
-          class: selectedClass,
           subject: selectedSubject,
-          semester: selectedSemester,
-          obtainedMarks: obtainedMarks,
-          totalMarks: totalMarks,
-          percentage: percentage,
-          teacherEmail: teacherEmail,
-          submittedAt: new Date().toISOString()
+          totalMarks: totalMarks
         };
 
-        await addDoc(collection(db, "assignmentMarks"), markData);
+        await addDoc(collection(db, "assignments"), assignmentData);
 
         // Update student's total points if they submitted
         if (obtainedMarks > 0) {
@@ -376,7 +358,7 @@ export default function Assignments() {
         }
       });
 
-      await Promise.all(marksPromises);
+      await Promise.all(assignmentPromises);
       setSuccess(true);
       
       // Reset form
