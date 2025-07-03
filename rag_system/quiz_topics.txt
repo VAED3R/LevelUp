@@ -1,0 +1,170 @@
+[Linear Regression Analysis]
+Simple Regression
+Regression Model building, Regressor, Response, Error, use of Regression.
+Simple Linear Regression model, Assumptions
+Least square and maximum likelihood estimation of the parameters of the model
+Properties of least square estimators and fitted regression model
+Hypothesis testing on slope and intercept of the model, Coefficient of Determination
+Multiple Regression
+Multiple Regression model, assumptions
+Least square and maximum likelihood estimation of the parameters of the model
+Testing significance of regression coefficients, test on individual regression coefficient
+Confidence interval for multiple regression
+R and adjusted R, Multicollinearity
+Residuals
+Model adequacy checking
+Methods for scaling residuals, Residual plots, PRESS statistic
+Detection and treatment of outliers
+Transformation and weighting to correct model inadequacy
+Variance stabilizing transformations
+Transformations to linearize the model
+Concept of Box-Cox transformation
+Sources of multicollinearity, Variance Inflation Factor
+
+[Multivariate Analysis]
+Multivariate Normal Distribution
+Density, Properties, Marginal and conditional distributions, Characteristic function
+Distribution of linear combination of normal vector
+Maximum likelihood estimation (MLE) of mean (μ) and covariance (Σ)
+Inference concerning the mean vector when covariance matrix is known
+T² and D² Distributions
+Hotelling T² distribution, derivation and its uses
+Mahalanobis D² Distribution, derivation and its use
+Relation between T² and D², Generalized variance
+Wishart distribution (statement only) and its properties
+One-way MANOVA
+Classification Models
+Classification problems
+Classification into one of two or several populations
+Sample discriminate function, Fisher's method
+Dimensionality Reduction Techniques
+Extraction of Principal Components, Properties, Variance
+Canonical Correlation: Estimation of correlation and variates
+Factor Analysis: Mathematical model, Factor loadings, Factor rotation, Varimax criterion
+
+[Statistical Machine Learning]
+Introduction and Motivation
+Measurements, Features, Feature Vectors
+Supervised Learning
+Pattern Recognition Problem and Decision Rules
+Bayes Decision Rule, Optimality, Training Data Assumptions
+Brute Force Learning, Curse of Dimensionality, Inductive Bias
+Nearest Neighbor Rule
+Performance, Intuition, Using more Neighbors
+Kernel Rules
+Universal Consistency
+Neural Networks
+Perceptrons, Threshold, Learning Rule
+Multilayer Feedforward Networks
+Representational Capabilities of Perceptrons
+
+[Biostatistics]
+Statistical Problems in Biomedical Research
+Types of Biological Data
+Principles of Biostatistical Design
+Study designs: Observational, Experimental, Crossover
+Prospective and Retrospective study
+Measuring Disease Occurrence
+Morbidity, Prevalence, Incidence, Association
+Case-control and Longitudinal studies
+Survival Analysis
+Concepts: Survival function, PDF, Hazard function
+Distributions: Exponential, Weibull, Lognormal
+Censoring Types: Concepts of censoring and truncation
+Estimation for Type I/II censored data (Exponential distribution)
+Non-parametric methods: Kaplan-Meier Estimator
+Basic Genetics
+Mendel's Law, Hardy-Weinberg Equilibrium
+Random Mating, Selection, Mutation, Genetic Drift
+Linkage Detection and Estimation
+Clinical Trials
+Phase I, II, III Trials
+Ethics of Randomized Studies, Dose-response concept
+
+[Econometrics]
+Purpose and Scope of Econometrics
+Econometric Model Building and Role
+General Linear Model (GLM)
+Estimation under linear restrictions, Properties of estimators
+Heteroscedasticity
+Detection, Tests, Consequences, Remedies
+Autocorrelation
+Concept, Detection, Tests, Consequences
+Distributed Lag Models, Parameter Estimation
+Multiple Regression
+Concept and Analysis
+Multicollinearity: Introduction, Detection, Sources, Consequences
+Tests and Estimation Methods
+
+[Statistical Quality Control]
+Control Charts Theory
+General Theory, Control Limits, 3-Sigma Importance
+Control Charts for Variables and Attributes
+Mean, Range, Std Deviation Charts
+Proportion, Number Defective, Number of Defects Charts
+Product Control
+Acceptance Sampling Plans: Single, Double, Sequential
+Incoming/Outgoing Quality
+AQL, ROL, LTPD, AOQ, AOQL
+Sampling Errors, OC and Power Function
+Producer/Consumer Risk
+OC Curve Construction: Hypergeometric, Binomial, Poisson
+
+[Operations Research]
+Linear Programming Problem (LPP)
+Graphical Solution, Feasible Solutions, Basic Feasible Solutions
+Simplex Algorithm (with/without Artificial Variables)
+Big M Method, Two-Phase Method
+Duality
+Primal-Dual Relationship, Economic Interpretation, Dual Simplex Method
+Transportation & Assignment Problems
+Balanced Problems, NWCR, LCCM, VAM, MODI
+Hungarian Method
+Game Theory
+Payoff Matrix, MinMax/MaxMin Criterion, Pure & Mixed Strategy
+Saddle Point, Dominance, 2x2 Games, Graphical Solution for 2xn or nx2
+
+[Simulation Techniques]
+Random Number Generation
+Inverse Transform, Composition, Transformation, Acceptance-Rejection
+Generating Discrete and Continuous Distributions
+Simulation Applications
+Multivariate Normal Distribution
+Estimation from Simulated Data
+Monte Carlo Integration, Variance Reduction
+Antithetic and Control Variables
+Goodness-of-Fit Tests
+Re-sampling Methods
+Permutation, Randomization Tests
+Jackknife: Theory, Variance Estimation
+Bootstrap: Theory, Consistency, Distribution Estimators
+MCMC and EM Algorithm
+Metropolis-Hastings, Gibbs Sampling
+Expectation-Maximization Algorithm
+Kernel Smoothing and Density Estimation
+
+
+[Basic Research Methodology]
+Concept of Research in Statistics-Importance and Need for Research Ethics
+Selection of Topic for Research-Research schedales
+Review of Literature and its Use in Designing a Research 3 Work
+Mode of Literature Survey
+Thesis Writing-Computer Application in Scientific Research
+Sections from References
+Scientific Word Processing with LaTeX
+Article, References
+Thesis Report and Slide Preparation
+Statistical Programming with R: Arrays and Matrices-Lasts
+Data Frames-Grouping, Loops and Conditions
+Probability Distributions and Statistical Models in R
+Sumalation: Concepts and Advantages of Simulation
+Event Type Simulation-Random Variable Generation-U(0,1)
+Exponential, Gamma and Normal Random Variables-Monte Carlo Integration.
+The MCMC Principle,
+Algerichens and its Variants
+Houtstrap Methods
+Computer Oriented Numerical Methods
+Algocthans for Solving Algebraic Equations
+Algorithms for Solving Transendental Equationie
+Nomesical Ustegration
+Mamis operations

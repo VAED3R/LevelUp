@@ -31,6 +31,8 @@ export default function TeacherQuiz() {
         options: ["", "", "", ""],
         correctAnswer: 0
     });
+    const [topics, setTopics] = useState([]);
+    const [topicsLoading, setTopicsLoading] = useState(false);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -98,6 +100,31 @@ export default function TeacherQuiz() {
         }
     }, [semester, allSubjectsData]);
 
+    // Fetch topics for selected subject
+    useEffect(() => {
+        const fetchTopics = async () => {
+            if (subject) {
+                setTopicsLoading(true);
+                try {
+                    const res = await fetch("/api/get-topics", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ subject }),
+                    });
+                    const data = await res.json();
+                    setTopics(data.topics || []);
+                } catch (e) {
+                    setTopics([]);
+                }
+                setTopicsLoading(false);
+            } else {
+                setTopics([]);
+                setTopicsLoading(false);
+            }
+        };
+        fetchTopics();
+    }, [subject]);
+
     const handleOptionChange = (index, value) => {
         const newOptions = [...currentQuestion.options];
         newOptions[index] = value;
@@ -133,8 +160,26 @@ export default function TeacherQuiz() {
             return;
         }
 
+        // Validate topic first
         setLoading(true);
         setError("");
+        try {
+            const validateRes = await fetch("/api/validate-topic", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ subject, topic }),
+            });
+            const validateData = await validateRes.json();
+            if (!validateData.valid) {
+                setError("Topic not found in allowed topics. Please choose a valid topic.");
+                setLoading(false);
+                return;
+            }
+        } catch (e) {
+            setError("Error validating topic. Please try again.");
+            setLoading(false);
+            return;
+        }
 
         try {
             const prompt = `Generate ${numQuestions} multiple choice questions about ${topic} in ${subject} for semester ${semester}. 
@@ -295,14 +340,25 @@ export default function TeacherQuiz() {
 
                         <div className={styles.formGroup}>
                             <label className={styles.label}>Topic</label>
-                            <input
-                                key="topic-input"
-                                type="text"
-                                value={topic}
-                                onChange={(e) => setTopic(e.target.value)}
-                                placeholder="Enter topic for the quiz"
-                                className={styles.input}
-                            />
+                            <div style={{ position: 'relative' }}>
+                                <select
+                                    key="topic-select"
+                                    value={topic}
+                                    onChange={(e) => setTopic(e.target.value)}
+                                    className={styles.select}
+                                    disabled={!subject || topicsLoading}
+                                >
+                                    <option value="">{subject ? (topicsLoading ? "Loading topics..." : "Select Topic") : "Select subject first"}</option>
+                                    {topics.map((topicName, idx) => (
+                                        <option key={topicName + '-' + idx} value={topicName}>
+                                            {topicName}
+                                        </option>
+                                    ))}
+                                </select>
+                                {topicsLoading && (
+                                    <span className={styles.loadingSpinner} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)' }}></span>
+                                )}
+                            </div>
                         </div>
 
                         <div className={styles.modeToggle}>
