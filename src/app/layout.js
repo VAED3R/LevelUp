@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "../components/studentNavbar";
 import { AuthProvider } from "@/context/AuthContext";
+import AuthGate from "../components/AuthGate";
 
 export const metadata = {
   title: "LevelUp",
@@ -13,7 +14,9 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
       <AuthProvider>
-        {children}
+        <AuthGate>
+          {children}
+        </AuthGate>
       </AuthProvider>
       </body>
     </html>

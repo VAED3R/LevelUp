@@ -26,9 +26,6 @@ export const AuthProvider = ({ children }) => {
             email: currentUser.email,
             role: userDoc.data().role,
           });
-
-          // Redirect based on role
-          router.push(`/${userDoc.data().role}Dashboard`);
         } else {
           console.error("No user data found");
         }
