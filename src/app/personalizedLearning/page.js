@@ -7,6 +7,7 @@ import Navbar from "@/components/studentNavbar";
 import StudentStats from "@/components/StudentStats";
 import GoalForm from "@/components/GoalForm";
 import LoadingScreen from "@/components/LoadingScreen";
+import IntroAnimation from "@/components/IntroAnimation";
 import styles from "./page.module.css";
 import { 
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
@@ -382,10 +383,6 @@ export default function PersonalizedLearning() {
     }
   };
 
-  if (loading) {
-    return <LoadingScreen text="Loading Your Learning Dashboard..." />;
-  }
-
   if (error) {
     return (
       <div className={styles.errorContainer}>
@@ -399,7 +396,8 @@ export default function PersonalizedLearning() {
   }
 
   return (
-    <div className={styles.container}>
+    <IntroAnimation loadingText="Loading Your Learning Dashboard...">
+      <div className={styles.container}>
       <Navbar />
       <div className={styles.content}>
         <div className={styles.header}>
@@ -1433,6 +1431,7 @@ export default function PersonalizedLearning() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </IntroAnimation>
   );
 } 
