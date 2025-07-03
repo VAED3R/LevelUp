@@ -67,76 +67,77 @@ Four-Year Honours Program (177 Credits):
 SEMESTER-WISE STRUCTURE  
 ==============================  
 
---- SEMESTER 1 (21 Credits) ---  
-ASD1CJ101: Descriptive Statistics – 4  
-Minor Course 1 – 4  
-Minor Course 2 – 4  
-AEC 1: English – 3  
-AEC 2: Additional Language – 3  
-MDC 1: (e.g., Quality Control / Fundamentals of Statistics) – 3  
+--- SEMESTER 1 (21 Credits) ---
+ASD1CJ101: Descriptive Statistics – 4  – 64 hours  
+Minor Course 1 – 4  – 50 hours  
+Minor Course 2 – 4  – 50 hours  
+AEC 1: English – 3  – 33 hours  
+AEC 2: Additional Language – 3  – 33 hours  
+MDC 1: (e.g., Quality Control / Fundamentals of Statistics) – 3  – 33 hours
 
---- SEMESTER 2 (21 Credits) ---  
-ASD2CJ101: Probability and Random Variables – 4  
-Minor Course 3 – 4  
-Minor Course 4 – 4  
-AEC 3: English – 3  
-AEC 4: Additional Language – 3  
-MDC 2: (e.g., Managerial Decision Making / Statistical Sampling) – 3  
+--- SEMESTER 2 (21 Credits) ---
+ASD2CJ101: Probability and Random Variables – 4  – 64 hours  
+Minor Course 3 – 4  – 50 hours  
+Minor Course 4 – 4  – 50 hours  
+AEC 3: English – 3  – 33 hours  
+AEC 4: Additional Language – 3  – 33 hours  
+MDC 2: (e.g., Managerial Decision Making / Statistical Sampling) – 3  – 33 hours
 
---- SEMESTER 3 (22 Credits) ---  
-ASD3CJ201: Probability Distributions – 4  
-ASD3CJ202: Bivariate RVs & Limit Theorems – 4  
-Minor Course 5 – 4  
-Minor Course 6 – 4  
-MDC 3: Kerala Knowledge System – 3  
-VAC 1: English – 3  
+--- SEMESTER 3 (22 Credits) ---
+ASD3CJ201: Probability Distributions – 4  – 64 hours  
+ASD3CJ202: Bivariate RVs & Limit Theorems – 4  – 64 hours  
+Minor Course 5 – 4  – 50 hours  
+Minor Course 6 – 4  – 50 hours  
+MDC 3: Kerala Knowledge System – 3  – 33 hours  
+VAC 1: English – 3  – 33 hours
 
---- SEMESTER 4 (21 Credits) ---  
-ASD4CJ203: Sampling Methods – 4  
-ASD4CJ204: Sampling Distributions & Estimation Theory – 4  
-ASD4CJ205: Testing of Hypothesis – 4  
-VAC 2: English – 3  
-VAC 3: Additional Language – 3  
-SEC 1: English – 3  
+--- SEMESTER 4 (21 Credits) ---
+ASD4CJ203: Sampling Methods – 4  – 64 hours  
+ASD4CJ204: Sampling Distributions & Estimation Theory – 4  – 64 hours  
+ASD4CJ205: Testing of Hypothesis – 4  – 64 hours  
+VAC 2: English – 3  – 33 hours  
+VAC 3: Additional Language – 3  – 33 hours  
+SEC 1: English – 3  – 33 hours
 
---- SEMESTER 5 (23 Credits) ---  
-ASD5CJ301: Design & Analysis of Experiments – 4  
-ASD5CJ302: Data Mining Techniques – 4  
-ASD5CJ303: Time Series & Index Numbers – 4  
-Elective 1 – 4  
-Elective 2 – 4  
-SEC 2: Statistical Analysis using Python – 3  
+--- SEMESTER 5 (23 Credits) ---
+ASD5CJ301: Design & Analysis of Experiments – 4  – 64 hours  
+ASD5CJ302: Data Mining Techniques – 4  – 64 hours  
+ASD5CJ303: Time Series & Index Numbers – 4  – 64 hours  
+Elective 1 – 4  – 50 hours  
+Elective 2 – 4  – 50 hours  
+SEC 2: Statistical Analysis using Python – 3  – 33 hours
 
---- SEMESTER 6 (25 Credits) ---  
-ASD6CJ304: Linear Regression Analysis – 4  
-ASD6CJ305: Multivariate Analysis – 4  
-ASD6CJ306: Statistical Machine Learning – 4  
-Elective 3 – 4  
-Elective 4 – 4  
-SEC 3: Basic Research Methodology – 3  
-Internship – 2 (Min 60 hours)  
+--- SEMESTER 6 (25 Credits) ---
+ASD6CJ304: Linear Regression Analysis – 4  – 64 hours  
+ASD6CJ305: Multivariate Analysis – 4  – 64 hours  
+ASD6CJ306: Statistical Machine Learning – 4  – 64 hours  
+Elective 3 – 4  – 50 hours  
+Elective 4 – 4  – 50 hours  
+SEC 3: Basic Research Methodology – 3  – 33 hours  
+Internship – 2  – 60 hours (Min 60 hours)
 
---- SEMESTER 7 – HONOURS ONLY (20 Credits) ---  
-STA7CJ401: Advanced Analytical Tools – 4  
-STA7CJ402: Probability Theory – 4  
-STA7CJ403: Distribution Theory – 4  
-STA7CJ404: Advanced Sampling & DOE – 4  
-STA7CJ405: Advanced Statistical Inference – 4  
+--- SEMESTER 7 – HONOURS ONLY (20 Credits) ---
+STA7CJ401: Advanced Analytical Tools – 4  – 64 hours  
+STA7CJ402: Probability Theory – 4  – 64 hours  
+STA7CJ403: Distribution Theory – 4  – 64 hours  
+STA7CJ404: Advanced Sampling & DOE – 4  – 64 hours  
+STA7CJ405: Advanced Statistical Inference – 4  – 64 hours
 
---- SEMESTER 8 – HONOURS ONLY (24 Credits) ---  
+--- SEMESTER 8 – HONOURS ONLY (24 Credits) ---
 
 Option 1 – Coursework Path:  
-STA8CJ406: Applied Stochastic Processes – 4  
-STA8CJ407: Applied Multivariate Techniques – 4  
-STA8CJ408: Generalized Linear Models – 4  
+STA8CJ406: Applied Stochastic Processes – 4  – 64 hours  
+STA8CJ407: Applied Multivariate Techniques – 4  – 64 hours  
+STA8CJ408: Generalized Linear Models – 4  – 64 hours
 
 Option 2 – Project Path:  
-STA8CJ449 / STA8CJ499: Project / Research Project – 12  
+STA8CJ449 / STA8CJ499: Project / Research Project – 12  – 300 hours
 
 Both Options Include:  
-Elective 5 – 4  
-Elective 6 – 4  
-Elective 7 or Research Methodology – 4  
+Elective 5 – 4  – 50 hours  
+Elective 6 – 4  – 50 hours  
+Elective 7 or Research Methodology – 4  – 50 hours
+
 
 ==================  
 ELECTIVE COURSES  
