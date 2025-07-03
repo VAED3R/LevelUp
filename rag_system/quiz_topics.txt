@@ -142,3 +142,16 @@
     - Metropolis-Hastings, Gibbs Sampling
     - Expectation-Maximization Algorithm
   - Kernel Smoothing and Density Estimation
+
+from pydantic import BaseModel
+import difflib
+
+class TopicRequest(BaseModel):
+    topic: str
+
+@app.post("/validate-topic")
+async def validate_topic(request: TopicRequest):
+    topic = request.topic
+    topic_lower = topic.strip().lower()
+    matches = difflib.get_close_matches(topic_lower, quiz_topics, n=1, cutoff=0.8)
+    # ... rest of your logic ...

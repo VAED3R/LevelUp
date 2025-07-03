@@ -8,6 +8,7 @@ import traceback
 import logging
 import requests
 from dotenv import load_dotenv
+import difflib
 
 # LlamaIndex imports
 from llama_index.core import VectorStoreIndex, Document
@@ -110,6 +111,9 @@ class Query(BaseModel):
 
 class SemesterQuery(BaseModel):
     semester: str
+
+class TopicRequest(BaseModel):
+    topic: str
 
 @app.post("/search")
 async def search(query: Query, request: Request):
@@ -220,6 +224,38 @@ async def semester_subjects_endpoint(query: SemesterQuery, request: Request):
         return {"semester": query.semester, "subjects": subjects}
     except Exception as e:
         logger.error(f"Error in semester_subjects: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/validate-topic")
+async def validate_topic(request: TopicRequest):
+    topic = request.topic
+    try:
+        logger.info(f"[validate-topic] Received topic: {topic}")
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        TOPICS_PATH = os.path.join(BASE_DIR, 'quiz_topics.txt')
+        with open(TOPICS_PATH, 'r') as f:
+            quiz_topics = [line.strip().lower() for line in f if line.strip()]
+        logger.info(f"[validate-topic] Loaded {len(quiz_topics)} topics from quiz_topics.txt: {quiz_topics}")
+        topic_lower = topic.strip().lower()
+        logger.info(f"[validate-topic] Normalized input topic: {topic_lower}")
+        # Exact or substring match
+        matches = [t for t in quiz_topics if t == topic_lower or t in topic_lower or topic_lower in t]
+        logger.info(f"[validate-topic] Exact/substring matches: {matches}")
+        # Fuzzy match if no direct match
+        if not matches:
+            fuzzy_matches = difflib.get_close_matches(topic_lower, quiz_topics, n=1, cutoff=0.8)
+            logger.info(f"[validate-topic] Fuzzy matches: {fuzzy_matches}")
+            if fuzzy_matches:
+                matches = fuzzy_matches
+        if matches:
+            logger.info(f"[validate-topic] Topic '{topic}' is valid. Matched topic: {matches[0]}")
+            return {"valid": True, "matchedTopic": matches[0]}
+        else:
+            logger.info(f"[validate-topic] Topic '{topic}' is not valid. No matches found.")
+            return {"valid": False, "matchedTopic": None}
+    except Exception as e:
+        logger.error(f"[validate-topic] Error: {str(e)}")
         logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 

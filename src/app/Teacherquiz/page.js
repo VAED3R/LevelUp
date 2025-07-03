@@ -133,8 +133,26 @@ export default function TeacherQuiz() {
             return;
         }
 
+        // Validate topic first
         setLoading(true);
         setError("");
+        try {
+            const validateRes = await fetch("/api/validate-topic", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ topic }),
+            });
+            const validateData = await validateRes.json();
+            if (!validateData.valid) {
+                setError("Topic not found in allowed topics. Please choose a valid topic.");
+                setLoading(false);
+                return;
+            }
+        } catch (e) {
+            setError("Error validating topic. Please try again.");
+            setLoading(false);
+            return;
+        }
 
         try {
             const prompt = `Generate ${numQuestions} multiple choice questions about ${topic} in ${subject} for semester ${semester}. 
