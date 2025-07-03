@@ -14,12 +14,15 @@ import {
 import { getEnhancedDeepSeekRecommendations, getRecommendedContent } from "@/lib/deepseek";
 import AttentionSpanSettings from "@/components/AttentionSpanSettings";
 import LearningAssessment from "@/components/LearningAssessment";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export default function PersonalizedLearning() {
   const { user } = useAuth();
   const [learningProfile, setLearningProfile] = useState(null);
   const [recommendations, setRecommendations] = useState(null);
   const [studentData, setStudentData] = useState(null);
+  const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [showGoalForm, setShowGoalForm] = useState(false);
@@ -47,6 +50,16 @@ export default function PersonalizedLearning() {
   const fetchData = async () => {
     try {
       setLoading(true);
+      
+      // Fetch user data from users collection
+      const userRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userRef);
+      
+      if (userDoc.exists()) {
+        setUserData(userDoc.data());
+      } else {
+        console.error('No user data found in Firestore.');
+      }
       
       // Fetch learning profile from learningProfiles collection
       const profileResponse = await fetch(`/api/learning-profile?studentId=${user.uid}`);
@@ -130,11 +143,31 @@ export default function PersonalizedLearning() {
 
   const getLearningStyleIcon = (style) => {
     switch (style) {
-      case 'visual': return '️';
-      case 'auditory': return '👂';
-      case 'kinesthetic': return '🤲';
-      case 'reading': return '📖';
-      default: return '🎓';
+      case 'visual':
+        return '👁️';
+      case 'auditory':
+        return '👂';
+      case 'kinesthetic':
+        return '🏃';
+      case 'reading':
+        return '📖';
+      default:
+        return '🎓';
+    }
+  };
+
+  const getLearningStyleDescription = (style) => {
+    switch (style) {
+      case 'visual':
+        return 'Visual learner who excels through images, diagrams, and visual aids. You process information best when it\'s presented in a visual format.';
+      case 'auditory':
+        return 'Auditory learner who prefers listening and verbal communication. You learn effectively through discussions, lectures, and spoken explanations.';
+      case 'kinesthetic':
+        return 'Kinesthetic learner who thrives through hands-on activities and movement. You learn best by doing and experiencing things physically.';
+      case 'reading':
+        return 'Reading/writing learner who prefers text-based learning. You excel when information is presented through written materials and note-taking.';
+      default:
+        return 'A dedicated learner with unique strengths and abilities. Your learning journey is personalized to match your style and preferences.';
     }
   };
 
@@ -382,109 +415,120 @@ export default function PersonalizedLearning() {
           </p>
         </div>
 
-        {/* Student Statistics - Prominently Displayed */}
-        <StudentStats />
-
-        {/* Learning Profile Summary */}
+        {/* Learning Profile Summary - Character Card Style */}
         <div className={styles.profileSection}>
           <div className={styles.profileCard}>
-            <div className={styles.profileHeader}>
-              <div className={styles.learningStyle}>
-                <span className={styles.styleIcon}>
-                  {getLearningStyleIcon(learningProfile?.learningStyle)}
-                </span>
-                <div className={styles.styleInfo}>
-                  <h3>Learning Style</h3>
-                  <p>{learningProfile?.learningStyle?.charAt(0).toUpperCase() + 
-                      learningProfile?.learningStyle?.slice(1)} Learner</p>
-                  <div className={styles.styleDescription}>
-                    {learningProfile?.learningStyle === 'visual' && 'You learn best through images, diagrams, and visual aids'}
-                    {learningProfile?.learningStyle === 'auditory' && 'You prefer listening and verbal communication'}
-                    {learningProfile?.learningStyle === 'kinesthetic' && 'You learn through hands-on activities and movement'}
-                    {learningProfile?.learningStyle === 'reading' && 'You prefer reading and writing to process information'}
+            {/* Left Panel - Character Info */}
+            <div className={styles.leftPanel}>
+              <div className={styles.characterCard}>
+                <div className={styles.characterInfo}>
+                  <div className={styles.profilePicture}>
+                    <span className={styles.profileIcon}>👤</span>
+                  </div>
+                  <div className={styles.studentNameContainer}>
+                    <h2 className={styles.studentName}>{userData?.name || 'STUDENT'}</h2>
+                  </div>
+                  <p className={styles.learningStyleText}>
+                    {learningProfile?.learningStyle || 'Learning Style'} Learner
+                  </p>
+                  <div className={styles.learningDescription}>
+                    {getLearningStyleDescription(learningProfile?.learningStyle)}
                   </div>
                 </div>
               </div>
-              <div className={styles.profileStats}>
-                <div className={styles.stat}>
-                  <span className={styles.statNumber}>
-                    {studentData?.data ? calculateOverallAverage().toFixed(1) : '0.0'}
-                  </span>
-                  <span className={styles.statLabel}>Overall Avg</span>
-                </div>
-                <div className={styles.stat}>
-                  <span className={styles.statNumber}>
-                    {studentData?.data?.analytics?.academic?.totalQuizzes || 0}
-                  </span>
-                  <span className={styles.statLabel}>Quizzes</span>
-                </div>
-                <div className={styles.stat}>
-                  <span className={styles.statNumber}>
-                    {studentData?.data?.analytics?.academic?.totalTests || 0}
-                  </span>
-                  <span className={styles.statLabel}>Tests</span>
-                </div>
-                <div className={styles.stat}>
-                  <span className={styles.statNumber}>
-                    {studentData?.data?.analytics?.academic?.completedAssignments || 0}
-                  </span>
-                  <span className={styles.statLabel}>Assignments</span>
-                </div>
-              </div>
-              {!studentData?.data && (
-                <div className={styles.noDataMessage}>
-                  <p>No academic data available yet. Complete some quizzes, tests, or assignments to see your performance metrics here!</p>
-                </div>
-              )}
             </div>
-            <div className={styles.profileDetails}>
-              <div className={styles.detailRow}>
-                <div className={styles.detailItem}>
-                  <span className={styles.detailLabel}>Quiz Average:</span>
-                  <span className={styles.detailValue}>
-                    {studentData?.data?.analytics?.academic?.quizAverage?.toFixed(1) || 'N/A'}%
-                  </span>
+
+            {/* Main Panel - Stats and Details */}
+            <div className={styles.mainPanel}>
+              {/* Performance Stats */}
+              <div className={styles.performanceStats}>
+                <div className={styles.performanceStat}>
+                  <h4>{calculateOverallAverage() ? `${calculateOverallAverage().toFixed(1)}%` : 'N/A'}</h4>
+                  <p>Overall Average</p>
                 </div>
-                <div className={styles.detailItem}>
-                  <span className={styles.detailLabel}>Test Average:</span>
-                  <span className={styles.detailValue}>
-                    {studentData?.data?.testAverage?.toFixed(1) || 'N/A'}%
-                  </span>
+                <div className={styles.performanceStat}>
+                  <h4>{studentData?.data?.testResults?.length || 0}</h4>
+                  <p>Tests Taken</p>
                 </div>
-                <div className={styles.detailItem}>
-                  <span className={styles.detailLabel}>Assignment Average:</span>
-                  <span className={styles.detailValue}>
-                    {studentData?.data?.assignmentAverage?.toFixed(1) || 'N/A'}%
-                  </span>
+                <div className={styles.performanceStat}>
+                  <h4>{studentData?.data?.assignments?.length || 0}</h4>
+                  <p>Assignments</p>
                 </div>
-              </div>
-              <div className={styles.detailRow}>
-                <div className={styles.detailItem}>
-                  <span className={styles.detailLabel}>Study Preference:</span>
-                  <span className={styles.detailValue}>
-                    {learningProfile?.studyTimePreference ? 
-                      learningProfile.studyTimePreference.charAt(0).toUpperCase() + 
-                      learningProfile.studyTimePreference.slice(1) : 
-                      'Evening'
-                    }
-                  </span>
-                </div>
-                <div className={styles.detailItem}>
-                  <span className={styles.detailLabel}>Attention Span:</span>
-                  <span className={styles.detailValue}>
-                    {learningProfile?.attentionSpan || 25} minutes
-                  </span>
-                </div>
-                <div className={styles.detailItem}>
-                  <span className={styles.detailLabel}>Active Goals:</span>
-                  <span className={styles.detailValue}>
-                    {learningProfile?.learningGoals?.filter(g => g.progress < 100).length || 0}
-                  </span>
+                <div className={styles.performanceStat}>
+                  <h4>{studentData?.data?.analytics?.academic?.totalQuizzes || 0}</h4>
+                  <p>Quizzes Taken</p>
                 </div>
               </div>
+
+              {/* Character Stats */}
+              <div className={styles.characterStats}>
+                <h3>Abilities & Stats</h3>
+                {learningProfile ? (
+                  <ul className={styles.statsList}>
+                    <li className={styles.statItem}>
+                      <div className={styles.statContent}>
+                        <div className={styles.statName}>Attention Span</div>
+                        <div className={styles.statValue}>{learningProfile.attentionSpan || 'N/A'}</div>
+                        <div className={styles.statDetails}>Minutes of focused study</div>
+                      </div>
+                    </li>
+                    
+                    <li className={styles.statItem}>
+                      <div className={styles.statContent}>
+                        <div className={styles.statName}>Study Sessions</div>
+                        <div className={styles.statValue}>{learningProfile.studySessionsPerDay || 'N/A'}</div>
+                        <div className={styles.statDetails}>Sessions per day</div>
+                      </div>
+                    </li>
+                    
+                    <li className={styles.statItem}>
+                      <div className={styles.statContent}>
+                        <div className={styles.statName}>Preferred Time</div>
+                        <div className={styles.statValue}>{learningProfile.preferredStudyTime || 'N/A'}</div>
+                        <div className={styles.statDetails}>Optimal study period</div>
+                      </div>
+                    </li>
+                    
+                    <li className={styles.statItem}>
+                      <div className={styles.statContent}>
+                        <div className={styles.statName}>Environment</div>
+                        <div className={styles.statValue}>{learningProfile.studyEnvironment || 'N/A'}</div>
+                        <div className={styles.statDetails}>Preferred study setting</div>
+                      </div>
+                    </li>
+                    
+                    <li className={styles.statItem}>
+                      <div className={styles.statContent}>
+                        <div className={styles.statName}>Quizzes Taken</div>
+                        <div className={styles.statValue}>{studentData?.data?.analytics?.academic?.totalQuizzes || 0}</div>
+                        <div className={styles.statDetails}>Total quiz attempts</div>
+                      </div>
+                    </li>
+                    
+                    <li className={styles.statItem}>
+                      <div className={styles.statContent}>
+                        <div className={styles.statName}>Challenges</div>
+                        <div className={styles.statValue}>{studentData?.data?.analytics?.academic?.totalChallenges || 0}</div>
+                        <div className={styles.statDetails}>Quiz challenges completed</div>
+                      </div>
+                    </li>
+                  </ul>
+                ) : (
+                  <div className={styles.noDataMessage}>
+                    <p>No learning profile data available. Complete your assessment to see your character stats!</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Decorative Elements */}
+              <div className={styles.glowCircle}></div>
+              <div className={styles.characterImage}></div>
             </div>
           </div>
         </div>
+
+        {/* Student Statistics - Now displayed after the learning profile */}
+        <StudentStats />
 
         {/* Navigation Tabs */}
         <div className={styles.tabNavigation}>
