@@ -29,6 +29,8 @@ export default function PersonalizedLearning() {
   const [showAttentionSpanSettings, setShowAttentionSpanSettings] = useState(false);
   const [error, setError] = useState(null);
   const [subjects, setSubjects] = useState([]);
+  const [regeneratingAi, setRegeneratingAi] = useState(false);
+  const [regeneratingContent, setRegeneratingContent] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -309,6 +311,39 @@ export default function PersonalizedLearning() {
   const handleAttentionSpanUpdate = (updatedProfile) => {
     setLearningProfile(updatedProfile);
     setShowAttentionSpanSettings(false);
+  };
+
+  const handleRegenerateAiRecommendations = async () => {
+    try {
+      setRegeneratingAi(true);
+      const personalizedRecs = await getEnhancedDeepSeekRecommendations(
+        learningProfile,
+        studentData?.data?.analytics?.academic,
+        learningProfile?.learningGoals || [],
+        studentData?.data?.analytics?.engagement?.recentActivity || []
+      );
+      setAiRecs(personalizedRecs);
+    } catch (error) {
+      console.error('Error regenerating AI recommendations:', error);
+    } finally {
+      setRegeneratingAi(false);
+    }
+  };
+
+  const handleRegenerateContentRecommendations = async () => {
+    try {
+      setRegeneratingContent(true);
+      const contentRecs = await getRecommendedContent(
+        learningProfile,
+        studentData?.data?.analytics?.academic,
+        Object.keys(studentData?.data?.analytics?.academic?.subjectPerformance || {})
+      );
+      setContentRecs(contentRecs);
+    } catch (error) {
+      console.error('Error regenerating content recommendations:', error);
+    } finally {
+      setRegeneratingContent(false);
+    }
   };
 
   if (loading) {
@@ -871,7 +906,16 @@ export default function PersonalizedLearning() {
 
               {/* Enhanced AI-Powered Recommendations Section */}
               <div className={styles.recommendationsSection}>
-                <h3>AI-Powered Recommendations</h3>
+                <div className={styles.recommendationHeader}>
+                  <h3>AI-Powered Recommendations</h3>
+                  <button 
+                    className={styles.regenerateButton}
+                    onClick={handleRegenerateAiRecommendations}
+                    disabled={regeneratingAi}
+                  >
+                    {regeneratingAi ? '🔄 Regenerating...' : '🔄 Regenerate'}
+                  </button>
+                </div>
                 <div className={styles.recommendationCard}>
                   {!aiRecs && <span>Loading AI recommendations...</span>}
                   {aiRecs?.error && <div>{typeof aiRecs.error === 'string' ? aiRecs.error : JSON.stringify(aiRecs.error)}<pre>{typeof aiRecs.raw === 'string' ? aiRecs.raw : JSON.stringify(aiRecs.raw)}</pre></div>}
@@ -922,7 +966,16 @@ export default function PersonalizedLearning() {
 
               {/* AI-Powered Content Recommendations */}
               <div className={styles.recommendationsSection}>
-                <h3>AI-Powered Content Recommendations</h3>
+                <div className={styles.recommendationHeader}>
+                  <h3>AI-Powered Content Recommendations</h3>
+                  <button 
+                    className={styles.regenerateButton}
+                    onClick={handleRegenerateContentRecommendations}
+                    disabled={regeneratingContent}
+                  >
+                    {regeneratingContent ? '🔄 Regenerating...' : '🔄 Regenerate'}
+                  </button>
+                </div>
                 <div className={styles.recommendationCard}>
                   {!contentRecs && <span>Loading content recommendations...</span>}
                   {contentRecs?.error && <div>{typeof contentRecs.error === 'string' ? contentRecs.error : JSON.stringify(contentRecs.error)}</div>}
