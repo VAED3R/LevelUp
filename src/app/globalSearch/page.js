@@ -16,7 +16,7 @@ export default function GlobalSearch() {
     const [isFilteringResults, setIsFilteringResults] = useState(false);
 
     // Local SearXNG instance URL
-    const SEARXNG_URL = 'http://localhost:8080';
+    const SEARXNG_URL = 'https://level-up-omega-lilac.vercel.app/';
 
     const handleSearch = async (e) => {
         e.preventDefault();
