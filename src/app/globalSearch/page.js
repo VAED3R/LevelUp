@@ -39,21 +39,14 @@ export default function GlobalSearch() {
             );
 
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Search API error:', errorText);
-                throw new Error(`Search failed with status: ${response.status}. ${errorText}`);
+                throw new Error(`Search failed with status: ${response.status}`);
             }
 
             const data = await response.json();
-            
-            if (!data.results) {
-                throw new Error('Invalid response format from search API');
-            }
-            
             setSearchResults(data.results);
         } catch (error) {
             console.error('Search error:', error);
-            setError(`Failed to fetch search results: ${error.message}. Please try again or contact support.`);
+            setError('Failed to fetch search results. Please try again.');
         } finally {
             setLoading(false);
         }
