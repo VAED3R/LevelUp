@@ -625,15 +625,6 @@ export default function StudentPerformance() {
               </div>
               <div className={styles.metricsGrid}>
                 <div className={styles.metricCard}>
-                  <div className={styles.metricIcon}>📝</div>
-                  <div className={styles.metricContent}>
-                    <h3>Quiz Performance</h3>
-                    <div className={styles.metricValue}>{metrics.avgQuizScore}%</div>
-                    <p>Average Score</p>
-                    <div className={styles.metricDetail}>Total Quizzes: {metrics.totalQuizzes}</div>
-                  </div>
-                </div>
-                <div className={styles.metricCard}>
                   <div className={styles.metricIcon}>📚</div>
                   <div className={styles.metricContent}>
                     <h3>Assignment Performance</h3>
