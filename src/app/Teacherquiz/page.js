@@ -53,6 +53,32 @@ export default function TeacherQuiz() {
                 }));
 
                 console.log("All subjects from collection:", subjectsData);
+                console.log("Number of subjects found:", subjectsData.length);
+
+                // Check if subjects have the expected fields
+                if (subjectsData.length > 0) {
+                    const firstSubject = subjectsData[0];
+                    console.log("Sample subject structure:", firstSubject);
+                    console.log("Available fields:", Object.keys(firstSubject));
+                    
+                    // Check for semester field
+                    const hasSemester = subjectsData.some(subject => subject.semester);
+                    console.log("Subjects with semester field:", hasSemester);
+                    
+                    // Check for courseName field
+                    const hasCourseName = subjectsData.some(subject => subject.courseName);
+                    console.log("Subjects with courseName field:", hasCourseName);
+                    
+                    if (!hasSemester) {
+                        console.warn("No subjects found with 'semester' field. Available fields:", 
+                            [...new Set(subjectsData.flatMap(s => Object.keys(s)))]);
+                    }
+                    
+                    if (!hasCourseName) {
+                        console.warn("No subjects found with 'courseName' field. Available fields:", 
+                            [...new Set(subjectsData.flatMap(s => Object.keys(s)))]);
+                    }
+                }
 
                 // Store all subjects data for filtering later
                 setAllSubjectsData(subjectsData);
@@ -69,7 +95,7 @@ export default function TeacherQuiz() {
                 setSubjects([]);
             } catch (error) {
                 console.error("Error fetching subjects:", error);
-                setError("Failed to load subjects");
+                setError("Failed to load subjects: " + error.message);
             }
         };
 
@@ -78,11 +104,15 @@ export default function TeacherQuiz() {
 
     // Filter subjects based on selected semester
     useEffect(() => {
+        console.log("Filtering subjects - semester:", semester, "allSubjectsData length:", allSubjectsData.length);
+        
         if (semester && allSubjectsData.length > 0) {
             // Filter subjects by selected semester
             const filteredSubjects = allSubjectsData.filter(
                 subject => subject.semester === semester
             );
+
+            console.log("Filtered subjects for semester", semester, ":", filteredSubjects);
 
             // Extract unique subject names for the selected semester
             const uniqueSubjects = [...new Set(
@@ -95,6 +125,7 @@ export default function TeacherQuiz() {
             // Reset selected subject when semester changes
             setSubject("");
         } else {
+            console.log("No semester selected or no subjects data available");
             setSubjects([]);
             setSubject("");
         }
@@ -321,7 +352,10 @@ export default function TeacherQuiz() {
                                 <select
                                     key="subject-select"
                                     value={subject}
-                                    onChange={(e) => setSubject(e.target.value)}
+                                    onChange={(e) => {
+                                        console.log("Subject changed to:", e.target.value);
+                                        setSubject(e.target.value);
+                                    }}
                                     className={styles.select}
                                     required
                                     disabled={!semester}

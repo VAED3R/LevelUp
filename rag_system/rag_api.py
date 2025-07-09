@@ -8,8 +8,9 @@ import traceback
 import logging
 import requests
 from dotenv import load_dotenv
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 import difflib
-
+print("API KEY:", os.getenv("NEXT_PUBLIC_DEEPSEEK_API_KEY"))
 # LlamaIndex imports
 from llama_index.core import VectorStoreIndex, Document
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
@@ -162,7 +163,7 @@ async def search(query: Query, request: Request):
             f"{context}\n\nBased on this context and the user's question, provide a clear and helpful response."
         )
         # Call DeepSeek API
-        api_key = os.environ.get("NEXT_PUBLIC_DEEPSEEK_API_KEY")
+        api_key = os.getenv("NEXT_PUBLIC_DEEPSEEK_API_KEY")
         if api_key:
             logger.info(f"[DeepSeek] API key loaded: {api_key[:4]}...{'*' * (len(api_key)-8) if len(api_key) > 8 else ''}{api_key[-4:]}")
         else:
@@ -212,7 +213,7 @@ async def get_context(query: Query, request: Request):
             f"{context}\n\nBased on this context and the user's question, provide a clear and helpful response."
         )
         # Call DeepSeek API
-        api_key = os.environ.get("NEXT_PUBLIC_DEEPSEEK_API_KEY")
+        api_key = os.getenv("NEXT_PUBLIC_DEEPSEEK_API_KEY")
         if api_key:
             logger.info(f"[DeepSeek] API key loaded: {api_key[:4]}...{'*' * (len(api_key)-8) if len(api_key) > 8 else ''}{api_key[-4:]}")
         else:
@@ -276,4 +277,6 @@ async def validate_topic(request: TopicRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+print("API KEY:", os.getenv("NEXT_PUBLIC_DEEPSEEK_API_KEY")) 
