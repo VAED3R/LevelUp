@@ -193,7 +193,7 @@ export default function LearningAssessment({ onComplete, onClose }) {
       <div className={styles.assessmentModal}>
         <div className={styles.header}>
           <h2>Learning Style Assessment</h2>
-          <button onClick={onClose} className={styles.closeButton}>×</button>
+          <button onClick={onClose} className={styles.closeButton} suppressHydrationWarning>×</button>
         </div>
 
         <div className={styles.progressBar}>
@@ -218,6 +218,7 @@ export default function LearningAssessment({ onComplete, onClose }) {
                   answers[currentQ.id] === option.value ? styles.selected : ''
                 }`}
                 onClick={() => handleAnswer(currentQ.id, option.value)}
+                suppressHydrationWarning
               >
                 {option.text}
               </button>
@@ -230,6 +231,7 @@ export default function LearningAssessment({ onComplete, onClose }) {
             className={styles.navButton}
             onClick={handlePrevious}
             disabled={currentQuestion === 0}
+            suppressHydrationWarning
           >
             Previous
           </button>
@@ -238,6 +240,7 @@ export default function LearningAssessment({ onComplete, onClose }) {
             className={`${styles.navButton} ${styles.primary}`}
             onClick={handleNext}
             disabled={!answers[currentQ.id]}
+            suppressHydrationWarning
           >
             {currentQuestion === assessmentQuestions.length - 1 ? 'Complete' : 'Next'}
           </button>

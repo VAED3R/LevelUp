@@ -152,7 +152,7 @@ export default function TeacherChatbot() {
       <div className={`${styles.chatContainer} ${isChatOpen ? styles.open : ''}`}>
         <div className={styles.chatHeader}>
           <h2>Chat Assistant</h2>
-          <button onClick={toggleChat} className={styles.closeButton}>
+          <button onClick={toggleChat} className={styles.closeButton} suppressHydrationWarning>
             {isChatOpen ? '×' : ''}
           </button>
         </div>
@@ -186,7 +186,7 @@ export default function TeacherChatbot() {
                 placeholder="Type your message..."
                 className={styles.messageInput}
               />
-              <button type="submit" className={styles.sendButton}>
+              <button type="submit" className={styles.sendButton} suppressHydrationWarning>
                 Send
               </button>
             </form>
@@ -209,13 +209,14 @@ export default function TeacherChatbot() {
                       toggleChat();
                     }, 500);
                   }}
+                  suppressHydrationWarning
                 >
                   Start Chat
                 </button>
               </div>
             </div>
           )}
-          <button onClick={toggleChat} className={styles.chatButton}>
+          <button onClick={toggleChat} className={styles.chatButton} suppressHydrationWarning>
             <span className={styles.chatIcon}>💬</span>
           </button>
         </>

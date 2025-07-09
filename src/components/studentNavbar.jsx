@@ -40,7 +40,7 @@ export default function Navbar() {
       <nav className={styles.nav}>
         {/* Search icon on the left */}
         <div className={styles.searchContainer}>
-          <button onClick={handleSearchClick} className={styles.searchButton}>
+          <button onClick={handleSearchClick} className={styles.searchButton} suppressHydrationWarning>
             <FaSearch className={styles.searchIcon} />
             <span className={styles.tooltip}>Global Search</span>
           </button>
@@ -74,7 +74,7 @@ export default function Navbar() {
         <div className={styles.buttonContainer}>
             {/* Logout button */}
             {user && (
-              <button onClick={handleLogout} className={styles.logoutButton}>
+              <button onClick={handleLogout} className={styles.logoutButton} suppressHydrationWarning>
                 Logout
               </button>
             )}

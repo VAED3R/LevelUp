@@ -40,7 +40,7 @@ export default function Navbar() {
       <div className={styles.buttonContainer}>
         {/* Logout button */}
         {user && (
-          <button onClick={handleLogout} className={styles.logoutButton}>
+          <button onClick={handleLogout} className={styles.logoutButton} suppressHydrationWarning>
             Logout
           </button>
         )}
