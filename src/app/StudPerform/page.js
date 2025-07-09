@@ -1,15 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { db, auth } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import { collection, getDocs, query, where, getDoc, doc, addDoc, onSnapshot } from "firebase/firestore";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged } from "firebase/auth";
 import ReactMarkdown from 'react-markdown';
 import Navbar from "@/components/parentNavbar";
 import styles from "./page.module.css";
 import { Line, Pie } from "react-chartjs-2";
 import ParentChatbot from '@/components/ParentChatbot';
+import { useAuth } from "@/context/AuthContext";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -50,6 +50,7 @@ export default function StudentPerformance() {
   const [sendingRequest, setSendingRequest] = useState(false);
   const [requestStatus, setRequestStatus] = useState(null);
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
 
   // Format date from ISO string to local date string
   const formatDate = (dateString) => {
@@ -155,21 +156,11 @@ export default function StudentPerformance() {
       }
     };
 
-    // Set up auth state listener
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // User is signed in
-        fetchStudentData(user.email);
-      } else {
-        // User is signed out
-        setError("You must be logged in to view this page.");
-        setLoading(false);
-      }
-    });
-
-    // Clean up the listener when component unmounts
-    return () => unsubscribe();
-  }, []);
+    // Only fetch data when user is available and auth is not loading
+    if (user && !authLoading) {
+      fetchStudentData(user.email);
+    }
+  }, [user?.uid, authLoading]);
 
   // Fetch performance data for the student using the same approach as personalized learning
   const fetchPerformanceData = async (studentId) => {

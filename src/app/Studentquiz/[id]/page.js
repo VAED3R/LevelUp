@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { auth, db } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc, arrayUnion, setDoc, writeBatch } from "firebase/firestore";
 import { useRouter, useParams } from "next/navigation";
 import Navbar from "@/components/studentNavbar";
@@ -10,7 +10,7 @@ import { useAuth } from "@/context/AuthContext";
 export default function StudentQuiz() {
   const { id } = useParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [quiz, setQuiz] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,13 +31,14 @@ export default function StudentQuiz() {
   const [answeredQuestions, setAnsweredQuestions] = useState(new Set());
 
   useEffect(() => {
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-
     const fetchQuiz = async () => {
       try {
+        // Use cached auth user instead of auth.currentUser
+        if (!user) {
+          console.log("No user is signed in.");
+          return; // Don't redirect, let AuthGate handle it
+        }
+
         const quizDoc = await getDoc(doc(db, "quizzes", id));
         if (!quizDoc.exists()) {
           setError("Quiz not found");
@@ -72,8 +73,11 @@ export default function StudentQuiz() {
       }
     };
 
-    fetchQuiz();
-  }, [id, user, router]);
+    // Only fetch data when user is available and auth is not loading
+    if (user && !authLoading) {
+      fetchQuiz();
+    }
+  }, [id, user?.uid, authLoading, router]);
 
   useEffect(() => {
     if (!timeLeft) return;

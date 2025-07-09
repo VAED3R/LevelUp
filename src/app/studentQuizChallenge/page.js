@@ -2,17 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { db, auth } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc, collection, getDocs, query, where, onSnapshot, arrayUnion } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
 import Navbar from "@/components/studentNavbar";
 import styles from "./page.module.css";
 import IntroAnimation from "../../components/IntroAnimation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function StudentQuizChallenge() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const challengeId = searchParams.get("challengeId");
+  const { user, loading: authLoading } = useAuth();
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null); 
@@ -132,72 +133,77 @@ export default function StudentQuizChallenge() {
   }, [challengeId, router]);
   
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        try {
-          setLoading(true);
-          console.log("Challenge ID:", challengeId);
+    const fetchChallengeData = async () => {
+      try {
+        // Use cached auth user instead of auth.currentUser
+        if (!user) {
+          console.log("No user is signed in.");
+          return; // Don't redirect, let AuthGate handle it
+        }
+
+        setLoading(true);
+        console.log("Challenge ID:", challengeId);
+        
+        // Get the current user's data from students collection
+        const studentDoc = await getDoc(doc(db, "students", user.uid));
+        if (studentDoc.exists()) {
+          const studentData = {
+            id: studentDoc.id,
+            ...studentDoc.data()
+          };
+          setCurrentUser(studentData);
+          console.log("Current user:", studentData.id);
           
-          // Get the current user's data from students collection
-          const studentDoc = await getDoc(doc(db, "students", user.uid));
-          if (studentDoc.exists()) {
-            const studentData = {
-              id: studentDoc.id,
-              ...studentDoc.data()
-            };
-            setCurrentUser(studentData);
-            console.log("Current user:", studentData.id);
-            
-            // Get the challenge data
-            if (challengeId) {
-              console.log("Fetching challenge data for ID:", challengeId);
-              const challengeDoc = await getDoc(doc(db, "challenges", challengeId));
-              if (challengeDoc.exists()) {
-                const challengeData = challengeDoc.data();
-                console.log("Challenge data:", challengeData);
-                setChallenge(challengeData);
-                
-                // Check if the user has already completed the quiz
-                const isFromUser = challengeData.fromUserId === user.uid;
-                console.log("Is from user:", isFromUser);
-                
-                // Always load the quiz data if available, regardless of completion status
-                if (challengeData.quizId) {
-                  console.log("Fetching quiz data for ID:", challengeData.quizId);
-                  const quizDoc = await getDoc(doc(db, "quizzes", challengeData.quizId));
-                  if (quizDoc.exists()) {
-                    const quizData = quizDoc.data();
-                    console.log("Quiz data:", quizData);
-                    setQuiz(quizData);
-                  } else {
-                    console.error("Quiz not found for ID:", challengeData.quizId);
-                    setError("Quiz not found. Please try again later.");
-                  }
+          // Get the challenge data
+          if (challengeId) {
+            console.log("Fetching challenge data for ID:", challengeId);
+            const challengeDoc = await getDoc(doc(db, "challenges", challengeId));
+            if (challengeDoc.exists()) {
+              const challengeData = challengeDoc.data();
+              console.log("Challenge data:", challengeData);
+              setChallenge(challengeData);
+              
+              // Check if the user has already completed the quiz
+              const isFromUser = challengeData.fromUserId === user.uid;
+              console.log("Is from user:", isFromUser);
+              
+              // Always load the quiz data if available, regardless of completion status
+              if (challengeData.quizId) {
+                console.log("Fetching quiz data for ID:", challengeData.quizId);
+                const quizDoc = await getDoc(doc(db, "quizzes", challengeData.quizId));
+                if (quizDoc.exists()) {
+                  const quizData = quizDoc.data();
+                  console.log("Quiz data:", quizData);
+                  setQuiz(quizData);
                 } else {
-                  console.error("Quiz ID not found in challenge data");
-                  setError("Quiz not generated yet. Please try again later.");
+                  console.error("Quiz not found for ID:", challengeData.quizId);
+                  setError("Quiz not found. Please try again later.");
                 }
-                
-                // Set completion status and score after loading quiz data
-                if ((isFromUser && challengeData.fromUserScore !== null) || 
-                    (!isFromUser && challengeData.toUserScore !== null)) {
-                  setQuizCompleted(true);
-                  setScore(isFromUser ? challengeData.fromUserScore : challengeData.toUserScore);
-                  setTotalTime(isFromUser ? challengeData.fromUserTime : challengeData.toUserTime);
-                }
-                
-                // Set up real-time listener for challenge updates
-                const challengeRef = doc(db, "challenges", challengeId);
-                const unsubscribeChallenge = onSnapshot(challengeRef, (doc) => {
-                  if (doc.exists()) {
-                    const updatedChallenge = doc.data();
-                    console.log("Real-time challenge update:", updatedChallenge);
-                    
-                    // Force a UI update by creating a new object
-                    setChallenge({...updatedChallenge});
-                    
-                    // Update UI if the other player has completed the quiz
-                    const isFromUser = updatedChallenge.fromUserId === user.uid;
+              } else {
+                console.error("Quiz ID not found in challenge data");
+                setError("Quiz not generated yet. Please try again later.");
+              }
+              
+              // Set completion status and score after loading quiz data
+              if ((isFromUser && challengeData.fromUserScore !== null) || 
+                  (!isFromUser && challengeData.toUserScore !== null)) {
+                setQuizCompleted(true);
+                setScore(isFromUser ? challengeData.fromUserScore : challengeData.toUserScore);
+                setTotalTime(isFromUser ? challengeData.fromUserTime : challengeData.toUserTime);
+              }
+              
+              // Set up real-time listener for challenge updates
+              const challengeRef = doc(db, "challenges", challengeId);
+              const unsubscribeChallenge = onSnapshot(challengeRef, (doc) => {
+                if (doc.exists()) {
+                  const updatedChallenge = doc.data();
+                  console.log("Real-time challenge update:", updatedChallenge);
+                  
+                  // Force a UI update by creating a new object
+                  setChallenge({...updatedChallenge});
+                  
+                  // Update UI if the other player has completed the quiz
+                  const isFromUser = updatedChallenge.fromUserId === user.uid;
                     if ((isFromUser && updatedChallenge.toUserScore !== null) || 
                         (!isFromUser && updatedChallenge.fromUserScore !== null)) {
                       // The other player has completed the quiz
@@ -241,19 +247,22 @@ export default function StudentQuizChallenge() {
           setLoading(false);
         }
       } else {
-        console.error("User not authenticated");
-        setError("User not authenticated. Please log in and try again.");
-        setLoading(false);
+        console.error("Student data not found for user:", user.uid);
+        setError("Student data not found. Please try again later.");
       }
-    });
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError(`Failed to load quiz data: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return () => {
-      unsubscribe();
-      if (timerInterval) {
-        clearInterval(timerInterval);
-      }
-    };
-  }, [challengeId]);
+  // Only fetch data when user is available and auth is not loading
+  if (user && !authLoading) {
+    fetchChallengeData();
+  }
+}, [user?.uid, authLoading, challengeId]);
   
   // Start the quiz
   const startQuiz = () => {

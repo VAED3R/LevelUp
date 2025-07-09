@@ -5,11 +5,10 @@ import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import Navbar from "@/components/studentNavbar";
-import IntroAnimation from "../../components/IntroAnimation";
 import styles from './page.module.css';
 
 export default function StudentAttendance() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [selectedSubject, setSelectedSubject] = useState('');
   const [selectedSemester, setSelectedSemester] = useState('6'); // Default to semester 6
   const [attendance, setAttendance] = useState([]);
@@ -29,17 +28,17 @@ export default function StudentAttendance() {
   const [selectedOverallSemester, setSelectedOverallSemester] = useState('6'); // Default to semester 6
 
   useEffect(() => {
-    if (user) {
+    if (user && !authLoading) {
       fetchSubjectsAndSemesters();
       fetchOverallAttendance();
     }
-  }, [user]);
+  }, [user?.uid, authLoading]);
 
   useEffect(() => {
-    if (user && selectedSubject) {
+    if (user && !authLoading && selectedSubject) {
       fetchAttendance();
     }
-  }, [user, selectedSubject]);
+  }, [user?.uid, authLoading, selectedSubject]);
 
   // Filter subjects based on selected semester
   useEffect(() => {
@@ -315,211 +314,198 @@ export default function StudentAttendance() {
     }
   };
 
-  if (!user) {
-    return (
-      <div>
-        <Navbar />
-        <div className={styles.container}>
-          <div className={styles.content}>
-            <div className={styles.error}>Please log in to view attendance.</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
-    <IntroAnimation loadingText="Loading Attendance Records...">
-      <div>
-        <Navbar />
-        <div className={styles.container}>
-          <div className={styles.content}>
-            <h1 className={styles.title}>Attendance</h1>
+    <div>
+      <Navbar />
+      <div className={styles.container}>
+        <div className={styles.content}>
+          <h1 className={styles.title}>Attendance</h1>
             
-            <div className={styles.viewToggle}>
-              <button 
-                className={`${styles.toggleButton} ${showOverall ? styles.active : ''}`}
-                onClick={toggleOverallView}
-              >
-                Total Attendance
-              </button>
-              <button 
-                className={`${styles.toggleButton} ${!showOverall ? styles.active : ''}`}
-                onClick={() => {
-                  setShowOverall(false);
-                  setSelectedSubject('');
-                  setSelectedSemester('6'); // Reset to default semester
-                }}
-              >
-                Subject Wise
-              </button>
-            </div>
+          <div className={styles.viewToggle}>
+            <button 
+              className={`${styles.toggleButton} ${showOverall ? styles.active : ''}`}
+              onClick={toggleOverallView}
+            >
+              Total Attendance
+            </button>
+            <button 
+              className={`${styles.toggleButton} ${!showOverall ? styles.active : ''}`}
+              onClick={() => {
+                setShowOverall(false);
+                setSelectedSubject('');
+                setSelectedSemester('6'); // Reset to default semester
+              }}
+            >
+              Subject Wise
+            </button>
+          </div>
 
-            {showOverall ? (
-              <div className={styles.attendanceContainer}>
-                <div className={styles.overallHeader}>
-                  <h2 className={styles.overallTitle}>Overall Attendance by Semester</h2>
-                  <div className={styles.semesterSelector}>
-                    <label htmlFor="overallSemester">Select Semester:</label>
-                    <select
-                      id="overallSemester"
-                      value={selectedOverallSemester}
-                      onChange={handleOverallSemesterChange}
-                      className={styles.select}
-                    >
-                      {semesters.map((semester) => (
-                        <option key={semester} value={semester}>
-                          Semester {semester}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <button 
-                    className={styles.refreshButton}
-                    onClick={fetchOverallAttendance}
+          {showOverall ? (
+            <div className={styles.attendanceContainer}>
+              <div className={styles.overallHeader}>
+                <h2 className={styles.overallTitle}>Overall Attendance by Semester</h2>
+                <div className={styles.semesterSelector}>
+                  <label htmlFor="overallSemester">Select Semester:</label>
+                  <select
+                    id="overallSemester"
+                    value={selectedOverallSemester}
+                    onChange={handleOverallSemesterChange}
+                    className={styles.select}
                   >
-                    🔄 Refresh
-                  </button>
-                </div>
-                
-                {/* Semester Stats */}
-                <div className={styles.semesterStatsContainer}>
-                  {semesterStats[selectedOverallSemester] ? (
-                    <div className={styles.semesterStatCard}>
-                      <h3 className={styles.semesterTitle}>Semester {selectedOverallSemester}</h3>
-                      <div className={styles.statsContainer}>
-                        <div className={styles.statCard} data-icon="total">
-                          <h3>Total Classes</h3>
-                          <p>{semesterStats[selectedOverallSemester].totalClasses}</p>
-                        </div>
-                        <div className={styles.statCard} data-icon="present">
-                          <h3>Present</h3>
-                          <p>{semesterStats[selectedOverallSemester].present}</p>
-                        </div>
-                        <div className={styles.statCard} data-icon="absent">
-                          <h3>Absent</h3>
-                          <p>{semesterStats[selectedOverallSemester].absent}</p>
-                        </div>
-                        <div className={styles.statCard} data-type="percentage" data-icon="percentage">
-                          <h3>Overall %</h3>
-                          <p>{semesterStats[selectedOverallSemester].percentage}%</p>
-                          <div className={styles.progressBar}>
-                            <div 
-                              className={styles.progressFill} 
-                              style={{ width: `${semesterStats[selectedOverallSemester].percentage}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className={styles.noData}>
-                      <p>No attendance records found for Semester {selectedOverallSemester}.</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className={styles.subjectSelector}>
-                  <div className={styles.formGroup}>
-                    <label htmlFor="semester">Select Semester</label>
-                    <select
-                      id="semester"
-                      value={selectedSemester}
-                      onChange={handleSemesterChange}
-                    >
-                      {semesters.map((semester) => (
-                        <option key={semester} value={semester}>
-                          Semester {semester}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label htmlFor="subject">Select Subject</label>
-                    <select
-                      id="subject"
-                      value={selectedSubject}
-                      onChange={handleSubjectChange}
-                      disabled={!selectedSemester}
-                    >
-                      <option value="">
-                        {selectedSemester ? "Choose a subject" : "Select semester first"}
+                    {semesters.map((semester) => (
+                      <option key={semester} value={semester}>
+                        Semester {semester}
                       </option>
-                      {subjects.map((subject) => (
-                        <option key={subject} value={subject}>
-                          {subject}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                    ))}
+                  </select>
                 </div>
-
-                {loading ? (
-                  <div className={styles.loading}>Loading...</div>
-                ) : error ? (
-                  <div className={styles.error}>{error}</div>
-                ) : selectedSubject ? (
-                  <div className={styles.attendanceContainer}>
-                    <h2 className={styles.subjectTitle}>
-                      {selectedSubject} Attendance (Semester {selectedSemester})
-                    </h2>
+                <button 
+                  className={styles.refreshButton}
+                  onClick={fetchOverallAttendance}
+                >
+                  🔄 Refresh
+                </button>
+              </div>
+              
+              {/* Semester Stats */}
+              <div className={styles.semesterStatsContainer}>
+                {semesterStats[selectedOverallSemester] ? (
+                  <div className={styles.semesterStatCard}>
+                    <h3 className={styles.semesterTitle}>Semester {selectedOverallSemester}</h3>
                     <div className={styles.statsContainer}>
                       <div className={styles.statCard} data-icon="total">
                         <h3>Total Classes</h3>
-                        <p>{stats.totalClasses}</p>
+                        <p>{semesterStats[selectedOverallSemester].totalClasses}</p>
                       </div>
                       <div className={styles.statCard} data-icon="present">
                         <h3>Present</h3>
-                        <p>{stats.present}</p>
+                        <p>{semesterStats[selectedOverallSemester].present}</p>
                       </div>
                       <div className={styles.statCard} data-icon="absent">
                         <h3>Absent</h3>
-                        <p>{stats.absent}</p>
+                        <p>{semesterStats[selectedOverallSemester].absent}</p>
                       </div>
                       <div className={styles.statCard} data-type="percentage" data-icon="percentage">
-                        <h3>Attendance %</h3>
-                        <p>{stats.percentage}%</p>
+                        <h3>Overall %</h3>
+                        <p>{semesterStats[selectedOverallSemester].percentage}%</p>
                         <div className={styles.progressBar}>
                           <div 
                             className={styles.progressFill} 
-                            style={{ width: `${stats.percentage}%` }}
+                            style={{ width: `${semesterStats[selectedOverallSemester].percentage}%` }}
                           ></div>
                         </div>
                       </div>
                     </div>
-
-                    <div className={styles.attendanceList}>
-                      {attendance.map((record) => (
-                        <div
-                          key={record.id}
-                          className={`${styles.attendanceItem} ${styles[record.status]}`}
-                        >
-                          <div className={styles.attendanceContent}>
-                            <div className={styles.attendanceDetails}>
-                              <p className={styles.attendanceDate}>{record.date}</p>
-                              <p className={styles.attendanceStatus}>{record.status.toUpperCase()}</p>
-                              {record.semester && (
-                                <p className={styles.attendanceSemester}>Semester: {record.semester}</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
                   </div>
                 ) : (
-                  <div className={styles.loading}>
-                    {selectedSemester ? "Select a subject to view attendance" : "Select a semester to view attendance"}
+                  <div className={styles.noData}>
+                    <p>No attendance records found for Semester {selectedOverallSemester}.</p>
                   </div>
                 )}
-              </>
-            )}
-          </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className={styles.subjectSelector}>
+                <div className={styles.formGroup}>
+                  <label htmlFor="semester">Select Semester</label>
+                  <select
+                    id="semester"
+                    value={selectedSemester}
+                    onChange={handleSemesterChange}
+                  >
+                    {semesters.map((semester) => (
+                      <option key={semester} value={semester}>
+                        Semester {semester}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="subject">Select Subject</label>
+                  <select
+                    id="subject"
+                    value={selectedSubject}
+                    onChange={handleSubjectChange}
+                    disabled={!selectedSemester}
+                  >
+                    <option value="">
+                      {selectedSemester ? "Choose a subject" : "Select semester first"}
+                    </option>
+                    {subjects.map((subject) => (
+                      <option key={subject} value={subject}>
+                        {subject}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {loading || authLoading ? (
+                <div className={styles.loading}>Loading...</div>
+              ) : error ? (
+                <div className={styles.error}>{error}</div>
+              ) : selectedSubject ? (
+                <div className={styles.attendanceContainer}>
+                  <h2 className={styles.subjectTitle}>
+                    {selectedSubject} Attendance (Semester {selectedSemester})
+                  </h2>
+                  <div className={styles.statsContainer}>
+                    <div className={styles.statCard} data-icon="total">
+                      <h3>Total Classes</h3>
+                      <p>{stats.totalClasses}</p>
+                    </div>
+                    <div className={styles.statCard} data-icon="present">
+                      <h3>Present</h3>
+                      <p>{stats.present}</p>
+                    </div>
+                    <div className={styles.statCard} data-icon="absent">
+                      <h3>Absent</h3>
+                      <p>{stats.absent}</p>
+                    </div>
+                    <div className={styles.statCard} data-type="percentage" data-icon="percentage">
+                      <h3>Attendance %</h3>
+                      <p>{stats.percentage}%</p>
+                      <div className={styles.progressBar}>
+                        <div 
+                          className={styles.progressFill} 
+                          style={{ width: `${stats.percentage}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={styles.attendanceList}>
+                    {attendance.map((record) => (
+                      <div
+                        key={record.id}
+                        className={`${styles.attendanceItem} ${styles[record.status]}`}
+                      >
+                        <div className={styles.attendanceContent}>
+                          <div className={styles.attendanceDetails}>
+                            <p className={styles.attendanceDate}>{record.date}</p>
+                            <p className={styles.attendanceStatus}>{record.status.toUpperCase()}</p>
+                            {record.semester && (
+                              <p className={styles.attendanceSemester}>Semester: {record.semester}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className={styles.loading}>
+                  {selectedSemester ? "Select a subject to view attendance" : "Select a semester to view attendance"}
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
-    </IntroAnimation>
+    </div>
   );
 }

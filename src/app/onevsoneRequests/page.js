@@ -1,16 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { db, auth } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import { collection, getDocs, query, where, updateDoc, doc, deleteDoc, getDoc, setDoc, addDoc, onSnapshot, arrayUnion } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/studentNavbar";
 import styles from "./page.module.css";
 import IntroAnimation from "../../components/IntroAnimation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function OneVsOneRequests() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [receivedRequests, setReceivedRequests] = useState([]);
   const [sentRequests, setSentRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,109 +21,113 @@ export default function OneVsOneRequests() {
   const [generatingQuizId, setGeneratingQuizId] = useState(null); // Track which quiz is being generated
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        try {
-          setLoading(true);
-          
-          // Check if challenges collection exists
-          const challengesRef = collection(db, "challenges");
-          const challengesSnapshot = await getDocs(challengesRef);
-          
-          // If challenges collection is empty, create an initial document to ensure the collection exists
-          if (challengesSnapshot.empty) {
-            const initialChallengeRef = doc(challengesRef);
-            await setDoc(initialChallengeRef, {
-              type: "initial",
-              createdAt: new Date().toISOString(),
-              description: "Initial document to ensure challenges collection exists"
-            });
-            console.log("Created challenges collection with initial document");
-          }
-          
-          // Get the current user's data from students collection
-          const studentDoc = await getDoc(doc(db, "students", user.uid));
-          if (studentDoc.exists()) {
-            const studentData = {
-              id: studentDoc.id,
-              ...studentDoc.data()
-            };
-            setCurrentUser(studentData);
-            
-            // Fetch requests where the current user is the recipient
-            const receivedRequestsQuery = query(
-              collection(db, "onevsoneRequests"),
-              where("toUserId", "==", user.uid)
-            );
-            
-            // Fetch requests where the current user is the sender
-            const sentRequestsQuery = query(
-              collection(db, "onevsoneRequests"),
-              where("fromUserId", "==", user.uid)
-            );
-            
-            const [receivedSnapshot, sentSnapshot] = await Promise.all([
-              getDocs(receivedRequestsQuery),
-              getDocs(sentRequestsQuery)
-            ]);
-            
-            // Process received requests
-            const receivedRequestsList = [];
-            for (const doc of receivedSnapshot.docs) {
-              const data = doc.data();
-              if (!data.fromUserId || !data.toUserId || !data.topic) {
-                console.log("Skipping invalid request:", doc.id);
-                continue;
-              }
-              
-              receivedRequestsList.push({
-                id: doc.id,
-                ...data,
-                createdAt: data.createdAt?.toDate() || new Date(),
-                isReceiver: true
-              });
-            }
-            
-            // Process sent requests
-            const sentRequestsList = [];
-            for (const doc of sentSnapshot.docs) {
-              const data = doc.data();
-              if (!data.fromUserId || !data.toUserId || !data.topic) {
-                console.log("Skipping invalid request:", doc.id);
-                continue;
-              }
-              
-              sentRequestsList.push({
-                id: doc.id,
-                ...data,
-                createdAt: data.createdAt?.toDate() || new Date(),
-                isReceiver: false
-              });
-            }
-            
-            // Sort requests by createdAt
-            receivedRequestsList.sort((a, b) => b.createdAt - a.createdAt);
-            sentRequestsList.sort((a, b) => b.createdAt - a.createdAt);
-            
-            setReceivedRequests(receivedRequestsList);
-            setSentRequests(sentRequestsList);
-          } else {
-            setError("Student data not found");
-          }
-        } catch (err) {
-          console.error("Error fetching data:", err);
-          setError("Failed to load requests");
-        } finally {
-          setLoading(false);
+    const fetchRequests = async () => {
+      try {
+        // Use cached auth user instead of auth.currentUser
+        if (!user) {
+          console.log("No user is signed in.");
+          return; // Don't redirect, let AuthGate handle it
         }
-      } else {
-        setError("User not authenticated");
+
+        setLoading(true);
+        
+        // Check if challenges collection exists
+        const challengesRef = collection(db, "challenges");
+        const challengesSnapshot = await getDocs(challengesRef);
+        
+        // If challenges collection is empty, create an initial document to ensure the collection exists
+        if (challengesSnapshot.empty) {
+          const initialChallengeRef = doc(challengesRef);
+          await setDoc(initialChallengeRef, {
+            type: "initial",
+            createdAt: new Date().toISOString(),
+            description: "Initial document to ensure challenges collection exists"
+          });
+          console.log("Created challenges collection with initial document");
+        }
+        
+        // Get the current user's data from students collection
+        const studentDoc = await getDoc(doc(db, "students", user.uid));
+        if (studentDoc.exists()) {
+          const studentData = {
+            id: studentDoc.id,
+            ...studentDoc.data()
+          };
+          setCurrentUser(studentData);
+          
+          // Fetch requests where the current user is the recipient
+          const receivedRequestsQuery = query(
+            collection(db, "onevsoneRequests"),
+            where("toUserId", "==", user.uid)
+          );
+          
+          // Fetch requests where the current user is the sender
+          const sentRequestsQuery = query(
+            collection(db, "onevsoneRequests"),
+            where("fromUserId", "==", user.uid)
+          );
+          
+          const [receivedSnapshot, sentSnapshot] = await Promise.all([
+            getDocs(receivedRequestsQuery),
+            getDocs(sentRequestsQuery)
+          ]);
+          
+          // Process received requests
+          const receivedRequestsList = [];
+          for (const doc of receivedSnapshot.docs) {
+            const data = doc.data();
+            if (!data.fromUserId || !data.toUserId || !data.topic) {
+              console.log("Skipping invalid request:", doc.id);
+              continue;
+            }
+            
+            receivedRequestsList.push({
+              id: doc.id,
+              ...data,
+              createdAt: data.createdAt?.toDate() || new Date(),
+              isReceiver: true
+            });
+          }
+          
+          // Process sent requests
+          const sentRequestsList = [];
+          for (const doc of sentSnapshot.docs) {
+            const data = doc.data();
+            if (!data.fromUserId || !data.toUserId || !data.topic) {
+              console.log("Skipping invalid request:", doc.id);
+              continue;
+            }
+            
+            sentRequestsList.push({
+              id: doc.id,
+              ...data,
+              createdAt: data.createdAt?.toDate() || new Date(),
+              isReceiver: false
+            });
+          }
+          
+          // Sort requests by createdAt
+          receivedRequestsList.sort((a, b) => b.createdAt - a.createdAt);
+          sentRequestsList.sort((a, b) => b.createdAt - a.createdAt);
+          
+          setReceivedRequests(receivedRequestsList);
+          setSentRequests(sentRequestsList);
+        } else {
+          setError("Student data not found");
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError("Failed to load requests");
+      } finally {
         setLoading(false);
       }
-    });
+    };
 
-    return () => unsubscribe();
-  }, []);
+    // Only fetch data when user is available and auth is not loading
+    if (user && !authLoading) {
+      fetchRequests();
+    }
+  }, [user?.uid, authLoading]);
 
   const handleAcceptRequest = async (requestId) => {
     try {
