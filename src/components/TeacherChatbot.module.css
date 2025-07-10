@@ -127,6 +127,48 @@
   font-family: 'Inter', sans-serif;
 }
 
+.botMessageContent {
+  line-height: 1.6;
+  font-size: 0.95rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.botMessageContent p {
+  margin: 0 0 0.5rem 0;
+}
+
+.botMessageContent p:last-child {
+  margin-bottom: 0;
+}
+
+.botMessageContent strong {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.botMessageContent em {
+  font-style: italic;
+  color: #4b5563;
+}
+
+.botMessageContent code {
+  background: rgba(102, 126, 234, 0.1);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.85rem;
+  color: #667eea;
+}
+
+.botMessageContent ul, .botMessageContent ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.botMessageContent li {
+  margin: 0.25rem 0;
+}
+
 .timestamp {
   font-size: 0.75rem;
   opacity: 0.7;
