@@ -472,6 +472,7 @@ export default function TeacherAttendance() {
                             type="date"
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
+                            suppressHydrationWarning
                         />
                     </div>
                     <div className={styles.formGroup}>
@@ -481,6 +482,7 @@ export default function TeacherAttendance() {
                             value={selectedClass}
                             onChange={(e) => setSelectedClass(e.target.value)}
                             required
+                            suppressHydrationWarning
                         >
                             <option value="">Choose a class</option>
                             {classes.map((classItem) => (
@@ -498,6 +500,7 @@ export default function TeacherAttendance() {
                             value={selectedSemester}
                             onChange={(e) => setSelectedSemester(e.target.value)}
                             required
+                            suppressHydrationWarning
                         >
                             <option value="">Choose a semester</option>
                             {semesters.map((semester) => (
@@ -516,6 +519,7 @@ export default function TeacherAttendance() {
                             onChange={(e) => setSelectedSubject(e.target.value)}
                             required
                             disabled={!selectedSemester}
+                            suppressHydrationWarning
                         >
                             <option value="">
                                 {selectedSemester ? "Choose a subject" : "Select semester first"}
@@ -572,6 +576,7 @@ export default function TeacherAttendance() {
                             type="button"
                             onClick={handleMarkAllPresent}
                             className={`${styles.markAllButton} ${styles.markAllPresent}`}
+                            suppressHydrationWarning
                         >
                             Mark All Present
                         </button>
@@ -579,6 +584,7 @@ export default function TeacherAttendance() {
                             type="button"
                             onClick={handleMarkAllAbsent}
                             className={`${styles.markAllButton} ${styles.markAllAbsent}`}
+                            suppressHydrationWarning
                         >
                             Mark All Absent
                         </button>
@@ -613,6 +619,7 @@ export default function TeacherAttendance() {
                         onClick={handleSubmit}
                         className={styles.saveButton}
                         disabled={loading}
+                        suppressHydrationWarning
                     >
                         {loading ? "Saving..." : "Save Attendance"}
                     </button>

@@ -1,17 +1,19 @@
 "use client";
 import { useState, useEffect } from "react";
-import { auth, db } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import { collection, query, getDocs, doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/studentNavbar";
 import styles from "./page.module.css";
 import IntroAnimation from "../../components/IntroAnimation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function StudentQuizList() {
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
 
   // Simplified gamification helper functions
   const calculateEstimatedTime = (quiz) => {
@@ -75,13 +77,22 @@ export default function StudentQuizList() {
     return subjectIcons[subject] || '📝';
   };
 
+  // Function to capitalize first letter of each word
+  const capitalizeWords = (text) => {
+    if (!text) return text;
+    return text
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
   useEffect(() => {
     const fetchQuizzes = async () => {
       try {
-        const user = auth.currentUser;
+        // Use cached auth user instead of auth.currentUser
         if (!user) {
-          router.push("/login");
-          return;
+          console.log("No user is signed in.");
+          return; // Don't redirect, let AuthGate handle it
         }
 
         // Get user's class
@@ -109,8 +120,11 @@ export default function StudentQuizList() {
       }
     };
 
-    fetchQuizzes();
-  }, [router]);
+    // Only fetch data when user is available and auth is not loading
+    if (user && !authLoading) {
+      fetchQuizzes();
+    }
+  }, [user?.uid, authLoading, router]);
 
   const handleStartQuiz = (quizId) => {
     router.push(`/Studentquiz/${quizId}`);
@@ -158,7 +172,7 @@ export default function StudentQuizList() {
                     <div className={styles.quizHeader}>
                       <div className={styles.titleContainer}>
                         <span className={styles.subjectIcon}>{subjectIcon}</span>
-                        <h3 className={styles.quizTitle}>{quiz.topic || "Untitled Quiz"}</h3>
+                        <h3 className={styles.quizTitle}>{capitalizeWords(quiz.topic) || "Untitled Quiz"}</h3>
                       </div>
                     </div>
 

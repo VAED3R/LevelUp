@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation"; 
 import { getFirestore, doc, getDoc } from "firebase/firestore";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { app } from "@/lib/firebase";  // Your Firebase config
 import Navbar from "@/components/studentNavbar";
 import styles from "./page.module.css";
 import Loading from '@/components/loading';
 import IntroAnimation from "../../components/IntroAnimation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Materials() {
   const [files, setFiles] = useState([]);
@@ -17,6 +17,7 @@ export default function Materials() {
   const [userClass, setUserClass] = useState("");
   const [filteredFiles, setFilteredFiles] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const { user, loading: authLoading } = useAuth();
 
   const searchParams = useSearchParams();
   const subject = searchParams.get("subject");
@@ -34,6 +35,7 @@ export default function Materials() {
           setUserClass(userData.class);  // Store the user's class
         } else {
           console.error("No such user!");
+          setError("User data not found.");
         }
       } catch (error) {
         console.error("Error fetching user class:", error);
@@ -41,16 +43,14 @@ export default function Materials() {
       }
     };
 
-    const auth = getAuth(app);
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        fetchUserClass(user.uid);  // Fetch class by current user ID
-      } else {
-        setError("User not authenticated.");
-        setLoading(false);
-      }
-    });
-  }, []);
+    // Use cached auth user instead of onAuthStateChanged
+    if (user) {
+      fetchUserClass(user.uid);
+    } else if (!authLoading) {
+      setError("User not authenticated.");
+      setLoading(false);
+    }
+  }, [user, authLoading]);
 
   useEffect(() => {
     const fetchFiles = async () => {
@@ -119,12 +119,25 @@ export default function Materials() {
     });
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <IntroAnimation loadingText="Loading Study Materials...">
         <div className={styles.container}>
           <Navbar />
-          <div className={styles.loading}>Loading materials...</div>
+          <div className={styles.skeletonContainer}>
+            <div className={styles.skeletonTitle}></div>
+            <div className={styles.skeletonSearch}></div>
+            <div className={styles.skeletonGrid}>
+              {[1, 2, 3, 4].map((item) => (
+                <div key={item} className={styles.skeletonCard}>
+                  <div className={styles.skeletonCardTitle}></div>
+                  <div className={styles.skeletonCardInfo}></div>
+                  <div className={styles.skeletonCardDescription}></div>
+                  <div className={styles.skeletonCardButtons}></div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </IntroAnimation>
     );

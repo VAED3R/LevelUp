@@ -1,11 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
-import { auth, db } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, orderBy, doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/studentNavbar";
 import styles from './page.module.css';
 import IntroAnimation from "../../components/IntroAnimation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function ViewResults() {
   const [results, setResults] = useState([]);
@@ -17,14 +18,15 @@ export default function ViewResults() {
   const [selectedSemester, setSelectedSemester] = useState("6"); // Default to semester 6
   const [allSubjectsData, setAllSubjectsData] = useState([]);
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const user = auth.currentUser;
+        // Use cached auth user instead of auth.currentUser
         if (!user) {
-          router.push("/login");
-          return;
+          console.log("No user is signed in.");
+          return; // Don't redirect, let AuthGate handle it
         }
 
         const userId = user.uid;
@@ -53,8 +55,11 @@ export default function ViewResults() {
       }
     };
 
-    fetchResults();
-  }, [router]);
+    // Only fetch data when user is available and auth is not loading
+    if (user && !authLoading) {
+      fetchResults();
+    }
+  }, [user?.uid, authLoading, router]);
 
   // Fetch subjects and semesters from subjects collection
   useEffect(() => {

@@ -9,6 +9,7 @@ import Link from "next/link";
 import { getAuth } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import IntroAnimation from "../../components/IntroAnimation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Leaderboard() {
   const [students, setStudents] = useState([]);
@@ -33,23 +34,23 @@ export default function Leaderboard() {
   const [showActionPopup, setShowActionPopup] = useState(false);
   const [sortBy, setSortBy] = useState("points-desc"); // points-desc, points-asc, name-asc, name-desc
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
+    if (!user || authLoading) return;
+    
     const fetchStudents = async () => {
       setLoading(true);
       try {
-        // Get current user from authentication
-        const auth = getAuth();
-        const currentUserAuth = auth.currentUser;
-        
-        if (!currentUserAuth) {
-          console.log("No user logged in, redirecting to login page");
+        // Use cached auth user instead of auth.currentUser
+        if (!user) {
+          console.log("No user logged in");
           setAuthError(true);
           setLoading(false);
           return;
         }
 
-        console.log("Current user UID:", currentUserAuth.uid); // Debug log
+        console.log("Current user UID:", user.uid); // Debug log
 
         // Fetch students from the students collection
         const querySnapshot = await getDocs(collection(db, "students"));
@@ -85,7 +86,7 @@ export default function Leaderboard() {
         );
 
         // Find the current user in the students list by matching the UID
-        const currentUserStudent = studentsList.find(student => student.id === currentUserAuth.uid);
+        const currentUserStudent = studentsList.find(student => student.id === user.uid);
         
         console.log("Found current user student:", currentUserStudent); // Debug log
 
@@ -105,7 +106,7 @@ export default function Leaderboard() {
     };
 
     fetchStudents();
-  }, []);
+  }, [user?.uid, authLoading]);
 
   // Handle sticky positioning for bottom half users
   useEffect(() => {
@@ -512,7 +513,7 @@ export default function Leaderboard() {
                 </div>
               )}
 
-              {loading ? (
+              {loading || authLoading ? (
                 <p className={styles.loading}>Loading...</p>
               ) : (
                 <div className={styles.leaderboardContainer}>

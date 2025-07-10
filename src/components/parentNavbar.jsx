@@ -12,8 +12,10 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
+      // Clear the authentication state before signing out
+      localStorage.removeItem('wasAuthenticated');
       await signOut(auth);
-      router.push("/");  // Redirect to login after logout
+      router.push("/login");  // Redirect directly to login after logout
     } catch (error) {
       console.error("Logout failed:", error);
     }
@@ -38,7 +40,7 @@ export default function Navbar() {
       <div className={styles.buttonContainer}>
         {/* Logout button */}
         {user && (
-          <button onClick={handleLogout} className={styles.logoutButton}>
+          <button onClick={handleLogout} className={styles.logoutButton} suppressHydrationWarning>
             Logout
           </button>
         )}

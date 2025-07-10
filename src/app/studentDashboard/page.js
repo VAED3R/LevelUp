@@ -8,6 +8,7 @@ import style from './page.module.css';
 import IntroAnimation from "../../components/IntroAnimation";
 import Navbar from "@/components/studentNavbar";
 import StudentChatbot from "@/components/StudentChatbot";
+import { useAuth } from "@/context/AuthContext";
 
 // Helper to get the notification read doc ref
 const getReadNotificationsDocRef = (userId) => doc(db, "students", userId, "meta", "notificationRead");
@@ -34,16 +35,15 @@ export default function StudentDashboard() {
     attendancePercentage: 0
   });
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const user = auth.currentUser;
-
+        // Use cached auth user instead of auth.currentUser
         if (!user) {
           console.log("No user is signed in.");
-          router.push("/login");
-          return;
+          return; // Don't redirect, let AuthGate handle it
         }
 
         // First get user data from users collection
@@ -97,12 +97,14 @@ export default function StudentDashboard() {
       }
     };
 
-    fetchUserData();
-  }, [router]);
+    // Only fetch data when user is available and auth is not loading
+    if (user && !authLoading) {
+      fetchUserData();
+    }
+  }, [user?.uid, authLoading, router]);
 
   // Load read notification IDs from Firestore on mount
   useEffect(() => {
-    const user = auth.currentUser;
     if (!user) return;
     const docRef = getReadNotificationsDocRef(user.uid);
     getDoc(docRef).then((docSnap) => {
@@ -111,11 +113,10 @@ export default function StudentDashboard() {
         setReadNotificationIds(new Set(ids));
       }
     });
-  }, []);
+  }, [user]);
 
   // Save read notification IDs to Firestore
   const persistReadNotifications = async (ids) => {
-    const user = auth.currentUser;
     if (!user) return;
     const docRef = getReadNotificationsDocRef(user.uid);
     await setDoc(docRef, { ids: Array.from(ids) });
@@ -123,7 +124,6 @@ export default function StudentDashboard() {
 
   // Notification system
   useEffect(() => {
-    const user = auth.currentUser;
     if (!user || !userData) return;
 
     let currentNotifications = [];
@@ -432,7 +432,7 @@ export default function StudentDashboard() {
       if (!userData) return;
 
       try {
-        const user = auth.currentUser;
+        // Use cached auth user instead of auth.currentUser
         if (!user) return;
 
         // Fetch student data using the same API route as personalizedLearning
@@ -549,7 +549,7 @@ export default function StudentDashboard() {
     };
 
     fetchStudentActivity();
-  }, [userData, pointsData]);
+  }, [userData, pointsData, user?.uid]);
 
   // Enhanced achievement checking logic
   const checkAchievements = (activity) => {

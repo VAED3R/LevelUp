@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { auth, db } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc, arrayUnion, setDoc } from "firebase/firestore";
 import { useRouter, useParams } from "next/navigation";
 import Navbar from "@/components/teacherNavbar";
 import styles from "./page.module.css";
+import { useAuth } from "@/context/AuthContext";
 
 export default function ViewQuiz() {
     const [quiz, setQuiz] = useState(null);
@@ -19,14 +20,15 @@ export default function ViewQuiz() {
     const [isTeacher, setIsTeacher] = useState(false);
     const router = useRouter();
     const params = useParams();
+    const { user, loading: authLoading } = useAuth();
 
     useEffect(() => {
         const fetchQuiz = async () => {
             try {
-                const user = auth.currentUser;
+                // Use cached auth user instead of auth.currentUser
                 if (!user) {
-                    router.push("/login");
-                    return;
+                    console.log("No user is signed in.");
+                    return; // Don't redirect, let AuthGate handle it
                 }
 
                 // Check if user is a teacher
@@ -79,8 +81,11 @@ export default function ViewQuiz() {
             }
         };
 
-        fetchQuiz();
-    }, [router, params.id, isTeacher]);
+        // Only fetch data when user is available and auth is not loading
+        if (user && !authLoading) {
+            fetchQuiz();
+        }
+    }, [user?.uid, authLoading, router, params.id, isTeacher]);
 
     // Timer effect
     useEffect(() => {
@@ -126,7 +131,6 @@ export default function ViewQuiz() {
 
         // Update student's points in Firestore
         try {
-            const user = auth.currentUser;
             const userRef = doc(db, "users", user.uid);
             
             // Create points object with proper structure
