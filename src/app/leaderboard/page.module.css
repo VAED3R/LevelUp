@@ -718,6 +718,23 @@
   text-shadow: 0 0 5px rgba(156, 52, 208, 0.5);
 }
 
+/* Loading and No Topics Messages */
+.loading {
+  font-size: 14px;
+  color: #7f37c6;
+  text-align: center;
+  margin: 10px 0;
+  font-style: italic;
+}
+
+.noTopics {
+  font-size: 14px;
+  color: #ff6b6b;
+  text-align: center;
+  margin: 10px 0;
+  font-style: italic;
+}
+
 /* Request Button */
 .requestButton {
   font-family: 'Press Start 2P', cursive;

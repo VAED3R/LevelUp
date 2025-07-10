@@ -24,6 +24,7 @@ export default function Leaderboard() {
   const [requestLoading, setRequestLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [quizParams, setQuizParams] = useState({
+    subject: "",
     topic: "",
     difficulty: "medium",
     timeLimit: 30,
@@ -33,8 +34,136 @@ export default function Leaderboard() {
   const [authError, setAuthError] = useState(false);
   const [showActionPopup, setShowActionPopup] = useState(false);
   const [sortBy, setSortBy] = useState("points-desc"); // points-desc, points-asc, name-asc, name-desc
+  const [subjects, setSubjects] = useState([]);
+  const [topics, setTopics] = useState([]);
+  const [topicsLoading, setTopicsLoading] = useState(false);
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
+
+  // Fetch subjects from RAG API for semester 6
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        console.log("Fetching subjects for semester 6 from RAG API...");
+        
+        const res = await fetch('http://localhost:8000/semester_subjects', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ semester: "6" })
+        });
+        
+        console.log("Subjects API response status:", res.status);
+        console.log("Subjects API response ok:", res.ok);
+        
+        if (!res.ok) {
+          console.error("Subjects API error - status:", res.status);
+          const errorText = await res.text();
+          console.error("Subjects API error text:", errorText);
+          setSubjects([]);
+          return;
+        }
+        
+        const data = await res.json();
+        console.log("Subjects API response data:", data);
+        
+        if (data.subjects && data.subjects.length > 0) {
+          console.log("Raw subjects for semester 6:", data.subjects);
+          console.log("Number of raw subjects:", data.subjects.length);
+          
+          // Filter subjects to only include those that have topics in quiz_topics.txt
+          // The subjects from RAG API might include course codes and descriptions
+          // We need to extract just the subject names that match quiz_topics.txt
+          const validSubjects = [
+            "Linear Regression Analysis",
+            "Multivariate Analysis", 
+            "Statistical Machine Learning",
+            "Biostatistics",
+            "Econometrics",
+            "Statistical Quality Control",
+            "Operations Research",
+            "Simulation Techniques",
+            "Basic Research Methodology"
+          ];
+          
+          // Filter subjects that match any of the valid subjects
+          const filteredSubjects = data.subjects.filter(subject => {
+            // Check if any valid subject is contained in the raw subject string
+            return validSubjects.some(validSubject => 
+              subject.toLowerCase().includes(validSubject.toLowerCase())
+            );
+          });
+          
+          // Extract the actual subject names from the filtered subjects
+          const extractedSubjects = filteredSubjects.map(subject => {
+            // Find which valid subject this matches
+            const matchedSubject = validSubjects.find(validSubject => 
+              subject.toLowerCase().includes(validSubject.toLowerCase())
+            );
+            return matchedSubject || subject;
+          });
+          
+          // Remove duplicates
+          const uniqueSubjects = [...new Set(extractedSubjects)];
+          
+          console.log("Filtered subjects:", uniqueSubjects);
+          console.log("Number of filtered subjects:", uniqueSubjects.length);
+          setSubjects(uniqueSubjects.sort());
+        } else {
+          console.log("No subjects found for semester 6");
+          setSubjects([]);
+        }
+      } catch (error) {
+        console.error("Error fetching subjects:", error);
+        console.error("Error details:", error.message);
+        setSubjects([]);
+      }
+    };
+
+    fetchSubjects();
+  }, []);
+
+  // Fetch topics for selected subject
+  useEffect(() => {
+    const fetchTopics = async () => {
+      if (quizParams.subject) {
+        console.log("Fetching topics for subject:", quizParams.subject);
+        console.log("Subject type:", typeof quizParams.subject);
+        console.log("Subject length:", quizParams.subject.length);
+        setTopicsLoading(true);
+        try {
+          const res = await fetch("/api/get-topics", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ subject: quizParams.subject }),
+          });
+          console.log("Topics API response status:", res.status);
+          console.log("Topics API response ok:", res.ok);
+          
+          if (!res.ok) {
+            console.error("Topics API error - status:", res.status);
+            const errorText = await res.text();
+            console.error("Topics API error text:", errorText);
+            setTopics([]);
+            return;
+          }
+          
+          const data = await res.json();
+          console.log("Topics API response data:", data);
+          setTopics(data.topics || []);
+        } catch (e) {
+          console.error("Error fetching topics:", e);
+          console.error("Error details:", e.message);
+          setTopics([]);
+        }
+        setTopicsLoading(false);
+      } else {
+        console.log("No subject selected, clearing topics");
+        setTopics([]);
+        setTopicsLoading(false);
+      }
+    };
+    fetchTopics();
+  }, [quizParams.subject]);
 
   useEffect(() => {
     if (!user || authLoading) return;
@@ -264,8 +393,13 @@ export default function Leaderboard() {
       return;
     }
 
+    if (!quizParams.subject.trim()) {
+      alert("Please select a subject");
+      return;
+    }
+
     if (!quizParams.topic.trim()) {
-      alert("Please enter a quiz topic");
+      alert("Please select a topic");
       return;
     }
 
@@ -288,7 +422,9 @@ export default function Leaderboard() {
         fromUserName: currentUser.name,
         toUserId: selectedStudent.id,
         toUserName: selectedStudent.name,
+        subject: quizParams.subject,
         topic: quizParams.topic,
+        semester: 6, // Default semester as requested
         difficulty: quizParams.difficulty,
         timeLimit: parseInt(quizParams.timeLimit),
         pointsWagered: parseInt(quizParams.pointsWagered),
@@ -304,6 +440,7 @@ export default function Leaderboard() {
       setShowRequestForm(false);
       setSelectedStudent(null);
       setQuizParams({
+        subject: "",
         topic: "",
         difficulty: "medium",
         timeLimit: 30,
@@ -322,6 +459,7 @@ export default function Leaderboard() {
     setShowRequestForm(false);
     setSelectedStudent(null);
     setQuizParams({
+      subject: "",
       topic: "",
       difficulty: "medium",
       timeLimit: 30,
@@ -361,17 +499,47 @@ export default function Leaderboard() {
                       </div>
                       
                       <div className={styles.formGroup}>
-                        <label htmlFor="topic" className={styles.formLabel}>Quiz Topic:</label>
-                        <input
-                          type="text"
-                          id="topic"
-                          name="topic"
-                          value={quizParams.topic}
+                        <label htmlFor="subject" className={styles.formLabel}>Subject:</label>
+                        <select
+                          id="subject"
+                          name="subject"
+                          value={quizParams.subject}
                           onChange={handleInputChange}
-                          className={styles.formInput}
-                          placeholder="Enter quiz topic (e.g., Math, Science)"
-                        />
+                          className={styles.formSelect}
+                          onBlur={() => setQuizParams(prev => ({ ...prev, topic: "" }))} // Clear topic when subject changes
+                        >
+                          <option value="">Select a Subject</option>
+                          {subjects.map((subject, index) => (
+                            <option key={index} value={subject}>
+                              {subject}
+                            </option>
+                          ))}
+                        </select>
                       </div>
+
+                      {topicsLoading ? (
+                        <p className={styles.loading}>Loading topics...</p>
+                      ) : topics.length > 0 ? (
+                        <div className={styles.formGroup}>
+                          <label htmlFor="topic" className={styles.formLabel}>Topic:</label>
+                          <select
+                            id="topic"
+                            name="topic"
+                            value={quizParams.topic}
+                            onChange={handleInputChange}
+                            className={styles.formSelect}
+                          >
+                            <option value="">Select a Topic</option>
+                            {topics.map((topic, index) => (
+                              <option key={index} value={topic}>
+                                {topic}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      ) : (
+                        <p className={styles.noTopics}>No topics available for this subject.</p>
+                      )}
                       
                       <div className={styles.formGroup}>
                         <label htmlFor="difficulty" className={styles.formLabel}>Difficulty:</label>
@@ -420,7 +588,7 @@ export default function Leaderboard() {
                       <button 
                         className={styles.requestButton}
                         onClick={handleSendRequest}
-                        disabled={requestLoading || !quizParams.topic.trim()}
+                        disabled={requestLoading || !quizParams.topic.trim() || !quizParams.subject}
                       >
                         {requestLoading ? "Sending..." : "Send Challenge Request"}
                       </button>
