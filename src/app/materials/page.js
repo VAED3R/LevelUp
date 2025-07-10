@@ -152,6 +152,9 @@ export default function Materials() {
     );
   }
 
+  // Log when the full page loads
+  console.log("Materials page fully loaded - Files:", filteredFiles.length, "Subject:", subject, "User Class:", userClass);
+
   return (
     <IntroAnimation loadingText="Loading Study Materials...">
       <div className={styles.container}>
